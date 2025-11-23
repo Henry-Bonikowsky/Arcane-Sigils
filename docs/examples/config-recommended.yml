@@ -1,0 +1,220 @@
+# RECOMMENDED ARMORSETS CONFIGURATION
+# Copy this to plugins/ArmorSets/config.yml as a starting point
+
+# ============================================================================
+# GENERAL SETTINGS
+# ============================================================================
+settings:
+  # Enable console debug messages
+  # Helpful for troubleshooting issues
+  debug: false
+
+  # How often to re-check static effects (in ticks, 20 = 1 second)
+  # Lower = more responsive, higher = less CPU usage
+  # Recommended: 20 (1 second)
+  effect-check-interval: 20
+
+  # Enable ItemsAdder integration for custom items
+  # Only set to true if ItemsAdder is installed
+  use-itemsadder: false
+
+# ============================================================================
+# CORE FUNCTION SETTINGS (Socketable Abilities)
+# ============================================================================
+core-functions:
+  # Can players give/trade function shards to each other?
+  allow-trading: true
+
+  # Can players extract functions from armor (unsocket them)?
+  allow-extraction: true
+
+  # Cost to extract a function (currency or items)
+  # Set to 0 for free extraction
+  extraction-cost: 0
+
+  # Enforce tier restrictions
+  # If true: Tier I armor can only hold Tier I functions
+  # If false: Any tier function can go in any armor (more freedom)
+  enforce-tier-restrictions: false
+
+  # Enforce slot restrictions
+  # If true: Helmet functions ONLY go in helmets
+  # Usually should be true
+  enforce-slot-restrictions: true
+
+# ============================================================================
+# ARMOR SET DETECTION SETTINGS
+# ============================================================================
+sets:
+  # How to detect if player is wearing a set
+  # NAME_PATTERN: Check if all pieces match a regex pattern (recommended)
+  # LORE_TAG: Check if armor has specific lore text
+  # NBT_TAG: Check NBT data on items
+  detection-method: NAME_PATTERN
+
+  # Should all 4 pieces be the same tier?
+  # If true: Must wear 4/4 same tier for set bonus (Arcanist T1 + T2 mixed doesn't work)
+  # If false: Can mix tiers and still get bonus (more flexible)
+  require-same-tier: true
+
+  # Enable partial set bonuses
+  # Let players get bonuses with 2-3 pieces instead of full 4
+  partial-bonuses:
+    enabled: false
+    2-piece-multiplier: 0.25   # 25% of full set bonus
+    3-piece-multiplier: 0.5    # 50% of full set bonus
+
+# ============================================================================
+# GUI SETTINGS (Socket Interface)
+# ============================================================================
+gui:
+  # Title when opening socket GUI
+  socket-title: "&8Socket Core Function"
+
+  # Title for function storage GUI
+  storage-title: "&8Core Function Storage"
+
+  # Sounds for GUI interactions
+  sounds:
+    open: BLOCK_CHEST_OPEN
+    close: BLOCK_CHEST_CLOSE
+    socket: BLOCK_ANVIL_USE
+    unsocket: BLOCK_ANVIL_LAND
+    error: ENTITY_VILLAGER_NO
+
+# ============================================================================
+# COOLDOWN SETTINGS
+# ============================================================================
+cooldowns:
+  # Global cooldown between ability activations (in ticks)
+  # 10 ticks = 0.5 seconds
+  # 20 ticks = 1 second
+  # 0 = no global cooldown
+  global-cooldown: 0
+
+  # Show messages when abilities are on cooldown?
+  show-cooldown-messages: true
+
+  # Message format when ability is on cooldown
+  # %ability% = ability name
+  # %remaining% = seconds remaining
+  cooldown-message: "&c%ability% is on cooldown! (%remaining%s remaining)"
+
+# ============================================================================
+# EFFECT CAPS & LIMITS (Balance Settings)
+# ============================================================================
+effects:
+  # Maximum damage increase from effects (percentage)
+  # If set to 500, effects can boost damage up to 500% max
+  # Prevents any one effect from being too overpowered
+  # Set higher if you want more powerful abilities
+  max-damage-increase: 500
+
+  # Maximum teleport distance for teleport effects (blocks)
+  max-teleport-distance: 50
+
+  # Maximum entities that can be spawned per effect
+  # Prevents lag from too many mobs spawning
+  max-spawned-entities: 5
+
+  # Maximum lifesteal percentage
+  # If set to 50, max healing is 50% of damage dealt
+  max-lifesteal: 50
+
+# ============================================================================
+# INTEGRATION SETTINGS (Third-Party Plugins)
+# ============================================================================
+integrations:
+  # PlaceholderAPI support for messages
+  # Enables %player_name%, %player_health%, etc in messages
+  placeholderapi: true
+
+  # WorldGuard region checks
+  # Effects won't trigger in certain WorldGuard regions
+  worldguard: true
+
+  # Respect WorldGuard PvP flags
+  # Effects won't trigger in no-PvP regions
+  respect-pvp-flags: true
+
+# ============================================================================
+# RECOMMENDED ADJUSTMENTS BY SERVER TYPE:
+# ============================================================================
+#
+# PVE SERVER (Cooperative/Monster Hunting):
+#   - Increase max-damage-increase to 800+ (stronger abilities)
+#   - Decrease effect-check-interval to 10 (more responsive)
+#   - Enable partial-bonuses for more progression
+#   - Lower cooldowns in your set configs
+#
+# PVP SERVER (Combat-Focused):
+#   - Keep max-damage-increase at 300-500 (balanced)
+#   - Keep cooldowns longer (5-10 seconds)
+#   - Enable require-same-tier: true (prevents min-maxing)
+#   - Lower max-lifesteal to 25-30 (less healing)
+#
+# CASUAL SERVER (Fun Gamemode):
+#   - Increase max-damage-increase to 1000+ (crazy powerful)
+#   - Lower cooldowns (1-2 seconds)
+#   - Enable partial-bonuses (easier to get bonuses)
+#   - Show cooldown-messages: true (more feedback)
+#
+# PERFORMANCE-CRITICAL:
+#   - Increase effect-check-interval to 40 (checks less often)
+#   - Disable placeholderapi if not needed
+#   - Disable worldguard if not needed
+#   - Use fewer, simpler effects
+#   - Lower max-spawned-entities to 2-3
+#
+# ============================================================================
+# DEBUG CONFIGURATION (Advanced)
+# ============================================================================
+#
+# To debug issues, enable debug mode:
+#   1. Set "debug: true" above
+#   2. Restart server
+#   3. Check console for detailed messages
+#   4. Look for [ArmorSets] log messages
+#   5. Check specific effect triggers
+#
+# Common Debug Messages:
+#   - "Loaded 42 armor sets" - Sets loaded successfully
+#   - "Loaded 156 core functions" - Functions loaded successfully
+#   - "Armor set detected: arcanist_t1" - Set detection working
+#   - "Effect triggered: INCREASE_DAMAGE" - Effect executed
+#   - "Cooldown active for player" - Cooldown preventing trigger
+#
+# ============================================================================
+# TESTING COMMANDS:
+# ============================================================================
+#
+# Give yourself a full armor set:
+#   /as give @s set arcanist_t1
+#
+# Give a function shard:
+#   /as give @s function night_sight
+#
+# Check held armor info:
+#   /as info
+#
+# Remove function from armor:
+#   /as unsocket
+#
+# Reload all configs (after making changes):
+#   /as reload
+#
+# Check performance:
+#   /as perf
+#
+# ============================================================================
+# NOTES:
+# ============================================================================
+#
+# 1. Always test new settings before putting on live server
+# 2. Start conservative with cooldowns and chances
+# 3. Gather player feedback and adjust as needed
+# 4. Use /as reload to test changes without restarting
+# 5. Monitor server performance with /as perf
+# 6. Enable debug mode when troubleshooting
+# 7. Keep backups of working config files
+#

@@ -1,0 +1,44 @@
+# Leggings Core Functions
+
+swift_stride:
+  name: "&eSwift Stride"
+  description:
+    - "Grants exceptional speed"
+  slot: LEGGINGS
+  tier: 1
+  effects:
+    EFFECT_STATIC:
+      chance: 100
+      effects:
+        - POTION:SPEED:999:1
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    name: "&eShard: Swift Stride"
+    lore:
+      - "&r&7Tier I Leggings Function"
+      - ""
+      - "&r&fRight-click leggings to socket"
+    glow: true
+
+phantom_flight:
+  name: "&dPhantom Flight"
+  description:
+    - "Soar through the air with unmatched grace"
+  slot: LEGGINGS
+  tier: 5
+  effects:
+    EFFECT_STATIC:
+      chance: 100
+      effects:
+        - POTION:SPEED:999:4
+        - POTION:JUMP_BOOST:999:3
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    name: "&dShard: Phantom Flight"
+    lore:
+      - "&r&eTier V Leggings Function"
+      - ""
+      - "&r&fRight-click leggings to socket"
+    glow: true

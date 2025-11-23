@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(tail:*)",
+      "Bash(mvn clean compile:*)",
+      "Bash(mvn.cmd clean compile:*)",
+      "Bash(gradlew.bat clean build:*)",
+      "Bash(cmd /c \"cd \"\"C:\\Users\\henry\\Programs(self)\\Custom ArmorWeapon Plugin\"\" && gradlew.bat clean build\")",
+      "Bash(cmd /c \"cd \"\"C:\\Users\\henry\\Programs(self)\\Custom ArmorWeapon Plugin\"\" && build.bat\")",
+      "Bash(xargs:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(bash:*)",
+      "Bash(jar tf:*)",
+      "Bash(javac:*)",
+      "Bash(gradle clean build:*)",
+      "Bash(cmd /c \"cd \"\"C:\\Users\\henry\\Programs(self)\\Custom ArmorWeapon Plugin\"\" && quick-build.bat\")",
+      "Bash(dir:*)",
+      "Bash(wc:*)",
+      "Bash(cmd /c \"mvn clean compile\")",
+      "Bash(tree:*)",
+      "Bash(move:*)",
+      "Bash(cmd /c:*)",
+      "Bash(powershell:*)",
+      "Bash(cd:*)",
+      "Bash(git checkout:*)",
+      "Bash(findstr:*)",
+      "Bash(grep:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

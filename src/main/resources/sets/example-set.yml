@@ -1,0 +1,83 @@
+# Example Armor Set Configuration
+# This demonstrates the configuration structure
+
+arcanist:
+  tiers:
+    1:
+      name_pattern: "Arcanist.*Tier I"
+      material: NETHERITE
+      equipped_message:
+        - "&d&l(!) &dYou don the Arcanist Set."
+        - "&5✨ &7Whispers from the aether fill your mind..."
+      unequipped_message:
+        - "&c&l(!) &cThe Arcanist Set has been removed."
+        - "&7The cosmic connection fades into silence..."
+
+      individual_effects:
+        helmet:
+          EFFECT_STATIC:
+            chance: 100
+            effects:
+              - POTION:NIGHT_VISION:999
+              - POTION:WATER_BREATHING:999
+            cooldown: 0
+        chestplate:
+          DEFENSE:
+            chance: 15
+            effects:
+              - AEGIS:3
+              - PARTICLE:PORTAL:30 @Self
+            cooldown: 10
+        leggings:
+          EFFECT_STATIC:
+            chance: 100
+            effects:
+              - POTION:SPEED:999:1
+            cooldown: 0
+        boots:
+          FALL_DAMAGE:
+            chance: 100
+            effects:
+              - CANCEL_EVENT
+            cooldown: 0
+
+    5:
+      name_pattern: "Arcanist.*Tier V"
+      material: NETHERITE
+      equipped_message:
+        - "&d&l(!) &dYou are the Arcane."
+        - "&5✨ &7Existence is your plaything."
+      unequipped_message:
+        - "&c&l(!) &cYou choose to forget."
+        - "&7The universe sighs in relief."
+
+      individual_effects:
+        helmet:
+          EFFECT_STATIC:
+            chance: 100
+            effects:
+              - POTION:NIGHT_VISION:999
+              - POTION:WATER_BREATHING:999
+              - POTION:REGENERATION:999:2
+              - POTION:SATURATION:999
+            cooldown: 0
+        chestplate:
+          EFFECT_STATIC:
+            chance: 100
+            effects:
+              - POTION:RESISTANCE:999:1
+              - POTION:FIRE_RESISTANCE:999
+            cooldown: 0
+        leggings:
+          EFFECT_STATIC:
+            chance: 100
+            effects:
+              - POTION:SPEED:999:4
+              - POTION:JUMP_BOOST:999:3
+            cooldown: 0
+        boots:
+          FALL_DAMAGE:
+            chance: 100
+            effects:
+              - CANCEL_EVENT
+            cooldown: 0

@@ -1,0 +1,176 @@
+# BASIC ARMOR SET EXAMPLE
+# Copy this file and rename to your set name
+# Place in: plugins/ArmorSets/sets/
+
+# Set ID (used internally, lowercase with underscores)
+shadow:
+  tiers:
+    # Tier 1 - Basic version
+    1:
+      # Pattern to match armor item names
+      # All 4 armor pieces must have names matching this pattern
+      name_pattern: "Shadow.*Tier I"
+
+      # Base material type
+      material: NETHERITE
+
+      # Messages when set is equipped/unequipped
+      equipped_message:
+        - "&8[&5Shadow Set&8] &7Equipped!"
+
+      unequipped_message:
+        - "&8[&5Shadow Set&8] &7Unequipped."
+
+      # Individual piece effects (before full set bonus)
+      individual_effects:
+
+        # HELMET effects
+        helmet:
+          # Passive effect (always active)
+          EFFECT_STATIC:
+            chance: 100      # Always active
+            cooldown: 0      # No cooldown needed
+            effects:
+              - "POTION:NIGHT_VISION:1"
+
+        # CHESTPLATE effects
+        chestplate:
+          # Triggers when player is hit
+          DEFENSE:
+            chance: 20       # 20% chance to trigger when damaged
+            cooldown: 5      # 5 seconds between triggers
+            effects:
+              - "AEGIS:3"    # Damage reduction effect
+
+        # LEGGINGS effects
+        leggings:
+          # Passive effect
+          EFFECT_STATIC:
+            chance: 100
+            cooldown: 0
+            effects:
+              - "POTION:SPEED:1"
+
+        # BOOTS effects
+        boots:
+          # Triggers when taking fall damage
+          FALL_DAMAGE:
+            chance: 100      # Always triggers
+            cooldown: 0      # No cooldown
+            effects:
+              - "CANCEL_EVENT"  # Negate fall damage
+
+      # Full set synergies (when wearing all 4 pieces)
+      synergies:
+
+        shadow_strike:
+          name: "Shadow Strike"
+          description:
+            - "&7Attacks deal shadow damage"
+          trigger: ATTACK           # Triggers on player attack
+          chance: 30                # 30% chance per attack
+          cooldown: 3               # 3 seconds between triggers
+          effects:
+            - "INCREASE_DAMAGE:30"  # +30% damage
+            - "PARTICLE:SOUL:20 @Victim"
+
+        shadow_evasion:
+          name: "Shadow Evasion"
+          description:
+            - "&7Dodge incoming attacks"
+          trigger: DEFENSE
+          chance: 15
+          cooldown: 8
+          effects:
+            - "CANCEL_EVENT"                      # Block damage
+            - "TELEPORT_RANDOM:8 @Self"           # Teleport away
+            - "MESSAGE:&5You evade in shadows!"
+
+    # Tier 2 - Stronger version
+    2:
+      name_pattern: "Shadow.*Tier II"
+      material: NETHERITE
+
+      equipped_message:
+        - "&8[&5Shadow Set&8] &7Equipped!"
+        - "&7You are one with the shadows..."
+
+      unequipped_message:
+        - "&8[&5Shadow Set&8] &7Unequipped."
+
+      # Higher tier = stronger effects and higher chances/lower cooldowns
+      individual_effects:
+
+        helmet:
+          EFFECT_STATIC:
+            chance: 100
+            cooldown: 0
+            effects:
+              - "POTION:NIGHT_VISION:1"
+              - "POTION:INVISIBILITY:1"  # Additional effect at T2
+
+        chestplate:
+          DEFENSE:
+            chance: 40        # Higher trigger rate
+            cooldown: 3       # Shorter cooldown
+            effects:
+              - "AEGIS:5"     # Stronger defense
+
+        leggings:
+          EFFECT_STATIC:
+            chance: 100
+            cooldown: 0
+            effects:
+              - "POTION:SPEED:2"
+
+        boots:
+          FALL_DAMAGE:
+            chance: 100
+            cooldown: 0
+            effects:
+              - "CANCEL_EVENT"
+
+      synergies:
+
+        shadow_strike:
+          name: "Shadow Strike"
+          trigger: ATTACK
+          chance: 50        # Much higher trigger rate
+          cooldown: 1       # Much shorter cooldown
+          effects:
+            - "INCREASE_DAMAGE:75"    # Stronger damage
+            - "PARTICLE:SOUL:40 @Victim"
+
+        shadow_evasion:
+          name: "Shadow Evasion"
+          trigger: DEFENSE
+          chance: 30        # Higher trigger rate
+          cooldown: 5       # Shorter cooldown
+          effects:
+            - "CANCEL_EVENT"
+            - "TELEPORT_RANDOM:15 @Self"    # Teleport farther
+            - "POTION:INVISIBILITY:2 @Self" # Gain invisibility too
+            - "MESSAGE:&5You become one with darkness!"
+
+# Tips:
+# 1. name_pattern uses regex:
+#    - "Shadow.*" matches anything starting with Shadow
+#    - "^Shadow Helmet$" matches exactly "Shadow Helmet"
+#    - "(?i)shadow" matches Shadow (case-insensitive)
+#
+# 2. Effect values should increase from tier to tier:
+#    - Tier I: 30% chance, +30% damage
+#    - Tier II: 50% chance, +75% damage
+#    - Tier III: 75% chance, +150% damage
+#
+# 3. Cooldowns should decrease at higher tiers:
+#    - Tier I: 8 second cooldown
+#    - Tier II: 5 second cooldown
+#    - Tier III: 2 second cooldown
+#
+# 4. Always include EFFECT_STATIC for passive bonuses (helmet night vision, etc)
+#
+# 5. Messages support color codes:
+#    - &0-&f for basic colors
+#    - &#RRGGBB for hex colors
+#    - <gradient:#color1:#color2>text</gradient> for gradients

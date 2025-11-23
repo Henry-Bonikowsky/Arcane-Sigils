@@ -1,0 +1,98 @@
+# ArmorSets Configuration
+# Version: 1.0.0
+
+# General Settings
+settings:
+  # Enable debug messages in console
+  debug: false
+
+  # Performance settings
+  effect-check-interval: 20  # Ticks between static effect reapplication (20 = 1 second)
+
+  # Whether to use ItemsAdder for custom items (if installed)
+  use-itemsadder: true
+
+# Sigil Settings
+sigils:
+  # Allow sigils to be traded between players
+  allow-trading: true
+
+  # Allow extracting sigils from armor (returns shard item)
+  allow-extraction: true
+
+  # Cost to extract a sigil (set to 0 to disable)
+  extraction-cost: 0
+
+  # Tier restrictions: Can a lower tier armor accept higher tier sigils?
+  enforce-tier-restrictions: false
+
+  # Slot restrictions: Sigils can only go in their designated slot (helmet sigil -> helmet only)
+  enforce-slot-restrictions: true
+
+# Set Detection Settings
+sets:
+  # How to detect if player is wearing a full set
+  # Options: NAME_PATTERN, LORE_TAG, NBT_TAG
+  detection-method: NAME_PATTERN
+
+  # Whether mixing tiers disables set bonuses
+  # If true, all 4 pieces must be same tier
+  require-same-tier: true
+
+  # Partial set bonuses (when wearing less than 4 pieces)
+  partial-bonuses:
+    enabled: false
+    2-piece-multiplier: 0.25
+    3-piece-multiplier: 0.5
+
+# GUI Settings
+gui:
+  # Socket GUI title
+  socket-title: "&8Socket Sigil"
+
+  # Sigil storage GUI title
+  storage-title: "&8Sigil Storage"
+
+  # Sounds
+  sounds:
+    open: BLOCK_CHEST_OPEN
+    close: BLOCK_CHEST_CLOSE
+    socket: BLOCK_ANVIL_USE
+    unsocket: BLOCK_ANVIL_LAND
+    error: ENTITY_VILLAGER_NO
+
+# Cooldown Settings
+cooldowns:
+  # Global cooldown between any ability activation (ticks)
+  global-cooldown: 10
+
+  # Show cooldown messages
+  show-cooldown-messages: true
+
+  # Cooldown message format
+  cooldown-message: "&c%ability% is on cooldown! (%remaining%s remaining)"
+
+# Effect Settings
+effects:
+  # Damage increase cap (percentage)
+  max-damage-increase: 500
+
+  # Teleport max distance
+  max-teleport-distance: 50
+
+  # Entity spawn limits
+  max-spawned-entities: 5
+
+  # Lifesteal cap (percentage of damage)
+  max-lifesteal: 50
+
+# Integration Settings
+integrations:
+  # PlaceholderAPI support
+  placeholderapi: true
+
+  # WorldGuard region checks
+  worldguard: true
+
+  # Respect WorldGuard PvP flags
+  respect-pvp-flags: true

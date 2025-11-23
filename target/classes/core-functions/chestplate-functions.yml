@@ -1,0 +1,48 @@
+# Chestplate Core Functions
+
+aegis_ward:
+  name: "&9Aegis Ward"
+  description:
+    - "Creates a protective barrier"
+    - "when taking damage"
+  slot: CHESTPLATE
+  tier: 1
+  effects:
+    DEFENSE:
+      chance: 25
+      effects:
+        - AEGIS:1
+      cooldown: 5
+  item_form:
+    material: ECHO_SHARD
+    name: "&9Shard: Aegis Ward"
+    lore:
+      - "&r&7Tier I Chestplate Function"
+      - "&r&7Reduces incoming damage"
+      - ""
+      - "&r&fRight-click a chestplate to socket"
+    glow: true
+
+ascension_surge:
+  name: "&bAscension Surge"
+  description:
+    - "Overflowing power courses through you"
+    - "when defending against attacks"
+  slot: CHESTPLATE
+  tier: 5
+  effects:
+    DEFENSE:
+      chance: 60
+      effects:
+        - AEGIS:3
+        - HEAL:5
+        - POTION:STRENGTH:5:1 @Self
+      cooldown: 3
+  item_form:
+    material: ECHO_SHARD
+    name: "&bShard: Ascension Surge"
+    lore:
+      - "&r&5Tier V Chestplate Function"
+      - ""
+      - "&r&fRight-click a chestplate to socket"
+    glow: true

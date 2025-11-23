@@ -1,0 +1,62 @@
+# ArmorSets Messages Configuration
+# Supports MiniMessage format and legacy color codes (&a, &b, etc.)
+
+messages:
+  # General
+  prefix: "&8[&dArmorSets&8] "
+  no-permission: "&cYou don't have permission to do that!"
+  player-only: "&cThis command can only be used by players!"
+  reload-success: "&aConfiguration reloaded successfully!"
+  reload-fail: "&cFailed to reload configuration. Check console for errors."
+
+  # Set Messages
+  set-equipped: "&a&l(!) &aYou have equipped the &f%set_name%&a!"
+  set-unequipped: "&c&l(!) &cYou have unequipped the &f%set_name%&c."
+  set-synergy-activated: "&d&l(!) &d%synergy_name% &7activated!"
+
+  # Sigil Messages
+  sigil-socketed: "&a&l(!) &aSuccessfully socketed &f%sigil_name%&a!"
+  sigil-unsocketed: "&e&l(!) &eRemoved &f%sigil_name% &efrom your armor."
+  sigil-received: "&a&l(!) &aYou received &f%sigil_name%&a!"
+  sigil-wrong-slot: "&cThis sigil can only be socketed into a %slot%!"
+  sigil-tier-too-high: "&cThis sigil requires tier %required_tier%+ armor!"
+  sigil-already-socketed: "&cThis armor piece already has a sigil socketed!"
+  sigil-no-sigil: "&cThis armor piece has no sigil to extract!"
+
+  # GUI Messages
+  gui-socket-title: "&8Socket Sigil"
+  gui-current-sigil: "&7Current Sigil:"
+  gui-empty-socket: "&8Empty Socket"
+  gui-click-to-socket: "&aClick with a sigil shard to socket"
+  gui-click-to-unsocket: "&eClick to unsocket current sigil"
+
+  # Cooldown Messages
+  cooldown-active: "&c%ability% is on cooldown! &7(%remaining%s remaining)"
+
+  # Effect Messages
+  effect-teleport: "&dYou phase through space..."
+  effect-heal: "&aYou feel rejuvenated!"
+  effect-damage-blocked: "&bYour armor absorbs the blow!"
+  effect-lifesteal: "&cYou drain life from your enemy!"
+
+  # Command Help
+  help-header: "&8&m----------&r &dArmorSets Help &8&m----------"
+  help-reload: "&e/armorsets reload &8- &7Reload the plugin"
+  help-give-sigil: "&e/armorsets give sigil <player> <id> &8- &7Give a sigil shard"
+  help-give-set: "&e/armorsets give set <player> <set> <tier> &8- &7Give an armor set"
+  help-list-sigils: "&e/armorsets list sigils &8- &7List all sigils"
+  help-list-sets: "&e/armorsets list sets &8- &7List all armor sets"
+  help-info: "&e/armorsets info &8- &7Show held item info"
+  help-footer: "&8&m-----------------------------------------"
+
+  # Admin Messages
+  admin-sigil-not-found: "&cSigil '%id%' not found!"
+  admin-set-not-found: "&cArmor set '%id%' not found!"
+  admin-player-not-found: "&cPlayer '%player%' not found!"
+  admin-gave-sigil: "&aGave %sigil_name% to %player%"
+  admin-gave-set: "&aGave %set_name% (Tier %tier%) to %player%"
+
+  # Error Messages
+  error-invalid-syntax: "&cInvalid syntax! Use &e/armorsets help &cfor commands."
+  error-invalid-tier: "&cInvalid tier! Must be a number."
+  error-inventory-full: "&cYour inventory is full!"

@@ -1,0 +1,183 @@
+# BASIC CORE FUNCTION EXAMPLES
+# Core functions are socketable abilities
+# Place in: plugins/ArmorSets/core-functions/[helmet/chestplate/leggings/boots]-functions.yml
+
+# ============================================================================
+# BASIC HELMET FUNCTION - Night Vision Enhancement
+# ============================================================================
+night_sight:
+  name: "&9Night Sight"
+  slot: HELMET
+  tier: 1
+  description:
+    - "&7See clearly in the dark"
+    - "&7with perfect night vision"
+
+  # Passive effect while wearing
+  EFFECT_STATIC:
+    chance: 100
+    cooldown: 0
+    effects:
+      - "POTION:NIGHT_VISION:1"
+      - "POTION:WATER_BREATHING:1"
+
+  # Item form (shard/gem)
+  item_form:
+    material: ECHO_SHARD
+    model_data: 100
+    name: "&9Shard: Night Sight"
+    lore:
+      - "&7Tier 1 Helmet Function"
+      - ""
+      - "&fRight-click a helmet to socket"
+    glow: true
+
+# ============================================================================
+# BASIC CHESTPLATE FUNCTION - Lifesteal
+# ============================================================================
+blood_thirst:
+  name: "&cBlood Thirst"
+  slot: CHESTPLATE
+  tier: 1
+  description:
+    - "&7Drain life from enemies"
+    - "&7with each successful strike"
+
+  # Trigger on attack
+  ATTACK:
+    chance: 50
+    cooldown: 2
+    effects:
+      - "LIFESTEAL:15"         # Heal 15% of damage dealt
+      - "PARTICLE:SOUL:10 @Victim"
+      - "SOUND:ENTITY_WITHER_SHOOT:0.5:1.5"
+
+  # Passive boost
+  EFFECT_STATIC:
+    chance: 100
+    cooldown: 0
+    effects:
+      - "POTION:STRENGTH:1"    # +1 damage level
+
+  item_form:
+    material: AMETHYST_SHARD
+    model_data: 101
+    name: "&cShard: Blood Thirst"
+    lore:
+      - "&7Tier 1 Chestplate Function"
+      - "&8Gain lifesteal on attacks"
+      - ""
+      - "&fRight-click a chestplate to socket"
+    glow: true
+
+# ============================================================================
+# BASIC LEGGINGS FUNCTION - Speed Boost
+# ============================================================================
+swift_legs:
+  name: "&bSwift Legs"
+  slot: LEGGINGS
+  tier: 1
+  description:
+    - "&7Move faster than before"
+    - "&7with supernatural speed"
+
+  EFFECT_STATIC:
+    chance: 100
+    cooldown: 0
+    effects:
+      - "POTION:SPEED:2"       # Speed II
+      - "POTION:JUMP:1"        # Jump Boost I
+
+  item_form:
+    material: LAPIS_LAZULI
+    model_data: 102
+    name: "&bShard: Swift Legs"
+    lore:
+      - "&7Tier 1 Leggings Function"
+      - "&8Gain speed and jump boost"
+      - ""
+      - "&fRight-click leggings to socket"
+    glow: true
+
+# ============================================================================
+# BASIC BOOTS FUNCTION - Fall Protection
+# ============================================================================
+feather_fall:
+  name: "&eFeather Fall"
+  slot: BOOTS
+  tier: 1
+  description:
+    - "&7Fall safely from any height"
+    - "&7without taking damage"
+
+  FALL_DAMAGE:
+    chance: 100
+    cooldown: 0
+    effects:
+      - "CANCEL_EVENT"         # Negate fall damage
+      - "POTION:SLOW_FALLING:2" # Slow fall effect
+
+  EFFECT_STATIC:
+    chance: 100
+    cooldown: 0
+    effects:
+      - "POTION:SLOW_FALLING:1" # Constant slow fall
+
+  item_form:
+    material: PHANTOM_MEMBRANE
+    model_data: 103
+    name: "&eFeather Fall"
+    lore:
+      - "&7Tier 1 Boots Function"
+      - "&8Negate fall damage"
+      - ""
+      - "&fRight-click boots to socket"
+    glow: true
+
+# ============================================================================
+# NOTES:
+# ============================================================================
+#
+# Core Functions:
+# - Are socketable abilities that can be installed in armor pieces
+# - Only ONE function can be socketed per armor piece
+# - Can be swapped out and traded (if enabled in config)
+# - Have item forms (shards/gems) that players carry
+#
+# Slot Types:
+# - HELMET: Abilities for helmet slot
+# - CHESTPLATE: Abilities for chestplate slot
+# - LEGGINGS: Abilities for leggings slot
+# - BOOTS: Abilities for boots slot
+#
+# Tier:
+# - Tier 1: Basic abilities, weak effects
+# - Tier 2-5: Stronger versions with better stats
+#
+# Triggers:
+# - EFFECT_STATIC: Always active (passive)
+# - ATTACK: Triggers on player attack
+# - DEFENSE: Triggers on player damage
+# - KILL_MOB: Triggers on mob kill
+# - KILL_PLAYER: Triggers on player kill
+# - SHIFT: Triggers on sneak
+# - FALL_DAMAGE: Triggers on fall
+#
+# Item Form:
+# - material: What item it appears as
+# - model_data: Model data for custom models
+# - name: Display name (supports color codes)
+# - lore: Description text
+# - glow: Enchantment glow effect
+#
+# Chance/Cooldown:
+# - chance: 0-100% chance to trigger
+# - cooldown: Seconds between triggers
+# - EFFECT_STATIC usually has chance: 100 and cooldown: 0
+#
+# Tips:
+# 1. Basic functions should be simple (1-3 effects)
+# 2. Use thematic names that match the slot and effect
+# 3. Higher tier functions can have more effects
+# 4. Always include EFFECT_STATIC for passive bonuses
+# 5. Use item forms that fit your server's theme

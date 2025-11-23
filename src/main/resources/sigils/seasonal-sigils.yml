@@ -1,0 +1,132 @@
+# Seasonal/Exclusive Sigils
+# These sigils are obtained from crates and cannot be unsocketed once applied.
+
+# ==================== Winter Crate ====================
+
+frostbound:
+  name: Frostbound
+  slot: CHESTPLATE
+  rarity: LEGENDARY
+  max_tier: 3
+  exclusive: true
+  crate: Winter Crate
+  description:
+    - "Freeze enemies on hit"
+    - "and slow their movement"
+  on_attack:
+    trigger_mode: CHANCE
+    base_chance: 30
+    effects:
+      - FREEZING:5 @Victim
+      - POTION:SLOWNESS:3:2 @Victim
+      - PARTICLE:SNOWFLAKE:20 @Victim
+
+winters_blessing:
+  name: Winter's Blessing
+  slot: HELMET
+  rarity: EPIC
+  max_tier: 3
+  exclusive: true
+  crate: Winter Crate
+  description:
+    - "Immunity to slowness"
+    - "and frost effects"
+  effect_static:
+    effects:
+      - POTION:SPEED:999:0
+      - IMMUNITY:SLOWNESS
+
+# ==================== Summer Crate ====================
+
+solarflare:
+  name: Solarflare
+  slot: CHESTPLATE
+  rarity: LEGENDARY
+  max_tier: 3
+  exclusive: true
+  crate: Summer Crate
+  description:
+    - "Burn enemies that"
+    - "attack you"
+  on_defense:
+    trigger_mode: CHANCE
+    base_chance: 40
+    effects:
+      - IGNITE:5 @Victim
+      - PARTICLE:FLAME:25 @Victim
+      - SOUND:ENTITY_BLAZE_SHOOT @Self
+
+heatwave:
+  name: Heatwave
+  slot: LEGGINGS
+  rarity: EPIC
+  max_tier: 3
+  exclusive: true
+  crate: Summer Crate
+  description:
+    - "Move faster in sunlight"
+  effect_static:
+    effects:
+      - POTION:SPEED:999:1
+
+# ==================== Halloween Crate ====================
+
+spectral:
+  name: Spectral
+  slot: CHESTPLATE
+  rarity: MYTHIC
+  max_tier: 1
+  exclusive: true
+  crate: Halloween Crate
+  description:
+    - "Phase through damage"
+    - "like a ghost"
+  on_defense:
+    trigger_mode: CHANCE
+    base_chance: 15
+    effects:
+      - DODGE
+      - POTION:INVISIBILITY:2 @Self
+      - PARTICLE:SOUL:30 @Self
+      - MESSAGE:&8You phase through the attack... @Self
+
+soul_harvest:
+  name: Soul Harvest
+  slot: HELMET
+  rarity: LEGENDARY
+  max_tier: 3
+  exclusive: true
+  crate: Halloween Crate
+  description:
+    - "Collect souls from"
+    - "fallen enemies"
+  on_kill_mob:
+    trigger_mode: CHANCE
+    base_chance: 50
+    effects:
+      - DEVOUR:3
+      - HEAL:2
+      - PARTICLE:SOUL:15 @Victim
+
+# ==================== Anniversary Crate ====================
+
+founders_might:
+  name: Founder's Might
+  slot: CHESTPLATE
+  rarity: MYTHIC
+  max_tier: 1
+  exclusive: true
+  crate: Anniversary Crate
+  description:
+    - "The power of the"
+    - "original founders"
+  on_attack:
+    trigger_mode: CHANCE
+    base_chance: 25
+    effects:
+      - INCREASE_DAMAGE:100
+      - PARTICLE:TOTEM_OF_UNDYING:20 @Self
+      - SOUND:ENTITY_PLAYER_LEVELUP @Self
+  effect_static:
+    effects:
+      - POTION:STRENGTH:999:0

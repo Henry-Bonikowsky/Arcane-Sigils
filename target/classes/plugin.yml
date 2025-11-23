@@ -1,0 +1,37 @@
+name: ArmorSets
+version: 1.0.0
+main: com.zenax.armorsets.ArmorSetsPlugin
+api-version: '1.21'
+author: Zenax
+description: Custom Armor Sets with Hot-Swappable Sigils
+softdepend:
+  - ItemsAdder
+  - PlaceholderAPI
+  - WorldGuard
+
+commands:
+  armorsets:
+    description: Main ArmorSets command
+    aliases: [as, asets]
+    usage: /<command> <subcommand>
+
+permissions:
+  armorsets.admin:
+    description: Full admin access to ArmorSets
+    default: op
+    children:
+      armorsets.reload: true
+      armorsets.give: true
+      armorsets.socket: true
+  armorsets.reload:
+    description: Permission to reload the plugin
+    default: op
+  armorsets.give:
+    description: Permission to give items
+    default: op
+  armorsets.socket:
+    description: Permission to socket/unsocket sigils
+    default: true
+  armorsets.use:
+    description: Permission to use armor set effects
+    default: true

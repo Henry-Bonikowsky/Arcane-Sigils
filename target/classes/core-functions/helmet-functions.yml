@@ -1,0 +1,52 @@
+# Helmet Core Functions
+# These are examples - configure your own!
+
+cosmic_insight:
+  name: "<i:false><gradient:#8A2BE2:#4169E1>Cosmic Insight</gradient>"
+  description:
+    - "A conduit for cosmic insight, granting"
+    - "clarity and piercing the veil of darkness."
+  slot: HELMET
+  tier: 1
+  effects:
+    EFFECT_STATIC:
+      chance: 100
+      effects:
+        - POTION:NIGHT_VISION:999
+        - POTION:WATER_BREATHING:999
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    model_data: 100
+    name: "<i:false><gradient:#8A2BE2:#4169E1>Shard: Cosmic Insight</gradient>"
+    lore:
+      - "&r&7Tier I Helmet Function"
+      - ""
+      - "&r&fRight-click a helmet to socket"
+    glow: true
+
+absolute_knowing:
+  name: "<i:false><gradient:#4B0082:#FF00FF>Absolute Knowing</gradient>"
+  description:
+    - "There is no thought."
+    - "There is only knowing."
+  slot: HELMET
+  tier: 5
+  effects:
+    EFFECT_STATIC:
+      chance: 100
+      effects:
+        - POTION:NIGHT_VISION:999
+        - POTION:WATER_BREATHING:999
+        - POTION:REGENERATION:999:2
+        - POTION:SATURATION:999
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    model_data: 105
+    name: "<i:false><gradient:#4B0082:#FF00FF>Shard: Absolute Knowing</gradient>"
+    lore:
+      - "&r&5Tier V Helmet Function"
+      - ""
+      - "&r&fRight-click a helmet to socket"
+    glow: true

@@ -1,0 +1,77 @@
+# Helmet Sigils
+
+nightvision:
+  name: Night Vision
+  slot: HELMET
+  rarity: COMMON
+  max_tier: 3
+  description:
+    - "Grants permanent night vision"
+  effect_static:
+    effects:
+      - POTION:NIGHT_VISION:999
+
+aqua_affinity:
+  name: Aqua Affinity
+  slot: HELMET
+  rarity: UNCOMMON
+  max_tier: 5
+  description:
+    - "Grants water breathing and"
+    - "improved underwater vision"
+  effect_static:
+    effects:
+      - POTION:WATER_BREATHING:999
+      - POTION:NIGHT_VISION:999
+
+insight:
+  name: Insight
+  slot: HELMET
+  rarity: RARE
+  max_tier: 5
+  description:
+    - "Gain bonus experience from"
+    - "killing mobs"
+  on_kill_mob:
+    trigger_mode: CHANCE
+    base_chance: 60
+    effects:
+      - ENLIGHTENED:5
+      - PARTICLE:ENCHANTMENT_TABLE:15 @Self
+
+psychic:
+  name: Psychic
+  slot: HELMET
+  rarity: EPIC
+  max_tier: 5
+  description:
+    - "Sense nearby enemies and"
+    - "gain glowing vision"
+  effect_static:
+    effects:
+      - POTION:NIGHT_VISION:999
+  on_defense:
+    trigger_mode: CHANCE
+    base_chance: 20
+    effects:
+      - MESSAGE:&7You sense danger nearby... @Self
+      - POTION:SPEED:3:1 @Self
+
+third_eye:
+  name: Third Eye
+  slot: HELMET
+  rarity: LEGENDARY
+  max_tier: 3
+  description:
+    - "See through walls and"
+    - "dodge incoming attacks"
+  effect_static:
+    effects:
+      - POTION:NIGHT_VISION:999
+  on_defense:
+    trigger_mode: CHANCE
+    base_chance: 15
+    effects:
+      - DODGE
+      - MESSAGE:&dYour third eye foresaw the attack! @Self
+      - PARTICLE:PORTAL:20 @Self

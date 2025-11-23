@@ -1,0 +1,49 @@
+# Boots Core Functions
+
+feather_fall:
+  name: "&aFeather Fall"
+  description:
+    - "Land gently from any height"
+  slot: BOOTS
+  tier: 1
+  effects:
+    FALL_DAMAGE:
+      chance: 100
+      effects:
+        - CANCEL_EVENT
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    name: "&aShard: Feather Fall"
+    lore:
+      - "&r&7Tier I Boots Function"
+      - "&r&7Negates fall damage"
+      - ""
+      - "&r&fRight-click boots to socket"
+    glow: true
+
+gravity_master:
+  name: "&cGravity Master"
+  description:
+    - "Gravity is merely a suggestion."
+  slot: BOOTS
+  tier: 5
+  effects:
+    FALL_DAMAGE:
+      chance: 100
+      effects:
+        - CANCEL_EVENT
+      cooldown: 0
+    EFFECT_STATIC:
+      chance: 100
+      effects:
+        - POTION:SLOW_FALLING:999
+      cooldown: 0
+  item_form:
+    material: ECHO_SHARD
+    name: "&cShard: Gravity Master"
+    lore:
+      - "&r&cTier V Boots Function"
+      - ""
+      - "&r&fRight-click boots to socket"
+    glow: true

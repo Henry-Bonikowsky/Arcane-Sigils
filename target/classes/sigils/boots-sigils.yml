@@ -1,0 +1,104 @@
+# Boots Sigils
+
+featherfall:
+  name: Featherfall
+  slot: BOOTS
+  rarity: COMMON
+  max_tier: 5
+  description:
+    - "Reduce fall damage taken"
+  on_fall_damage:
+    trigger_mode: CHANCE
+    base_chance: 60
+    effects:
+      - FEATHERWEIGHT:50
+
+frost_walker:
+  name: Frost Walker
+  slot: BOOTS
+  rarity: UNCOMMON
+  max_tier: 3
+  description:
+    - "Leave a trail of frost"
+    - "and slow nearby enemies"
+  effect_static:
+    effects:
+      - POTION:SPEED:999:0
+  on_attack:
+    trigger_mode: CHANCE
+    base_chance: 20
+    effects:
+      - FREEZING:3 @Victim
+      - PARTICLE:SNOWFLAKE:15 @Victim
+
+springs:
+  name: Springs
+  slot: BOOTS
+  rarity: RARE
+  max_tier: 3
+  description:
+    - "Double jump ability"
+    - "and no fall damage"
+  on_fall_damage:
+    trigger_mode: CHANCE
+    base_chance: 80
+    effects:
+      - CANCEL_EVENT
+      - SPRINGS:1.5
+
+earthquake:
+  name: Earthquake
+  slot: BOOTS
+  rarity: EPIC
+  max_tier: 5
+  description:
+    - "Slam the ground when"
+    - "landing from heights"
+  on_fall_damage:
+    trigger_mode: COOLDOWN
+    base_cooldown: 8
+    effects:
+      - CANCEL_EVENT
+      - POTION:SLOWNESS:2:1 @Nearby:4
+      - POTION:WEAKNESS:2:0 @Nearby:4
+      - PARTICLE:EXPLOSION_NORMAL:20 @Self
+      - SOUND:ENTITY_GENERIC_EXPLODE @Self
+
+cloudwalker:
+  name: Cloudwalker
+  slot: BOOTS
+  rarity: LEGENDARY
+  max_tier: 3
+  description:
+    - "Walk on air and"
+    - "ignore gravity"
+  effect_static:
+    effects:
+      - POTION:SLOW_FALLING:999
+      - POTION:JUMP_BOOST:999:2
+  on_fall_damage:
+    trigger_mode: CHANCE
+    base_chance: 100
+    effects:
+      - CANCEL_EVENT
+
+wings:
+  name: Wings
+  slot: BOOTS
+  rarity: MYTHIC
+  max_tier: 1
+  description:
+    - "Gain temporary flight"
+    - "when double jumping"
+  on_fall_damage:
+    trigger_mode: CHANCE
+    base_chance: 100
+    effects:
+      - CANCEL_EVENT
+  on_shift:
+    trigger_mode: COOLDOWN
+    base_cooldown: 30
+    effects:
+      - WINGS:5
+      - PARTICLE:CLOUD:30 @Self
+      - MESSAGE:&bYou take to the skies! @Self
