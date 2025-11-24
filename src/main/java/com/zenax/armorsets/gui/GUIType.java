@@ -151,6 +151,33 @@ public enum GUIType {
      */
     EFFECT_TELEPORT_CONFIG,
 
+    // ===== CONDITION GUIS =====
+
+    /**
+     * Selector for choosing condition category (Health, Potion, Environmental, etc.)
+     */
+    CONDITION_CATEGORY_SELECTOR,
+
+    /**
+     * Selector for choosing specific condition type within a category.
+     */
+    CONDITION_TYPE_SELECTOR,
+
+    /**
+     * Configuration for condition parameters (values, comparisons).
+     */
+    CONDITION_PARAMETER_CONFIG,
+
+    /**
+     * Viewer for all conditions on a trigger.
+     */
+    CONDITION_VIEWER,
+
+    /**
+     * Editor for modifying an existing condition.
+     */
+    CONDITION_EDITOR,
+
     // ===== UTILITY GUIS =====
 
     /**
@@ -185,14 +212,16 @@ public enum GUIType {
         return this == TRIGGER_CONFIG || this == EFFECT_CONFIG ||
                this == EFFECT_VALUE_CONFIG || this == EFFECT_PARTICLE_CONFIG ||
                this == EFFECT_SOUND_CONFIG || this == EFFECT_POTION_CONFIG ||
-               this == EFFECT_MESSAGE_CONFIG || this == EFFECT_TELEPORT_CONFIG;
+               this == EFFECT_MESSAGE_CONFIG || this == EFFECT_TELEPORT_CONFIG ||
+               this == CONDITION_PARAMETER_CONFIG;
     }
 
     /**
      * Check if this GUI type is a selector view.
      */
     public boolean isSelector() {
-        return this == SLOT_SELECTOR || this == TRIGGER_SELECTOR || this == EFFECT_SELECTOR;
+        return this == SLOT_SELECTOR || this == TRIGGER_SELECTOR || this == EFFECT_SELECTOR ||
+               this == CONDITION_CATEGORY_SELECTOR || this == CONDITION_TYPE_SELECTOR;
     }
 
     /**

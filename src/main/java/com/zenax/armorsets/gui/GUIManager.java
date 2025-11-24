@@ -595,9 +595,7 @@ public class GUIManager implements Listener, GUIHandlerContext {
         inv.setItem(33, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+1s", "&7Increase cooldown"));
         inv.setItem(34, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+5s", "&7Increase cooldown"));
 
-        inv.setItem(39, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add trigger with these settings"));
-        inv.setItem(41, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
-
+        // View/Add Conditions button
         GUISession session = new GUISession(GUIType.TRIGGER_CONFIG);
         session.put("buildType", buildType);
         session.put("buildId", buildId);
@@ -608,6 +606,23 @@ public class GUIManager implements Listener, GUIHandlerContext {
         if (armorSlot != null) {
             session.put("armorSlot", armorSlot);
         }
+
+        // Initialize conditions list if not present
+        if (!session.has("conditions")) {
+            session.put("conditions", new ArrayList<String>());
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) session.get("conditions");
+        int conditionCount = conditions != null ? conditions.size() : 0;
+
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.BOOK, "&dView/Add Conditions",
+            "&7Current: &f" + conditionCount + " condition" + (conditionCount != 1 ? "s" : ""),
+            "&7Click to manage conditions"));
+
+        inv.setItem(39, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add trigger with these settings"));
+        inv.setItem(41, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
         openGUI(player, inv, session);
     }
 
@@ -1049,6 +1064,163 @@ public class GUIManager implements Listener, GUIHandlerContext {
         session.put("setId", setId);
         session.put("synergyId", synergyId);
         session.put("creationMode", "SYNERGY");
+        openGUI(player, inv, session);
+    }
+
+    // ===== CONDITION GUI METHODS =====
+
+    @Override
+    public void openConditionCategorySelector(Player player, GUISession parentSession) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Select Condition Category"));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.APPLE, "&cHealth", "&7Health-based conditions"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.POTION, "&5Potion", "&7Potion effect conditions"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.GRASS_BLOCK, "&aEnvironmental", "&7Environmental conditions"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.DIAMOND_SWORD, "&bCombat", "&7Combat-related conditions"));
+        inv.setItem(18, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&eMeta", "&7Meta conditions"));
+        inv.setItem(26, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to previous menu"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_CATEGORY_SELECTOR);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionTypeSelector(Player player, com.zenax.armorsets.events.ConditionCategory category, GUISession parentSession) {
+        com.zenax.armorsets.events.ConditionType[] types = com.zenax.armorsets.events.ConditionType.getByCategory(category);
+
+        int size = Math.max(27, Math.min((int) Math.ceil((types.length + 9) / 9.0) * 9, 54));
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8" + TextUtil.toProperCase(category.name()) + " Conditions"));
+
+        int slot = 0;
+        for (com.zenax.armorsets.events.ConditionType type : types) {
+            if (slot >= size - 1) break;
+
+            ItemStack item = new ItemStack(type.getIcon());
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&b" + type.getDisplayName()));
+
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&7" + type.getDescription()));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&eExample: &f" + type.getExampleFormat()));
+            lore.add(TextUtil.parseComponent("&8" + type.getExampleDescription()));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&aClick to configure"));
+
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        inv.setItem(size - 1, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to category selector"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_TYPE_SELECTOR);
+        session.put("category", category);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionParameterConfig(Player player, com.zenax.armorsets.events.ConditionType type, GUISession parentSession) {
+        int size = type.hasParameters() ? 36 : 27;
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Configure: &b" + type.getDisplayName()));
+
+        ItemStack info = new ItemStack(type.getIcon());
+        ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&b" + type.getDisplayName()));
+        List<Component> infoLore = new ArrayList<>();
+        infoLore.add(TextUtil.parseComponent("&7" + type.getDescription()));
+        infoLore.add(Component.empty());
+        infoLore.add(TextUtil.parseComponent("&eFormat: &f" + type.getExampleFormat()));
+        infoMeta.lore(infoLore);
+        info.setItemMeta(infoMeta);
+        inv.setItem(4, info);
+
+        if (type.hasParameters()) {
+            // Value adjustment controls
+            inv.setItem(19, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-10", "&7Decrease by 10"));
+            inv.setItem(20, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-1", "&7Decrease by 1"));
+
+            ItemStack valueDisplay = new ItemStack(Material.GOLD_INGOT);
+            ItemMeta valueMeta = valueDisplay.getItemMeta();
+            valueMeta.displayName(TextUtil.parseComponent("&aValue: &f0"));
+            valueDisplay.setItemMeta(valueMeta);
+            inv.setItem(22, valueDisplay);
+
+            inv.setItem(24, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+1", "&7Increase by 1"));
+            inv.setItem(25, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+10", "&7Increase by 10"));
+
+            inv.setItem(30, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add this condition"));
+            inv.setItem(32, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+        } else {
+            inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add this condition"));
+            inv.setItem(14, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+        }
+
+        GUISession session = new GUISession(GUIType.CONDITION_PARAMETER_CONFIG);
+        session.put("conditionType", type);
+        session.put("parentSession", parentSession);
+        session.put("value", 0);
+        session.put("comparison", "<");
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionViewer(Player player, GUISession triggerSession) {
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) triggerSession.get("conditions");
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+            triggerSession.put("conditions", conditions);
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Conditions (&f" + conditions.size() + "&8)"));
+
+        int slot = 9;
+        for (String condition : conditions) {
+            if (slot >= 27) break;
+
+            ItemStack item = new ItemStack(Material.PAPER);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&e" + condition));
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&7Click to edit"));
+            lore.add(TextUtil.parseComponent("&cShift-click to remove"));
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        inv.setItem(27, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Condition", "&7Add a new condition"));
+        inv.setItem(29, ItemBuilder.createGuiItem(Material.RED_DYE, "&cRemove All", "&7Clear all conditions"));
+        inv.setItem(35, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to trigger config"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("triggerSession", triggerSession);
+        session.put("conditions", conditions);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionEditor(Player player, String conditionString, GUISession parentSession) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Edit Condition"));
+
+        ItemStack conditionInfo = new ItemStack(Material.PAPER);
+        ItemMeta meta = conditionInfo.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&e" + conditionString));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&7Editing this condition"));
+        meta.lore(lore);
+        conditionInfo.setItemMeta(meta);
+        inv.setItem(4, conditionInfo);
+
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aSave", "&7Save changes"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Discard changes"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_EDITOR);
+        session.put("conditionString", conditionString);
+        session.put("parentSession", parentSession);
         openGUI(player, inv, session);
     }
 

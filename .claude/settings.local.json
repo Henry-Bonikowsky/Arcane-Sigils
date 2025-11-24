@@ -35,7 +35,12 @@
       "Bash(rmdir:*)",
       "Bash(mvn compile:*)",
       "Bash(where:*)",
-      "Bash(mvn dependency:tree:*)"
+      "Bash(mvn dependency:tree:*)",
+      "Bash(java -version:*)",
+      "Bash(export JAVA_HOME:*)",
+      "Bash(chmod:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

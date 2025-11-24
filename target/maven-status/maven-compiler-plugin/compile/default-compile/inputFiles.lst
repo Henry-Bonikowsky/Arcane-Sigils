@@ -56,7 +56,10 @@ C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\UnbreakableEffect.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\WardEffect.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\WingsEffect.java
+C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionBuilder.java
+C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionCategory.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionManager.java
+C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionType.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\CooldownManager.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\TriggerHandler.java
 C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\TriggerType.java

@@ -55,7 +55,12 @@ public class ConfigHandler extends AbstractGUIHandler {
         GUIType.EFFECT_SOUND_CONFIG,
         GUIType.EFFECT_POTION_CONFIG,
         GUIType.EFFECT_MESSAGE_CONFIG,
-        GUIType.EFFECT_TELEPORT_CONFIG
+        GUIType.EFFECT_TELEPORT_CONFIG,
+        GUIType.CONDITION_CATEGORY_SELECTOR,
+        GUIType.CONDITION_TYPE_SELECTOR,
+        GUIType.CONDITION_PARAMETER_CONFIG,
+        GUIType.CONDITION_VIEWER,
+        GUIType.CONDITION_EDITOR
     );
 
     public ConfigHandler(ArmorSetsPlugin plugin, GUIHandlerContext context) {
@@ -95,6 +100,11 @@ public class ConfigHandler extends AbstractGUIHandler {
             case EFFECT_POTION_CONFIG -> handleEffectPotionConfigClick(player, session, slot, event);
             case EFFECT_MESSAGE_CONFIG -> handleEffectMessageConfigClick(player, session, slot, event);
             case EFFECT_TELEPORT_CONFIG -> handleEffectTeleportConfigClick(player, session, slot, event);
+            case CONDITION_CATEGORY_SELECTOR -> handleConditionCategorySelectorClick(player, session, slot, event);
+            case CONDITION_TYPE_SELECTOR -> handleConditionTypeSelectorClick(player, session, slot, event);
+            case CONDITION_PARAMETER_CONFIG -> handleConditionParameterConfigClick(player, session, slot, event);
+            case CONDITION_VIEWER -> handleConditionViewerClick(player, session, slot, event);
+            case CONDITION_EDITOR -> handleConditionEditorClick(player, session, slot, event);
             default -> {}
         }
     }
@@ -300,6 +310,11 @@ public class ConfigHandler extends AbstractGUIHandler {
         double cooldown = session.getCooldown();
 
         switch (slot) {
+            case 16 -> {
+                // Open condition viewer
+                context.openConditionViewer(player, session);
+                return;
+            }
             case 19 -> chance = Math.max(0, chance - 10);
             case 20 -> chance = Math.max(0, chance - 1);
             case 24 -> chance = Math.min(100, chance + 1);
@@ -1090,6 +1105,193 @@ public class ConfigHandler extends AbstractGUIHandler {
         playSound(player, "click");
     }
 
+    // ========== CONDITION HANDLERS ==========
+
+    private void handleConditionCategorySelectorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+
+        if (slot == 26) {
+            // Back button
+            if (parentSession != null) {
+                context.openConditionViewer(player, parentSession);
+            } else {
+                player.closeInventory();
+            }
+            return;
+        }
+
+        com.zenax.armorsets.events.ConditionCategory category = switch (slot) {
+            case 10 -> com.zenax.armorsets.events.ConditionCategory.HEALTH;
+            case 12 -> com.zenax.armorsets.events.ConditionCategory.POTION;
+            case 14 -> com.zenax.armorsets.events.ConditionCategory.ENVIRONMENTAL;
+            case 16 -> com.zenax.armorsets.events.ConditionCategory.COMBAT;
+            case 18 -> com.zenax.armorsets.events.ConditionCategory.META;
+            default -> null;
+        };
+
+        if (category != null) {
+            playSound(player, "click");
+            context.openConditionTypeSelector(player, category, parentSession);
+        }
+    }
+
+    private void handleConditionTypeSelectorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        Inventory inv = player.getOpenInventory().getTopInventory();
+        int lastSlot = inv.getSize() - 1;
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+
+        if (slot == lastSlot) {
+            // Back button
+            context.openConditionCategorySelector(player, parentSession);
+            return;
+        }
+
+        ItemStack clicked = inv.getItem(slot);
+        if (clicked == null || clicked.getType().isAir()) return;
+
+        // Find the condition type by matching icon and display name
+        com.zenax.armorsets.events.ConditionCategory category = session.get("category", com.zenax.armorsets.events.ConditionCategory.class);
+        if (category == null) return;
+
+        com.zenax.armorsets.events.ConditionType[] types = com.zenax.armorsets.events.ConditionType.getByCategory(category);
+        if (slot >= 0 && slot < types.length) {
+            com.zenax.armorsets.events.ConditionType selectedType = types[slot];
+            playSound(player, "click");
+            context.openConditionParameterConfig(player, selectedType, parentSession);
+        }
+    }
+
+    private void handleConditionParameterConfigClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        com.zenax.armorsets.events.ConditionType type = session.get("conditionType", com.zenax.armorsets.events.ConditionType.class);
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+        int value = session.getInt("value", 0);
+        String comparison = session.getString("comparison");
+        if (comparison == null) comparison = "<";
+
+        if (!type.hasParameters()) {
+            // Simple conditions without parameters
+            switch (slot) {
+                case 12 -> {
+                    // Confirm
+                    String conditionString = type.getConfigKey();
+                    addConditionToParent(player, parentSession, conditionString);
+                    return;
+                }
+                case 14 -> {
+                    // Cancel
+                    context.openConditionTypeSelector(player, type.getCategory(), parentSession);
+                    return;
+                }
+            }
+            return;
+        }
+
+        // Conditions with parameters
+        switch (slot) {
+            case 19 -> value = Math.max(-1000, value - 10);
+            case 20 -> value = Math.max(-1000, value - 1);
+            case 24 -> value = Math.min(1000, value + 1);
+            case 25 -> value = Math.min(1000, value + 10);
+            case 30 -> {
+                // Confirm
+                String conditionString = buildConditionString(type, value, comparison);
+                addConditionToParent(player, parentSession, conditionString);
+                return;
+            }
+            case 32 -> {
+                // Cancel
+                context.openConditionTypeSelector(player, type.getCategory(), parentSession);
+                return;
+            }
+            default -> { return; }
+        }
+
+        session.put("value", value);
+        playSound(player, "click");
+        // Refresh the GUI with updated value
+        context.openConditionParameterConfig(player, type, parentSession);
+    }
+
+    private void handleConditionViewerClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        GUISession triggerSession = session.get("triggerSession", GUISession.class);
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) session.get("conditions");
+
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+            session.put("conditions", conditions);
+        }
+
+        switch (slot) {
+            case 27 -> {
+                // Add condition
+                playSound(player, "click");
+                context.openConditionCategorySelector(player, triggerSession);
+                return;
+            }
+            case 29 -> {
+                // Remove all
+                conditions.clear();
+                triggerSession.put("conditions", conditions);
+                player.sendMessage(TextUtil.colorize("&aRemoved all conditions"));
+                playSound(player, "unsocket");
+                context.openConditionViewer(player, triggerSession);
+                return;
+            }
+            case 35 -> {
+                // Back
+                String buildType = triggerSession.getString("buildType");
+                String buildId = triggerSession.getString("buildId");
+                String trigger = triggerSession.getString("trigger");
+                String effect = triggerSession.getString("effect");
+                String armorSlot = triggerSession.getString("armorSlot");
+                double chance = triggerSession.getChance();
+                double cooldown = triggerSession.getCooldown();
+                context.openTriggerConfig(player, buildType, buildId, trigger, effect, armorSlot, chance, cooldown);
+                return;
+            }
+        }
+
+        // Clicked on a condition item
+        if (slot >= 9 && slot < 27) {
+            int index = slot - 9;
+            if (index < conditions.size()) {
+                if (event.isShiftClick()) {
+                    // Remove condition
+                    String removed = conditions.remove(index);
+                    triggerSession.put("conditions", conditions);
+                    player.sendMessage(TextUtil.colorize("&cRemoved condition: &f" + removed));
+                    playSound(player, "unsocket");
+                    context.openConditionViewer(player, triggerSession);
+                } else {
+                    // Edit condition
+                    String conditionString = conditions.get(index);
+                    playSound(player, "click");
+                    context.openConditionEditor(player, conditionString, triggerSession);
+                }
+            }
+        }
+    }
+
+    private void handleConditionEditorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        String conditionString = session.getString("conditionString");
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+
+        switch (slot) {
+            case 12 -> {
+                // Save (currently just closes, full edit functionality would require parsing)
+                player.sendMessage(TextUtil.colorize("&eCondition editing coming soon"));
+                playSound(player, "click");
+                context.openConditionViewer(player, parentSession);
+            }
+            case 14 -> {
+                // Cancel
+                playSound(player, "close");
+                context.openConditionViewer(player, parentSession);
+            }
+        }
+    }
+
     // ========== HELPER METHODS ==========
 
     private String buildEffectString(String effect, double value, String target) {
@@ -1101,5 +1303,34 @@ public class ConfigHandler extends AbstractGUIHandler {
             sb.append(" ").append(target);
         }
         return sb.toString();
+    }
+
+    private String buildConditionString(com.zenax.armorsets.events.ConditionType type, int value, String comparison) {
+        if (!type.hasParameters()) {
+            return type.getConfigKey();
+        }
+
+        // Build condition string based on type
+        return type.getConfigKey() + ":" + comparison + value;
+    }
+
+    private void addConditionToParent(Player player, GUISession parentSession, String conditionString) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            player.closeInventory();
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) parentSession.get("conditions");
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+            parentSession.put("conditions", conditions);
+        }
+
+        conditions.add(conditionString);
+        player.sendMessage(TextUtil.colorize("&aAdded condition: &f" + conditionString));
+        playSound(player, "socket");
+        context.openConditionViewer(player, parentSession);
     }
 }

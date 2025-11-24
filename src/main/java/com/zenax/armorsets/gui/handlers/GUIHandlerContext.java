@@ -215,4 +215,31 @@ public interface GUIHandlerContext {
      * Open trigger selector for synergy.
      */
     void openTriggerSelectorForSynergy(Player player, String setId, String synergyId);
+
+    // ===== CONDITION GUI METHODS =====
+
+    /**
+     * Open condition category selector.
+     */
+    void openConditionCategorySelector(Player player, GUISession parentSession);
+
+    /**
+     * Open condition type selector for a category.
+     */
+    void openConditionTypeSelector(Player player, com.zenax.armorsets.events.ConditionCategory category, GUISession parentSession);
+
+    /**
+     * Open condition parameter configuration.
+     */
+    void openConditionParameterConfig(Player player, com.zenax.armorsets.events.ConditionType type, GUISession parentSession);
+
+    /**
+     * Open condition viewer for a trigger.
+     */
+    void openConditionViewer(Player player, GUISession triggerSession);
+
+    /**
+     * Open condition editor.
+     */
+    void openConditionEditor(Player player, String conditionString, GUISession parentSession);
 }
