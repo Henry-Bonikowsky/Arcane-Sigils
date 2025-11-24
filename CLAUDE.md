@@ -304,15 +304,21 @@ set_id:
 
 1. **Prerequisites**
    ```bash
-   # Install Java 21 and Maven
+   # Only Java 21 required - Maven is bundled via wrapper
    java -version  # Should show 21+
-   mvn -version   # Should show 3.x+
    ```
+
+   **Note**: This project uses Maven Wrapper (`mvnw`/`mvnw.sh`) so Maven doesn't need to be installed globally.
 
 2. **Clone and Build**
    ```bash
    cd "C:/Users/henry/Programs(self)/Custom ArmorWeapon Plugin"
-   mvn clean package -DskipTests
+
+   # Windows
+   mvnw.bat clean package -DskipTests
+
+   # Mac/Linux
+   ./mvnw clean package -DskipTests
    ```
 
 3. **Output Location**
@@ -322,10 +328,16 @@ set_id:
 
 4. **Development Workflow**
    - Make changes to source files
-   - Run `mvn compile` to check for errors
-   - Run `mvn package` to build JAR
+   - Run `mvnw clean compile` (or `./mvnw clean compile` on Mac/Linux) to check for errors
+   - Run `mvnw clean package` to build JAR
    - Copy JAR to server's `plugins/` folder
    - Use `/as reload` for hot-reload (where possible)
+
+5. **Maven Wrapper Details**
+   - **Files**: `.mvn/wrapper/maven-wrapper.jar`, `mvnw`, `mvnw.bat`, `.mvn/wrapper/maven-wrapper.properties`
+   - **Version**: Maven 3.9.6 (configured in `.mvn/wrapper/maven-wrapper.properties`)
+   - **First Run**: Maven downloads automatically if not cached
+   - **Benefits**: No global Maven installation required, consistent builds across machines
 
 ### For Server Administrators
 
@@ -443,14 +455,23 @@ set_id:
 ## Testing
 
 ```bash
-# Compile only (fast check)
-mvn compile
+# Windows - Compile only (fast check)
+mvnw.bat clean compile
 
-# Full build with JAR
-mvn clean package -DskipTests
+# Windows - Full build with JAR
+mvnw.bat clean package -DskipTests
 
-# Run tests (when available)
-mvn test
+# Windows - Run tests (when available)
+mvnw.bat test
+
+# Mac/Linux - Compile only (fast check)
+./mvnw clean compile
+
+# Mac/Linux - Full build with JAR
+./mvnw clean package -DskipTests
+
+# Mac/Linux - Run tests (when available)
+./mvnw test
 ```
 
 ### Manual Testing Checklist
@@ -481,5 +502,5 @@ mvn test
 - **Plugin Version**: 1.0.0
 - **API Version**: Paper 1.21
 - **Java Version**: 21
+- **Maven Version**: 3.9.6 (via Maven Wrapper)
 - **Last Updated**: November 2024
-- Don't try compiling, just code and ill compile
