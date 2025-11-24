@@ -16,20 +16,44 @@ import java.util.List;
 public class ConditionManager {
 
     /**
-     * Check if all conditions are met.
+     * Check if all conditions are met using AND logic.
      * Returns false if any condition fails.
      */
     public boolean checkConditions(List<String> conditions, EffectContext context) {
+        return checkConditions(conditions, context, com.zenax.armorsets.sets.TriggerConfig.ConditionLogic.AND);
+    }
+
+    /**
+     * Check if conditions are met using specified logic (AND/OR).
+     *
+     * @param conditions The list of condition strings
+     * @param context    The effect context
+     * @param logic      The logic mode (AND = all must pass, OR = any can pass)
+     * @return True if conditions pass according to logic mode
+     */
+    public boolean checkConditions(List<String> conditions, EffectContext context,
+                                  com.zenax.armorsets.sets.TriggerConfig.ConditionLogic logic) {
         if (conditions == null || conditions.isEmpty()) {
             return true; // No conditions = always pass
         }
 
-        for (String condition : conditions) {
-            if (!evaluateCondition(condition, context)) {
-                return false; // Any failed condition blocks execution
+        if (logic == com.zenax.armorsets.sets.TriggerConfig.ConditionLogic.OR) {
+            // OR logic: At least one condition must pass
+            for (String condition : conditions) {
+                if (evaluateCondition(condition, context)) {
+                    return true; // Any passing condition allows execution
+                }
             }
+            return false; // No conditions passed
+        } else {
+            // AND logic (default): All conditions must pass
+            for (String condition : conditions) {
+                if (!evaluateCondition(condition, context)) {
+                    return false; // Any failed condition blocks execution
+                }
+            }
+            return true; // All conditions passed
         }
-        return true; // All conditions passed
     }
 
     /**

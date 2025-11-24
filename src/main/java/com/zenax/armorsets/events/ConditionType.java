@@ -185,6 +185,10 @@ public enum ConditionType {
     private final String exampleFormat;
     private final String exampleDescription;
     private final boolean hasParameters;
+    private final String detailedDescription;
+    private final String usageExample;
+    private final String[] relatedConditions;
+    private final String tips;
 
     ConditionType(ConditionCategory category, Material icon, String displayName,
                   String description, String exampleFormat, String exampleDescription,
@@ -196,6 +200,12 @@ public enum ConditionType {
         this.exampleFormat = exampleFormat;
         this.exampleDescription = exampleDescription;
         this.hasParameters = hasParameters;
+
+        // Generate detailed info based on type
+        this.detailedDescription = generateDetailedDescription();
+        this.usageExample = generateUsageExample();
+        this.relatedConditions = generateRelatedConditions();
+        this.tips = generateTips();
     }
 
     public ConditionCategory getCategory() {
@@ -226,6 +236,22 @@ public enum ConditionType {
         return hasParameters;
     }
 
+    public String getDetailedDescription() {
+        return detailedDescription;
+    }
+
+    public String getUsageExample() {
+        return usageExample;
+    }
+
+    public String[] getRelatedConditions() {
+        return relatedConditions;
+    }
+
+    public String getTips() {
+        return tips;
+    }
+
     /**
      * Get the config key for this condition (uppercase enum name).
      */
@@ -240,5 +266,133 @@ public enum ConditionType {
         return java.util.Arrays.stream(values())
             .filter(type -> type.category == category)
             .toArray(ConditionType[]::new);
+    }
+
+    // ===== DETAILED INFORMATION GENERATORS =====
+
+    private String generateDetailedDescription() {
+        return switch (this) {
+            case HEALTH_PERCENT -> "Checks the player's current health as a percentage of maximum health. Supports comparison operators (<, >, <=, >=, =). Useful for glass cannon builds or last-stand mechanics.";
+            case HEALTH_BELOW -> "Triggers when player's health drops below a specific value. Direct HP check without percentage calculation. Perfect for emergency abilities.";
+            case HEALTH_ABOVE -> "Triggers when player's health is above a specific value. Ideal for high-health tank builds or health-gated abilities.";
+            case VICTIM_HEALTH_PERCENT -> "Checks the target's health percentage. Excellent for execute mechanics or finishing moves on low-health enemies.";
+            case HAS_POTION -> "Verifies player has an active potion effect. Can optionally check amplifier level. Great for synergy-based builds.";
+            case NO_POTION -> "Checks that player does NOT have a specific potion effect. Useful for preventing effect stacking or creating conditional buffs.";
+            case BIOME -> "Restricts effects to specific biomes. Creates location-themed builds like desert warriors or ocean specialists.";
+            case BLOCK_BELOW -> "Checks the block type directly beneath the player. Enables terrain-based bonuses like standing on netherite or water.";
+            case LIGHT_LEVEL -> "Measures ambient light at player's location. Perfect for shadow assassins or daylight warriors.";
+            case IN_WATER -> "Simple check if player is submerged in water. Essential for aquatic builds and underwater combat.";
+            case ON_GROUND -> "Checks if player is standing on solid ground (not jumping/falling). Good for grounded combat styles.";
+            case WEATHER -> "Tests current weather conditions (RAINING, THUNDERING, CLEAR). Creates weather-reactive builds.";
+            case TIME -> "Checks time of day (NIGHT, DAY, SUNSET, SUNRISE). Enables time-based powers like nocturnal hunters.";
+            case HAS_VICTIM -> "Verifies a target exists for victim-targeted effects. Essential prerequisite for VICTIM conditions.";
+            case VICTIM_IS_PLAYER -> "Checks if the target is a player (not a mob). Creates PvP-specific abilities.";
+            case VICTIM_IS_HOSTILE -> "Verifies target is a hostile mob. Perfect for PvE-focused builds and mob hunting.";
+            case TRIGGER -> "Restricts effect to a specific trigger type. Allows multi-trigger configurations with conditional activation.";
+            case WEARING_FULL_SET -> "Checks if player is wearing a complete armor set. Enables set-synergy effects.";
+        };
+    }
+
+    private String generateUsageExample() {
+        return switch (this) {
+            case HEALTH_PERCENT -> "Glass cannon DPS build: Massive damage below 50% health";
+            case HEALTH_BELOW -> "Last stand ability: Invulnerability when health drops below 4 HP";
+            case HEALTH_ABOVE -> "Tank sustain: Regeneration only when above 15 HP";
+            case VICTIM_HEALTH_PERCENT -> "Execute: Deal 200% damage to targets below 30% health";
+            case HAS_POTION -> "Synergy: Speed boost only while Strength is active";
+            case NO_POTION -> "Pure build: Bonus damage only when no potion effects present";
+            case BIOME -> "Desert warrior: Fire resistance and strength in desert biomes";
+            case BLOCK_BELOW -> "Netherite mastery: Bonus stats when standing on netherite blocks";
+            case LIGHT_LEVEL -> "Shadow assassin: Increased damage in darkness (light < 7)";
+            case IN_WATER -> "Aquatic predator: Speed and strength while swimming";
+            case ON_GROUND -> "Grounded fighter: Defense bonus only when on solid ground";
+            case WEATHER -> "Storm caller: Lightning effects during thunderstorms";
+            case TIME -> "Night hunter: Bonus damage and vision during night";
+            case HAS_VICTIM -> "Combat-only: Abilities only work in active combat";
+            case VICTIM_IS_PLAYER -> "PvP specialist: Extra damage against players only";
+            case VICTIM_IS_HOSTILE -> "Mob slayer: Increased rewards when killing hostile mobs";
+            case TRIGGER -> "Versatile: Different effects on attack vs defense";
+            case WEARING_FULL_SET -> "Set mastery: Ultimate ability only with full legendary set";
+        };
+    }
+
+    private String[] generateRelatedConditions() {
+        return switch (this) {
+            case HEALTH_PERCENT -> new String[]{"HEALTH_BELOW", "HEALTH_ABOVE"};
+            case HEALTH_BELOW -> new String[]{"HEALTH_PERCENT", "VICTIM_HEALTH_PERCENT"};
+            case HEALTH_ABOVE -> new String[]{"HEALTH_PERCENT", "HAS_POTION"};
+            case VICTIM_HEALTH_PERCENT -> new String[]{"HAS_VICTIM", "VICTIM_IS_HOSTILE"};
+            case HAS_POTION -> new String[]{"NO_POTION", "TIME"};
+            case NO_POTION -> new String[]{"HAS_POTION"};
+            case BIOME -> new String[]{"WEATHER", "TIME", "BLOCK_BELOW"};
+            case BLOCK_BELOW -> new String[]{"BIOME", "ON_GROUND"};
+            case LIGHT_LEVEL -> new String[]{"TIME", "BIOME"};
+            case IN_WATER -> new String[]{"BLOCK_BELOW", "BIOME"};
+            case ON_GROUND -> new String[]{"BLOCK_BELOW"};
+            case WEATHER -> new String[]{"TIME", "BIOME"};
+            case TIME -> new String[]{"LIGHT_LEVEL", "WEATHER"};
+            case HAS_VICTIM -> new String[]{"VICTIM_IS_PLAYER", "VICTIM_IS_HOSTILE", "VICTIM_HEALTH_PERCENT"};
+            case VICTIM_IS_PLAYER -> new String[]{"HAS_VICTIM", "TRIGGER"};
+            case VICTIM_IS_HOSTILE -> new String[]{"HAS_VICTIM", "BIOME"};
+            case TRIGGER -> new String[]{"HAS_VICTIM"};
+            case WEARING_FULL_SET -> new String[]{"HEALTH_ABOVE", "HAS_POTION"};
+        };
+    }
+
+    private String generateTips() {
+        return switch (this) {
+            case HEALTH_PERCENT -> "Use with caution - percentage scales with max health changes";
+            case HEALTH_BELOW -> "Consider combining with cooldowns to avoid spam at low health";
+            case HEALTH_ABOVE -> "Great for tank builds that reward staying healthy";
+            case VICTIM_HEALTH_PERCENT -> "Always pair with HAS_VICTIM to avoid null errors";
+            case HAS_POTION -> "Can check amplifier level with third parameter (e.g., STRENGTH:>2)";
+            case NO_POTION -> "Useful for 'pure' builds that avoid external buffs";
+            case BIOME -> "Be aware of biome transitions - effect may flicker";
+            case BLOCK_BELOW -> "Checks one block down - player must be grounded";
+            case LIGHT_LEVEL -> "Includes both sky and block light - torches count!";
+            case IN_WATER -> "Only checks if submerged - rain doesn't count";
+            case ON_GROUND -> "False while jumping, falling, or swimming";
+            case WEATHER -> "Weather is world-specific - different per dimension";
+            case TIME -> "Time ranges: DAY(0-12000), NIGHT(13000-24000)";
+            case HAS_VICTIM -> "Required for any VICTIM-based conditions";
+            case VICTIM_IS_PLAYER -> "Only works on combat triggers with a target";
+            case VICTIM_IS_HOSTILE -> "Mob list is predefined - check ConditionManager for details";
+            case TRIGGER -> "Allows same trigger config to behave differently per trigger type";
+            case WEARING_FULL_SET -> "Requires exact set ID match - case sensitive";
+        };
+    }
+
+    /**
+     * Get formatted lore for GUI display with all detailed information.
+     *
+     * @return List of formatted lore lines
+     */
+    public java.util.List<String> getFormattedDetailedLore() {
+        java.util.List<String> lore = new java.util.ArrayList<>();
+
+        lore.add("&7" + description);
+        lore.add("");
+        lore.add("&eDetailed Description:");
+        lore.add("&f" + detailedDescription);
+        lore.add("");
+        lore.add("&eExample Format: &f" + exampleFormat);
+        lore.add("&7" + exampleDescription);
+        lore.add("");
+        lore.add("&eUsage Example:");
+        lore.add("&a" + usageExample);
+        lore.add("");
+
+        if (relatedConditions.length > 0) {
+            lore.add("&eRelated Conditions:");
+            for (String related : relatedConditions) {
+                lore.add("&8  - &b" + related);
+            }
+            lore.add("");
+        }
+
+        lore.add("&eTips:");
+        lore.add("&6" + tips);
+
+        return lore;
     }
 }

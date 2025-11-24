@@ -60,7 +60,11 @@ public class ConfigHandler extends AbstractGUIHandler {
         GUIType.CONDITION_TYPE_SELECTOR,
         GUIType.CONDITION_PARAMETER_CONFIG,
         GUIType.CONDITION_VIEWER,
-        GUIType.CONDITION_EDITOR
+        GUIType.CONDITION_EDITOR,
+        GUIType.CONDITION_TEMPLATE_SELECTOR,
+        GUIType.CONDITION_PARAMETER_EDITOR,
+        GUIType.CONDITION_PRESET_SELECTOR,
+        GUIType.CONDITION_PRESET_MANAGER
     );
 
     public ConfigHandler(ArmorSetsPlugin plugin, GUIHandlerContext context) {
@@ -105,6 +109,10 @@ public class ConfigHandler extends AbstractGUIHandler {
             case CONDITION_PARAMETER_CONFIG -> handleConditionParameterConfigClick(player, session, slot, event);
             case CONDITION_VIEWER -> handleConditionViewerClick(player, session, slot, event);
             case CONDITION_EDITOR -> handleConditionEditorClick(player, session, slot, event);
+            case CONDITION_TEMPLATE_SELECTOR -> handleConditionTemplateSelectorClick(player, session, slot, event);
+            case CONDITION_PARAMETER_EDITOR -> handleConditionParameterEditorClick(player, session, slot, event);
+            case CONDITION_PRESET_SELECTOR -> handleConditionPresetSelectorClick(player, session, slot, event);
+            case CONDITION_PRESET_MANAGER -> handleConditionPresetManagerClick(player, session, slot, event);
             default -> {}
         }
     }
@@ -1223,6 +1231,30 @@ public class ConfigHandler extends AbstractGUIHandler {
         }
 
         switch (slot) {
+            case 13 -> {
+                // Toggle logic mode (AND/OR)
+                context.toggleConditionLogic(player, triggerSession);
+                playSound(player, "click");
+                context.openConditionViewer(player, triggerSession);
+                return;
+            }
+            case 23 -> {
+                // Save as Preset
+                player.sendMessage(TextUtil.colorize("&7Use: &f/as input &7<preset name>"));
+                GUISession presetSession = new GUISession(GUIType.CONDITION_PRESET_MANAGER);
+                presetSession.put("inputType", "SAVE_CONDITION_PRESET");
+                presetSession.put("triggerSession", triggerSession);
+                presetSession.put("conditions", new ArrayList<>(conditions));
+                context.addPendingMessageInput(player.getUniqueId(), presetSession);
+                player.closeInventory();
+                return;
+            }
+            case 25 -> {
+                // Template selector
+                playSound(player, "click");
+                context.openConditionTemplateSelector(player, triggerSession);
+                return;
+            }
             case 27 -> {
                 // Add condition
                 playSound(player, "click");
@@ -1230,6 +1262,12 @@ public class ConfigHandler extends AbstractGUIHandler {
                 return;
             }
             case 29 -> {
+                // Load Preset
+                playSound(player, "click");
+                context.openConditionPresetSelector(player, triggerSession);
+                return;
+            }
+            case 31 -> {
                 // Remove all
                 conditions.clear();
                 triggerSession.put("conditions", conditions);
@@ -1256,18 +1294,24 @@ public class ConfigHandler extends AbstractGUIHandler {
         if (slot >= 9 && slot < 27) {
             int index = slot - 9;
             if (index < conditions.size()) {
-                if (event.isShiftClick()) {
-                    // Remove condition
+                if (event.isShiftClick() && event.isRightClick()) {
+                    // Shift + Right-Click: Open parameter editor
+                    String conditionString = conditions.get(index);
+                    playSound(player, "click");
+                    context.openConditionParameterEditor(player, conditionString, index, triggerSession);
+                } else if (event.isShiftClick()) {
+                    // Shift-Click: Remove condition
                     String removed = conditions.remove(index);
                     triggerSession.put("conditions", conditions);
                     player.sendMessage(TextUtil.colorize("&cRemoved condition: &f" + removed));
                     playSound(player, "unsocket");
                     context.openConditionViewer(player, triggerSession);
                 } else {
-                    // Edit condition
+                    // Regular click: Show condition info
                     String conditionString = conditions.get(index);
+                    player.sendMessage(TextUtil.colorize("&eCondition: &f" + conditionString));
+                    player.sendMessage(TextUtil.colorize("&7Shift-Click to remove, Shift-Right-Click to edit"));
                     playSound(player, "click");
-                    context.openConditionEditor(player, conditionString, triggerSession);
                 }
             }
         }
@@ -1332,5 +1376,248 @@ public class ConfigHandler extends AbstractGUIHandler {
         player.sendMessage(TextUtil.colorize("&aAdded condition: &f" + conditionString));
         playSound(player, "socket");
         context.openConditionViewer(player, parentSession);
+    }
+
+    // ========== NEW CONDITION ENHANCEMENT HANDLERS ==========
+
+    /**
+     * Handle clicks in the Condition Template Selector GUI.
+     * Displays 8 pre-built condition templates that users can apply with one click.
+     */
+    private void handleConditionTemplateSelectorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+
+        if (slot == 26) {
+            // Back button
+            if (parentSession != null) {
+                context.openConditionViewer(player, parentSession);
+            } else {
+                player.closeInventory();
+            }
+            return;
+        }
+
+        // Template slots: 10-17 (8 templates)
+        if (slot >= 10 && slot <= 17) {
+            int templateIndex = slot - 10;
+            com.zenax.armorsets.events.ConditionTemplate[] templates = com.zenax.armorsets.events.ConditionTemplate.values();
+
+            if (templateIndex < templates.length) {
+                com.zenax.armorsets.events.ConditionTemplate template = templates[templateIndex];
+
+                // Add all template conditions to parent
+                if (parentSession != null) {
+                    @SuppressWarnings("unchecked")
+                    List<String> conditions = (List<String>) parentSession.get("conditions");
+                    if (conditions == null) {
+                        conditions = new ArrayList<>();
+                        parentSession.put("conditions", conditions);
+                    }
+
+                    // Check for conflicts before adding
+                    List<com.zenax.armorsets.events.ConflictDetector.Conflict> conflicts =
+                        com.zenax.armorsets.events.ConflictDetector.detectConflicts(
+                            java.util.stream.Stream.concat(
+                                conditions.stream(),
+                                template.getConditions().stream()
+                            ).toList()
+                        );
+
+                    if (!conflicts.isEmpty() && conflicts.stream()
+                        .anyMatch(c -> c.getSeverity() == com.zenax.armorsets.events.ConflictDetector.ConflictSeverity.IMPOSSIBLE)) {
+                        player.sendMessage(TextUtil.colorize("&cWarning: Template may conflict with existing conditions!"));
+                        player.sendMessage(TextUtil.colorize("&7" + com.zenax.armorsets.events.ConflictDetector.getConflictSummary(conflicts)));
+                    }
+
+                    conditions.addAll(template.getConditions());
+                    player.sendMessage(TextUtil.colorize("&aApplied template: &f" + template.getDisplayName()));
+                    player.sendMessage(TextUtil.colorize("&7Added " + template.getConditions().size() + " conditions"));
+                    playSound(player, "socket");
+                    context.openConditionViewer(player, parentSession);
+                } else {
+                    player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+                    player.closeInventory();
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle clicks in the Condition Parameter Editor GUI.
+     * Allows direct editing of condition parameters without re-selecting the type.
+     */
+    private void handleConditionParameterEditorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        String conditionString = session.getString("conditionString");
+        int conditionIndex = session.getInt("conditionIndex", -1);
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+
+        if (parentSession == null || conditionString == null) {
+            player.sendMessage(TextUtil.colorize("&cError: Invalid session data"));
+            player.closeInventory();
+            return;
+        }
+
+        // Parse condition
+        String[] parts = conditionString.split(":");
+        String type = parts.length > 0 ? parts[0] : "";
+        String currentValue = parts.length > 1 ? parts[1] : "";
+        double numericValue = 0;
+        String comparison = "<";
+
+        // Extract numeric value and comparison
+        if (!currentValue.isEmpty()) {
+            if (currentValue.startsWith(">=")) {
+                comparison = ">=";
+                try { numericValue = Double.parseDouble(currentValue.substring(2)); } catch (Exception e) {}
+            } else if (currentValue.startsWith("<=")) {
+                comparison = "<=";
+                try { numericValue = Double.parseDouble(currentValue.substring(2)); } catch (Exception e) {}
+            } else if (currentValue.startsWith("<")) {
+                comparison = "<";
+                try { numericValue = Double.parseDouble(currentValue.substring(1)); } catch (Exception e) {}
+            } else if (currentValue.startsWith(">")) {
+                comparison = ">";
+                try { numericValue = Double.parseDouble(currentValue.substring(1)); } catch (Exception e) {}
+            } else if (currentValue.startsWith("=")) {
+                comparison = "=";
+                try { numericValue = Double.parseDouble(currentValue.substring(1)); } catch (Exception e) {}
+            } else {
+                try { numericValue = Double.parseDouble(currentValue); } catch (Exception e) {}
+            }
+        }
+
+        switch (slot) {
+            case 11 -> {
+                // Cycle comparison operator
+                comparison = switch (comparison) {
+                    case "<" -> "<=";
+                    case "<=" -> ">";
+                    case ">" -> ">=";
+                    case ">=" -> "=";
+                    case "=" -> "<";
+                    default -> "<";
+                };
+                player.sendMessage(TextUtil.colorize("&7Comparison: &f" + comparison));
+                playSound(player, "click");
+            }
+            case 19 -> numericValue = Math.max(-1000, numericValue - 10);
+            case 20 -> numericValue = Math.max(-1000, numericValue - 1);
+            case 24 -> numericValue = Math.min(1000, numericValue + 1);
+            case 25 -> numericValue = Math.min(1000, numericValue + 10);
+            case 30 -> {
+                // Save changes
+                String newConditionString = type + ":" + comparison + (int)numericValue;
+                @SuppressWarnings("unchecked")
+                List<String> conditions = (List<String>) parentSession.get("conditions");
+                if (conditions != null && conditionIndex >= 0 && conditionIndex < conditions.size()) {
+                    conditions.set(conditionIndex, newConditionString);
+                    player.sendMessage(TextUtil.colorize("&aUpdated condition: &f" + newConditionString));
+                    playSound(player, "socket");
+                    context.openConditionViewer(player, parentSession);
+                } else {
+                    player.sendMessage(TextUtil.colorize("&cError: Invalid condition index"));
+                    player.closeInventory();
+                }
+                return;
+            }
+            case 32 -> {
+                // Cancel
+                playSound(player, "close");
+                context.openConditionViewer(player, parentSession);
+                return;
+            }
+            default -> { return; }
+        }
+
+        // Update session and refresh
+        session.put("conditionString", type + ":" + comparison + (int)numericValue);
+        session.put("numericValue", numericValue);
+        session.put("comparison", comparison);
+        playSound(player, "click");
+        context.openConditionParameterEditor(player, type + ":" + comparison + (int)numericValue, conditionIndex, parentSession);
+    }
+
+    /**
+     * Handle clicks in the Condition Preset Selector GUI.
+     * Displays saved condition presets that users can load.
+     */
+    private void handleConditionPresetSelectorClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        GUISession parentSession = session.get("parentSession", GUISession.class);
+        Inventory inv = player.getOpenInventory().getTopInventory();
+        int lastSlot = inv.getSize() - 1;
+
+        if (slot == lastSlot) {
+            // Back button
+            if (parentSession != null) {
+                context.openConditionViewer(player, parentSession);
+            } else {
+                player.closeInventory();
+            }
+            return;
+        }
+
+        // Preset items (slots 0-43)
+        if (slot >= 0 && slot < 44) {
+            ItemStack clicked = inv.getItem(slot);
+            if (clicked == null || clicked.getType().isAir()) return;
+
+            // Get preset ID from item metadata
+            String presetId = clicked.getItemMeta().getPersistentDataContainer().get(
+                new NamespacedKey(plugin, "preset_id"),
+                PersistentDataType.STRING
+            );
+
+            if (presetId != null) {
+                // Load preset from file
+                java.io.File presetsFile = new java.io.File(plugin.getDataFolder(), "presets/conditions.yml");
+                var allPresets = com.zenax.armorsets.events.ConditionPreset.loadAllPresets(presetsFile);
+                com.zenax.armorsets.events.ConditionPreset preset = allPresets.get(presetId);
+
+                if (preset != null && parentSession != null) {
+                    @SuppressWarnings("unchecked")
+                    List<String> conditions = (List<String>) parentSession.get("conditions");
+                    if (conditions == null) {
+                        conditions = new ArrayList<>();
+                        parentSession.put("conditions", conditions);
+                    }
+
+                    if (event.isShiftClick()) {
+                        // Shift-click: Replace existing conditions
+                        conditions.clear();
+                        conditions.addAll(preset.getConditions());
+                        player.sendMessage(TextUtil.colorize("&aReplaced conditions with preset: &f" + preset.getName()));
+                    } else {
+                        // Regular click: Merge with existing
+                        conditions.addAll(preset.getConditions());
+                        player.sendMessage(TextUtil.colorize("&aAdded preset conditions: &f" + preset.getName()));
+                    }
+
+                    playSound(player, "socket");
+                    context.openConditionViewer(player, parentSession);
+                } else {
+                    player.sendMessage(TextUtil.colorize("&cPreset not found: " + presetId));
+                    playSound(player, "error");
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle clicks in the Condition Preset Manager GUI.
+     * This is mainly for handling input-based saves, so most logic happens in message input.
+     */
+    private void handleConditionPresetManagerClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
+        GUISession parentSession = session.get("triggerSession", GUISession.class);
+
+        switch (slot) {
+            case 14 -> {
+                // Cancel
+                if (parentSession != null) {
+                    context.openConditionViewer(player, parentSession);
+                } else {
+                    player.closeInventory();
+                }
+            }
+        }
     }
 }

@@ -242,4 +242,31 @@ public interface GUIHandlerContext {
      * Open condition editor.
      */
     void openConditionEditor(Player player, String conditionString, GUISession parentSession);
+
+    // ===== NEW CONDITION ENHANCEMENT METHODS =====
+
+    /**
+     * Open condition template selector.
+     */
+    void openConditionTemplateSelector(Player player, GUISession parentSession);
+
+    /**
+     * Open condition parameter editor for direct editing.
+     */
+    void openConditionParameterEditor(Player player, String conditionString, int conditionIndex, GUISession parentSession);
+
+    /**
+     * Open condition preset selector for loading presets.
+     */
+    void openConditionPresetSelector(Player player, GUISession parentSession);
+
+    /**
+     * Open condition preset manager for saving new presets.
+     */
+    void openConditionPresetManager(Player player, GUISession parentSession);
+
+    /**
+     * Toggle condition logic mode (AND/OR) for a trigger.
+     */
+    void toggleConditionLogic(Player player, GUISession triggerSession);
 }

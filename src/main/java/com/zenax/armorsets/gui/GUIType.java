@@ -178,6 +178,26 @@ public enum GUIType {
      */
     CONDITION_EDITOR,
 
+    /**
+     * Selector for choosing pre-built condition templates.
+     */
+    CONDITION_TEMPLATE_SELECTOR,
+
+    /**
+     * Editor for adjusting condition parameters directly.
+     */
+    CONDITION_PARAMETER_EDITOR,
+
+    /**
+     * Selector for loading saved condition presets.
+     */
+    CONDITION_PRESET_SELECTOR,
+
+    /**
+     * Manager for saving new condition presets.
+     */
+    CONDITION_PRESET_MANAGER,
+
     // ===== UTILITY GUIS =====
 
     /**

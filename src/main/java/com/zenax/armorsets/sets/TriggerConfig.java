@@ -13,7 +13,13 @@ public class TriggerConfig {
         COOLDOWN  // Higher tiers decrease cooldown
     }
 
+    public enum ConditionLogic {
+        AND,  // All conditions must pass (default)
+        OR    // Any condition can pass
+    }
+
     private TriggerMode triggerMode = TriggerMode.CHANCE;
+    private ConditionLogic conditionLogic = ConditionLogic.AND;
     private double chance = 100;
     private double baseChance = 20;    // Starting chance at tier 1
     private List<String> effects = new ArrayList<>();
@@ -93,6 +99,14 @@ public class TriggerConfig {
         this.baseCooldown = baseCooldown;
     }
 
+    public ConditionLogic getConditionLogic() {
+        return conditionLogic;
+    }
+
+    public void setConditionLogic(ConditionLogic conditionLogic) {
+        this.conditionLogic = conditionLogic != null ? conditionLogic : ConditionLogic.AND;
+    }
+
     /**
      * Parse a TriggerConfig from a configuration section.
      */
@@ -115,6 +129,14 @@ public class TriggerConfig {
         config.setCooldown(section.getDouble("cooldown", 0));
         config.setBaseCooldown(section.getDouble("base_cooldown", section.getDouble("cooldown", 10)));
         config.setConditions(section.getStringList("conditions"));
+
+        // Parse condition logic
+        String logicStr = section.getString("condition_logic", "AND").toUpperCase();
+        try {
+            config.setConditionLogic(ConditionLogic.valueOf(logicStr));
+        } catch (IllegalArgumentException e) {
+            config.setConditionLogic(ConditionLogic.AND);
+        }
 
         return config;
     }

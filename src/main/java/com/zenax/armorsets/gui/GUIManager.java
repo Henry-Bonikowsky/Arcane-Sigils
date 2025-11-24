@@ -1224,6 +1224,143 @@ public class GUIManager implements Listener, GUIHandlerContext {
         openGUI(player, inv, session);
     }
 
+    /**
+     * Toggle the condition logic mode between AND and OR
+     */
+    @Override
+    public void toggleConditionLogic(Player player, GUISession triggerSession) {
+        if (triggerSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No trigger session"));
+            return;
+        }
+
+        String logicMode = triggerSession.getString("logicMode");
+        if (logicMode == null) {
+            logicMode = "AND";
+        }
+
+        String newMode = "AND".equals(logicMode) ? "OR" : "AND";
+        triggerSession.put("logicMode", newMode);
+
+        player.sendMessage(TextUtil.colorize("&aCondition logic set to: &f" + newMode));
+        playSound(player, "click");
+
+        // Refresh the condition viewer
+        openConditionViewer(player, triggerSession);
+    }
+
+    /**
+     * Open the condition preset manager GUI
+     */
+    @Override
+    public void openConditionPresetManager(Player player, GUISession triggerSession) {
+        if (triggerSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No trigger session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Manage Presets"));
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aSave as Preset", "&7Save current conditions", "&7as a reusable preset"));
+        inv.setItem(13, ItemBuilder.createGuiItem(Material.BLUE_DYE, "&bLoad Preset", "&7Apply saved presets", "&7to this trigger"));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("triggerSession", triggerSession);
+        session.put("isPresetManager", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition template selector GUI
+     */
+    @Override
+    public void openConditionTemplateSelector(Player player, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Select Template"));
+
+        com.zenax.armorsets.events.ConditionTemplate[] templates = com.zenax.armorsets.events.ConditionTemplate.values();
+        int slot = 10;
+        for (com.zenax.armorsets.events.ConditionTemplate template : templates) {
+            if (slot >= 27) break;
+            ItemStack item = new ItemStack(template.getIcon());
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&f" + template.getDisplayName()));
+            List<Component> lore = new ArrayList<>();
+            for (String line : template.getFormattedLore()) {
+                lore.add(TextUtil.parseComponent(line));
+            }
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot, item);
+            slot++;
+        }
+
+        inv.setItem(35, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("parentSession", parentSession);
+        session.put("isTemplateSelector", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition parameter editor GUI
+     */
+    @Override
+    public void openConditionParameterEditor(Player player, String conditionString, int conditionIndex, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Edit: &f" + conditionString));
+
+        ItemStack info = new ItemStack(Material.PAPER);
+        ItemMeta meta = info.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&e" + conditionString));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&7Editing condition parameters"));
+        meta.lore(lore);
+        info.setItemMeta(meta);
+        inv.setItem(4, info);
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Save changes"));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Discard"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("parentSession", parentSession);
+        session.put("conditionString", conditionString);
+        session.put("conditionIndex", conditionIndex);
+        session.put("isParameterEditor", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition preset selector GUI
+     */
+    @Override
+    public void openConditionPresetSelector(Player player, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Load Preset"));
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.BLUE_DYE, "&bNo Presets Saved", "&7Create one first using", "&7'Save as Preset'"));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("parentSession", parentSession);
+        session.put("isPresetSelector", true);
+        openGUI(player, inv, session);
+    }
+
     // ===== PUBLIC API METHODS =====
 
     public void closeAll() {
