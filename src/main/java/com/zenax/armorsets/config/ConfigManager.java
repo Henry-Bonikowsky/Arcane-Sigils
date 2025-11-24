@@ -79,7 +79,7 @@ public class ConfigManager {
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
-    private void loadSigilConfigs() {
+    public void loadSigilConfigs() {
         sigilConfigs.clear();
         loadConfigsFromDirectory(sigilsDir, sigilConfigs);
         plugin.getLogger().info("Loaded " + sigilConfigs.size() + " sigil config files");
@@ -134,9 +134,14 @@ public class ConfigManager {
 
     private void saveResource(String resourcePath) {
         try {
+            File outFile = new File(plugin.getDataFolder(), resourcePath);
+            // Only save if file doesn't exist - don't overwrite user changes
+            if (outFile.exists()) {
+                return;
+            }
+
             InputStream in = plugin.getResource(resourcePath);
             if (in != null) {
-                File outFile = new File(plugin.getDataFolder(), resourcePath);
                 outFile.getParentFile().mkdirs();
 
                 FileConfiguration config = YamlConfiguration.loadConfiguration(new InputStreamReader(in, StandardCharsets.UTF_8));

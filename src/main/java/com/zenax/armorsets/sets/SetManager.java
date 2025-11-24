@@ -256,24 +256,6 @@ public class SetManager {
         lore.add("&7Part of the &d" + set.getId().replace("_t", " Tier ") + " &7set");
         lore.add("&8Tier " + set.getTier());
 
-        var slotEffects = set.getIndividualEffects().get(slot.toLowerCase());
-        if (slotEffects != null && !slotEffects.isEmpty()) {
-            lore.add("");
-            lore.add("&b&lPiece Abilities:");
-            for (var entry : slotEffects.entrySet()) {
-                String triggerKey = entry.getKey().replace("on_", "");
-                String trigger = triggerKey.replace("_", " ");
-                String cap = TextUtil.toProperCase(trigger);
-                String triggerDesc = TextUtil.getTriggerDescription(triggerKey);
-                lore.add("&b• &3" + cap);
-                lore.add("&7  " + TextUtil.toProperCase(triggerDesc));
-                for (String effect : entry.getValue().getEffects()) {
-                    String effectDesc = TextUtil.getEffectDescription(effect);
-                    lore.add("&8    →&7 " + TextUtil.toProperCase(effectDesc));
-                }
-            }
-        }
-
         if (!set.getSynergies().isEmpty()) {
             lore.add("");
             lore.add("&b&lSet Synergies &8(Full Set):");

@@ -455,8 +455,9 @@ public class TriggerHandler implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerInteract(PlayerInteractEvent event) {
-        // Only right-click actions
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        // Handle all click actions (left and right, air and block)
+        Action action = event.getAction();
+        if (action == Action.PHYSICAL) return; // Skip pressure plates, tripwires, etc.
 
         // Skip socket interactions (handled elsewhere)
         ItemStack item = event.getItem();
@@ -504,9 +505,6 @@ public class TriggerHandler implements Listener {
         ArmorSet activeSet = plugin.getSetManager().getActiveSet(player);
 
         if (activeSet != null) {
-            // Process individual piece effects (always active when wearing set piece)
-            processIndividualEffects(player, activeSet, triggerType, context);
-
             // Process set synergies (only when full set is equipped)
             if (plugin.getSetManager().hasFullSet(player, activeSet)) {
                 processSetSynergies(player, activeSet, triggerType, context);
@@ -515,47 +513,6 @@ public class TriggerHandler implements Listener {
 
         // Process sigil effects
         processSigilEffects(player, triggerType, context);
-    }
-
-    /**
-     * Process individual armor piece effects (permanent, always active when wearing piece).
-     */
-    private void processIndividualEffects(Player player, ArmorSet set, TriggerType triggerType, EffectContext context) {
-        for (var entry : set.getIndividualEffects().entrySet()) {
-            String slot = entry.getKey();
-            Map<String, TriggerConfig> slotConfigs = entry.getValue();
-
-            // Try multiple key formats: on_attack, ATTACK, attack
-            TriggerConfig config = slotConfigs.get("on_" + triggerType.getConfigKey().toLowerCase());
-            if (config == null) config = slotConfigs.get(triggerType.getConfigKey());
-            if (config == null) config = slotConfigs.get(triggerType.getConfigKey().toLowerCase());
-
-            if (config == null) continue;
-
-            // Check if player has the armor piece
-            ItemStack armorPiece = getArmorPieceBySlot(player, slot);
-            if (armorPiece == null || armorPiece.getType().isAir()) continue;
-
-            // Process the trigger config (no cooldown for individual effects - always active)
-            processIndividualEffectConfig(player, config, context, set.getId() + "_" + slot + "_" + triggerType.getConfigKey());
-        }
-    }
-
-    /**
-     * Process individual effect config without cooldowns (always active).
-     */
-    private void processIndividualEffectConfig(Player player, TriggerConfig config, EffectContext context, String effectId) {
-        // Check chance
-        double chance = config.getChance();
-        if (chance < 100 && ThreadLocalRandom.current().nextDouble() * 100 > chance) {
-            return;
-        }
-
-        // Execute effects (no cooldown for individual effects)
-        List<String> effects = config.getEffects();
-        if (effects != null && !effects.isEmpty()) {
-            plugin.getEffectManager().executeEffects(effects, context);
-        }
     }
 
     /**
@@ -673,16 +630,4 @@ public class TriggerHandler implements Listener {
         }
     }
 
-    /**
-     * Get armor piece by slot name.
-     */
-    private ItemStack getArmorPieceBySlot(Player player, String slot) {
-        return switch (slot.toLowerCase()) {
-            case "helmet" -> player.getInventory().getHelmet();
-            case "chestplate" -> player.getInventory().getChestplate();
-            case "leggings" -> player.getInventory().getLeggings();
-            case "boots" -> player.getInventory().getBoots();
-            default -> null;
-        };
-    }
 }

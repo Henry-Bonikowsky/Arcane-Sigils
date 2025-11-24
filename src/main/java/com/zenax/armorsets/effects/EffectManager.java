@@ -29,7 +29,8 @@ public class EffectManager {
 
     private void registerDefaultEffects() {
         // Damage/Combat Effects
-        registerEffect(new IncreaseDamageEffect());
+        registerEffect(new DealDamageEffect());
+        registerEffect(new DamageBoostEffect());
         registerEffect(new DisintegrateEffect());
         registerEffect(new AegisEffect());
         registerEffect(new WardEffect());
@@ -37,7 +38,7 @@ public class EffectManager {
         registerEffect(new LifestealEffect());
 
         // Movement Effects
-        registerEffect(new TeleportRandomEffect());
+        registerEffect(new TeleportEffect());
         registerEffect(new SmokebombEffect());
         registerEffect(new DodgeEffect());
         registerEffect(new MomentumEffect());
@@ -94,7 +95,14 @@ public class EffectManager {
     }
 
     public Effect getEffect(String id) {
-        return effects.get(id.toUpperCase());
+        String upperid = id.toUpperCase();
+
+        // Handle common aliases
+        if ("DAMAGE".equals(upperid)) {
+            upperid = "DEAL_DAMAGE";
+        }
+
+        return effects.get(upperid);
     }
 
     public Collection<Effect> getAllEffects() {

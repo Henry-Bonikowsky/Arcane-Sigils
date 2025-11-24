@@ -172,23 +172,6 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
                 lore.add(TextUtil.parseComponent("&7Part of the &d" + setName + " &7set"));
                 lore.add(TextUtil.parseComponent("&8Tier &f" + set.getTier()));
 
-                // Add individual effects for this slot
-                var slotEffects = set.getIndividualEffects().get(slot.toLowerCase());
-                if (slotEffects != null && !slotEffects.isEmpty()) {
-                    lore.add(Component.empty());
-                    lore.add(TextUtil.parseComponent("&b&lPiece Abilities:"));
-                    for (var entry : slotEffects.entrySet()) {
-                        String trigger = entry.getKey().replace("on_", "").replace("_", " ");
-                        String triggerDesc = TextUtil.getTriggerDescription(entry.getKey().replace("on_", ""));
-                        lore.add(TextUtil.parseComponent("&b• &3" + TextUtil.toProperCase(trigger)));
-                        lore.add(TextUtil.parseComponent("&7  " + TextUtil.toProperCase(triggerDesc)));
-                        for (String effect : entry.getValue().getEffects()) {
-                            String effectDesc = TextUtil.getEffectDescription(effect);
-                            lore.add(TextUtil.parseComponent("&8    →&7 " + TextUtil.toProperCase(effectDesc)));
-                        }
-                    }
-                }
-
                 // Add synergy info
                 if (!set.getSynergies().isEmpty()) {
                     lore.add(Component.empty());

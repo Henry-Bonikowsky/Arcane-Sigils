@@ -46,6 +46,8 @@ public class SigilManager {
         sigils.clear();
 
         for (Map.Entry<String, FileConfiguration> entry : plugin.getConfigManager().getSigilConfigs().entrySet()) {
+            String fileNameWithoutExt = entry.getKey();
+            String fileName = fileNameWithoutExt + ".yml"; // Add extension back
             FileConfiguration config = entry.getValue();
 
             for (String key : config.getKeys(false)) {
@@ -54,6 +56,7 @@ public class SigilManager {
 
                 Sigil sigil = Sigil.fromConfig(key, section);
                 if (sigil != null) {
+                    sigil.setSourceFile(fileName);
                     sigils.put(key.toLowerCase(), sigil);
                 }
             }
@@ -91,6 +94,7 @@ public class SigilManager {
         clone.setExclusive(original.isExclusive());
         clone.setCrate(original.getCrate());
         clone.setItemForm(original.getItemForm());
+        clone.setSourceFile(original.getSourceFile());
 
         // Deep copy effects
         Map<String, TriggerConfig> clonedEffects = new java.util.HashMap<>();
@@ -207,6 +211,11 @@ public class SigilManager {
      */
     public ItemStack createSigilItem(Sigil sigil) {
         Sigil.ItemForm itemForm = sigil.getItemForm();
+
+        // Use default ItemForm if none is set
+        if (itemForm == null) {
+            itemForm = new Sigil.ItemForm();
+        }
 
         ItemStack item = new ItemStack(itemForm.getMaterial());
         ItemMeta meta = item.getItemMeta();

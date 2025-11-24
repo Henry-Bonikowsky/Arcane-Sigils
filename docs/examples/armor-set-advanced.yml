@@ -16,42 +16,6 @@ arcanist:
         - "&c&l(!) &cThe Arcanist Set has been removed."
         - "&7The cosmic connection fades into silence..."
 
-      individual_effects:
-
-        helmet:
-          # Passive perception enhancement
-          EFFECT_STATIC:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "POTION:NIGHT_VISION:1"
-              - "POTION:WATER_BREATHING:1"
-
-        chestplate:
-          # Defensive reaction to damage
-          DEFENSE:
-            chance: 15
-            cooldown: 10
-            effects:
-              - "AEGIS:3"
-              - "PARTICLE:PORTAL:30 @Self"
-
-        leggings:
-          # Passive movement boost
-          EFFECT_STATIC:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "POTION:SPEED:1"
-
-        boots:
-          # Fall damage negation
-          FALL_DAMAGE:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "CANCEL_EVENT"
-
       # Multiple synergies (all trigger when full set equipped)
       synergies:
 
@@ -128,49 +92,6 @@ arcanist:
       unequipped_message:
         - "&c&l(!) &cYou choose to forget."
         - "&7The universe sighs in relief."
-
-      individual_effects:
-
-        helmet:
-          EFFECT_STATIC:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "POTION:NIGHT_VISION:1"
-              - "POTION:WATER_BREATHING:1"
-              - "POTION:REGENERATION:3"
-              - "POTION:SATURATION:1"
-
-        chestplate:
-          EFFECT_STATIC:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "POTION:DAMAGE_RESISTANCE:2"
-              - "POTION:FIRE_RESISTANCE:1"
-
-          DEFENSE:
-            chance: 50      # Much higher trigger rate
-            cooldown: 2     # Much shorter cooldown
-            effects:
-              - "CANCEL_EVENT"
-              - "HEAL:20"
-              - "PARTICLE:PORTAL:50 @Self"
-
-        leggings:
-          EFFECT_STATIC:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "POTION:SPEED:4"
-              - "POTION:JUMP:3"
-
-        boots:
-          FALL_DAMAGE:
-            chance: 100
-            cooldown: 0
-            effects:
-              - "CANCEL_EVENT"
 
       synergies:
 

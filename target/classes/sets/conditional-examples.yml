@@ -28,14 +28,6 @@ lifeguard:
       unequipped_message:
         - "&cProtection disabled"
 
-      individual_effects:
-        helmet:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:WATER_BREATHING:999
-            cooldown: 0
-
       synergies:
         # Only heal when low on health
         emergency_heal:
@@ -82,26 +74,6 @@ aquatic:
       unequipped_message:
         - "&7Land binding restored"
 
-      individual_effects:
-        boots:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:WATER_BREATHING:999
-              - POTION:DOLPHIN_GRACE:999
-            cooldown: 0
-            conditions:
-              - IN_WATER  # Always on when in water
-
-        helmet:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:NIGHT_VISION:999
-            cooldown: 0
-            conditions:
-              - IN_WATER
-
       synergies:
         # Enhanced speed only in water
         hydroplane:
@@ -147,17 +119,6 @@ lunar:
         - "&5&lTUNED TO THE MOON"
       unequipped_message:
         - "&7Moon's blessing fades"
-
-      individual_effects:
-        helmet:
-          # Night vision always at night
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:NIGHT_VISION:999
-            cooldown: 0
-            conditions:
-              - TIME:NIGHT
 
       synergies:
         # Powerful at night

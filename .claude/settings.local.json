@@ -28,7 +28,14 @@
       "Bash(cd:*)",
       "Bash(git checkout:*)",
       "Bash(findstr:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(where.exe:*)",
+      "Bash(del:*)",
+      "Bash(rm:*)",
+      "Bash(rmdir:*)",
+      "Bash(mvn compile:*)",
+      "Bash(where:*)",
+      "Bash(mvn dependency:tree:*)"
     ],
     "deny": [],
     "ask": []

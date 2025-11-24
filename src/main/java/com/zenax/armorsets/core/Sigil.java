@@ -25,6 +25,7 @@ public class Sigil {
     private ItemForm itemForm;
     private boolean exclusive; // If true, cannot be unsocketed
     private String crate; // Optional crate name for exclusive sigils
+    private String sourceFile; // The file this sigil was loaded from
 
     public Sigil(String id) {
         this.id = id;
@@ -35,9 +36,10 @@ public class Sigil {
         this.maxTier = 10;
         this.rarity = "COMMON";
         this.effects = new HashMap<>();
-        this.itemForm = new ItemForm();
+        this.itemForm = null;
         this.exclusive = false;
         this.crate = null;
+        this.sourceFile = null;
     }
 
     // Getters and setters
@@ -124,6 +126,14 @@ public class Sigil {
 
     public void setCrate(String crate) {
         this.crate = crate;
+    }
+
+    public String getSourceFile() {
+        return sourceFile;
+    }
+
+    public void setSourceFile(String sourceFile) {
+        this.sourceFile = sourceFile;
     }
 
     /**

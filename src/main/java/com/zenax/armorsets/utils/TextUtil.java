@@ -275,8 +275,16 @@ public final class TextUtil {
             case "DAMAGE" -> "Deals " + (parts.length > 1 ? parts[1] : "damage");
             case "POTION" -> {
                 String potionType = parts.length > 1 ? parts[1] : "effect";
-                String level = parts.length > 2 ? " (Level " + parts[2] + ")" : "";
-                yield "Applies " + potionType.toLowerCase() + " effect" + level;
+                String duration = parts.length > 2 ? parts[2] + "s" : "";
+                String level = "";
+                if (parts.length > 3) {
+                    try {
+                        level = " Lvl " + (Integer.parseInt(parts[3]) + 1);
+                    } catch (NumberFormatException e) {
+                        level = " Lvl " + parts[3];
+                    }
+                }
+                yield "Applies " + potionType.toLowerCase() + level + (duration.isEmpty() ? "" : " for " + duration);
             }
             case "PARTICLE" -> "Shows " + (parts.length > 1 ? parts[1].toLowerCase() : "particle") + " effect";
             case "SOUND" -> "Plays " + (parts.length > 1 ? parts[1].toLowerCase() : "sound") + " effect";
@@ -286,6 +294,8 @@ public final class TextUtil {
             case "MESSAGE" -> "Sends message to player";
             case "CANCEL_EVENT" -> "Negates the triggering event";
             case "TELEPORT_RANDOM" -> "Teleports " + (parts.length > 1 ? parts[1] : "8") + " blocks away";
+            case "TELEPORT_AROUND" -> "Teleports " + (parts.length > 1 ? parts[1] : "5") + " blocks around target" + (parts.length > 2 ? " (facing: " + parts[2] + ")" : "");
+            case "TELEPORT_BEHIND" -> "Teleports " + (parts.length > 1 ? parts[1] : "2") + " blocks behind target" + (parts.length > 2 ? " (facing: " + parts[2] + ")" : "");
             case "SMOKEBOMB" -> "Creates smoke effect and blindness";
             case "REPLENISH" -> "Restores " + (parts.length > 1 ? parts[1] : "items") + " to inventory";
             case "DEVOUR" -> "Consumes nearby drops (Level " + (parts.length > 1 ? parts[1] : "1") + ")";

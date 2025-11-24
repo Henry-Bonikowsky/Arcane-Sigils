@@ -20,9 +20,6 @@ public class ArmorSet {
     private List<String> equippedMessage;
     private List<String> unequippedMessage;
 
-    // Slot -> TriggerType -> TriggerConfig
-    private Map<String, Map<String, TriggerConfig>> individualEffects;
-
     // Set synergies (full set bonuses)
     private List<SetSynergy> synergies;
 
@@ -34,7 +31,6 @@ public class ArmorSet {
         this.material = Material.NETHERITE_CHESTPLATE;
         this.equippedMessage = new ArrayList<>();
         this.unequippedMessage = new ArrayList<>();
-        this.individualEffects = new HashMap<>();
         this.synergies = new ArrayList<>();
     }
 
@@ -101,14 +97,6 @@ public class ArmorSet {
         this.unequippedMessage = unequippedMessage;
     }
 
-    public Map<String, Map<String, TriggerConfig>> getIndividualEffects() {
-        return individualEffects;
-    }
-
-    public void setIndividualEffects(Map<String, Map<String, TriggerConfig>> individualEffects) {
-        this.individualEffects = individualEffects;
-    }
-
     public List<SetSynergy> getSynergies() {
         return synergies;
     }
@@ -157,26 +145,6 @@ public class ArmorSet {
 
         set.setEquippedMessage(section.getStringList("equipped_message"));
         set.setUnequippedMessage(section.getStringList("unequipped_message"));
-
-        // Load individual effects
-        Map<String, Map<String, TriggerConfig>> individualEffects = new HashMap<>();
-        ConfigurationSection effectsSection = section.getConfigurationSection("individual_effects");
-        if (effectsSection != null) {
-            for (String slot : effectsSection.getKeys(false)) {
-                ConfigurationSection slotSection = effectsSection.getConfigurationSection(slot);
-                if (slotSection == null) continue;
-
-                Map<String, TriggerConfig> slotEffects = new HashMap<>();
-                for (String triggerKey : slotSection.getKeys(false)) {
-                    TriggerConfig config = TriggerConfig.fromConfig(slotSection.getConfigurationSection(triggerKey));
-                    if (config != null) {
-                        slotEffects.put(triggerKey, config);
-                    }
-                }
-                individualEffects.put(slot, slotEffects);
-            }
-        }
-        set.setIndividualEffects(individualEffects);
 
         // Load synergies
         List<SetSynergy> synergies = new ArrayList<>();

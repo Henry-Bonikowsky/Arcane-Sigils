@@ -1,9 +1,8 @@
 # ============================================================================
 # COMPLETE TRIGGER SYSTEM EXAMPLES
 # ============================================================================
-# This file demonstrates all 15 available triggers with practical examples
+# Note: individual_effects have been removed. Use sigil effects instead.
 # All triggers can be used in:
-#   - individual_effects (per armor piece - permanent sigils)
 #   - sigil effects
 #   - weapon events
 # ============================================================================
@@ -13,132 +12,6 @@ trigger_showcase:
     1:
       name_pattern: "Trigger.*Showcase.*Tier I"
       material: NETHERITE
-      individual_effects:
-        helmet:
-          # PERMANENT SIGIL: Night Vision Helm
-          # Passive: Always see in the dark and breathe underwater
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:NIGHT_VISION:999
-              - POTION:WATER_BREATHING:999
-            cooldown: 0
-
-          # PERMANENT SIGIL: Flame Burst
-          # When attacking: 30% chance to boost damage and create flame particles
-          ATTACK:
-            chance: 30
-            effects:
-              - INCREASE_DAMAGE:20
-              - PARTICLE:FLAME:15 @Victim
-            cooldown: 2
-
-          # PERMANENT SIGIL: Flame Shield
-          # When taking damage: 25% chance to reflect damage
-          DEFENSE:
-            chance: 25
-            effects:
-              - AEGIS:5
-              - PARTICLE:CLOUD:10 @Self
-            cooldown: 3
-
-          # PERMANENT SIGIL: Impact Padding
-          # When falling: Cancel fall damage and restore hunger
-          FALL_DAMAGE:
-            chance: 100
-            effects:
-              - CANCEL_EVENT
-              - REPLENISH:3
-            cooldown: 0
-
-        chestplate:
-          # PERMANENT SIGIL: Bow Mastery
-          BOW_SHOOT:
-            chance: 40
-            effects:
-              - PARTICLE:FLAME:20 @Self
-              - SOUND:ENTITY_ARROW_SHOOT @Self
-            cooldown: 1
-            conditions:
-              - BLOCK_BELOW:WATER
-
-          # PERMANENT SIGIL: Arrow Detonation
-          BOW_HIT:
-            chance: 50
-            effects:
-              - PARTICLE:EXPLOSION_NORMAL:25 @Victim
-              - SOUND:ENTITY_GENERIC_EXPLODE @Victim
-            cooldown: 0.5
-
-          # PERMANENT SIGIL: Trident Command
-          TRIDENT_THROW:
-            chance: 35
-            effects:
-              - PARTICLE:DRIPPING_WATER:15 @Self
-              - SOUND:ITEM_TRIDENT_THROW @Self
-            cooldown: 1
-
-          # PERMANENT SIGIL: Bloodhunt
-          KILL_MOB:
-            chance: 100
-            effects:
-              - HEAL:5
-              - DEVOUR:8
-              - PARTICLE:SOUL:30 @Victim
-            cooldown: 0
-
-        leggings:
-          # PERMANENT SIGIL: Predator Instinct
-          KILL_PLAYER:
-            chance: 100
-            effects:
-              - HEAL:10
-              - POTION:STRENGTH:10:1 @Self
-              - PARTICLE:SOUL_FIRE_FLAME:40 @Victim
-              - SOUND:ENTITY_WITHER_DEATH @Victim
-            cooldown: 1
-
-          # PERMANENT SIGIL: Shadow Step
-          SHIFT:
-            chance: 100
-            effects:
-              - POTION:INVISIBILITY:5 @Self
-              - POTION:SPEED:5:1 @Self
-              - MESSAGE:You fade into the shadows @Self
-            cooldown: 10
-
-        boots:
-          # PERMANENT SIGIL: Excavation Bonus
-          BLOCK_BREAK:
-            chance: 20
-            effects:
-              - PARTICLE:TOWN_AURA:10 @Self
-              - REPLENISH:2
-            cooldown: 0.5
-
-          # PERMANENT SIGIL: Construction Aura
-          BLOCK_PLACE:
-            chance: 25
-            effects:
-              - PARTICLE:ENCHANTMENT_TABLE:8 @Self
-            cooldown: 0
-
-          # PERMANENT SIGIL: Interaction Spark
-          INTERACT:
-            chance: 30
-            effects:
-              - PARTICLE:CRIT:10 @Self
-              - SOUND:BLOCK_NOTE_BLOCK_PLING @Self
-            cooldown: 1
-
-          # PERMANENT SIGIL: Pulsating Aura
-          TICK:
-            chance: 5
-            effects:
-              - PARTICLE:EFFECT:1 @Self
-            cooldown: 0
-            conditions:
-              - IN_WATER
 
 
 # ============================================================================
@@ -176,14 +49,6 @@ bladestorm:
       unequipped_message:
         - "&7The wind calms..."
 
-      individual_effects:
-        boots:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:SPEED:999:1
-            cooldown: 0
-
     10:
       name_pattern: "Bladestorm.*Tier X"
       material: NETHERITE
@@ -191,14 +56,6 @@ bladestorm:
         - "&c&lULTIMATE WIND FURY"
       unequipped_message:
         - "&7The wind ceases..."
-
-      individual_effects:
-        boots:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:SPEED:999:1
-            cooldown: 0
 
 
 # ============================================================================
@@ -213,11 +70,3 @@ nomad:
         - "&6&lTHE WORLD IS YOUR HOME"
       unequipped_message:
         - "&7You settle down..."
-
-      individual_effects:
-        boots:
-          EFFECT_STATIC:
-            chance: 100
-            effects:
-              - POTION:SPEED:999:1
-            cooldown: 0
