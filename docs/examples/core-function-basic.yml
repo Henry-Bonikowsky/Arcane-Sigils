@@ -1,9 +1,9 @@
-# BASIC CORE FUNCTION EXAMPLES
-# Core functions are socketable abilities
-# Place in: plugins/ArmorSets/core-functions/[helmet/chestplate/leggings/boots]-functions.yml
+# BASIC CORE SIGIL EXAMPLES
+# Core Sigils are socketable abilities
+# Place in: plugins/ArmorSets/core-Sigils/[helmet/chestplate/leggings/boots]-Sigils.yml
 
 # ============================================================================
-# BASIC HELMET FUNCTION - Night Vision Enhancement
+# BASIC HELMET SIGIL - Night Vision Enhancement
 # ============================================================================
 night_sight:
   name: "&9Night Sight"
@@ -27,13 +27,13 @@ night_sight:
     model_data: 100
     name: "&9Shard: Night Sight"
     lore:
-      - "&7Tier 1 Helmet Function"
+      - "&7Tier 1 Helmet Sigil"
       - ""
       - "&fRight-click a helmet to socket"
     glow: true
 
 # ============================================================================
-# BASIC CHESTPLATE FUNCTION - Lifesteal
+# BASIC CHESTPLATE SIGIL - Lifesteal
 # ============================================================================
 blood_thirst:
   name: "&cBlood Thirst"
@@ -64,14 +64,14 @@ blood_thirst:
     model_data: 101
     name: "&cShard: Blood Thirst"
     lore:
-      - "&7Tier 1 Chestplate Function"
+      - "&7Tier 1 Chestplate Sigil"
       - "&8Gain lifesteal on attacks"
       - ""
       - "&fRight-click a chestplate to socket"
     glow: true
 
 # ============================================================================
-# BASIC LEGGINGS FUNCTION - Speed Boost
+# BASIC LEGGINGS SIGIL - Speed Boost
 # ============================================================================
 swift_legs:
   name: "&bSwift Legs"
@@ -93,14 +93,14 @@ swift_legs:
     model_data: 102
     name: "&bShard: Swift Legs"
     lore:
-      - "&7Tier 1 Leggings Function"
+      - "&7Tier 1 Leggings Sigil"
       - "&8Gain speed and jump boost"
       - ""
       - "&fRight-click leggings to socket"
     glow: true
 
 # ============================================================================
-# BASIC BOOTS FUNCTION - Fall Protection
+# BASIC BOOTS SIGIL - Fall Protection
 # ============================================================================
 feather_fall:
   name: "&eFeather Fall"
@@ -128,7 +128,7 @@ feather_fall:
     model_data: 103
     name: "&eFeather Fall"
     lore:
-      - "&7Tier 1 Boots Function"
+      - "&7Tier 1 Boots Sigil"
       - "&8Negate fall damage"
       - ""
       - "&fRight-click boots to socket"
@@ -138,9 +138,9 @@ feather_fall:
 # NOTES:
 # ============================================================================
 #
-# Core Functions:
+# Core Sigils:
 # - Are socketable abilities that can be installed in armor pieces
-# - Only ONE function can be socketed per armor piece
+# - Only ONE Sigil can be socketed per armor piece
 # - Can be swapped out and traded (if enabled in config)
 # - Have item forms (shards/gems) that players carry
 #
@@ -176,8 +176,8 @@ feather_fall:
 # - EFFECT_STATIC usually has chance: 100 and cooldown: 0
 #
 # Tips:
-# 1. Basic functions should be simple (1-3 effects)
+# 1. Basic Sigils should be simple (1-3 effects)
 # 2. Use thematic names that match the slot and effect
-# 3. Higher tier functions can have more effects
+# 3. Higher tier Sigils can have more effects
 # 4. Always include EFFECT_STATIC for passive bonuses
 # 5. Use item forms that fit your server's theme

@@ -21,8 +21,6 @@ public class HealEffect extends AbstractEffect {
         double maxHealth = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
         double newHealth = Math.min(target.getHealth() + amount, maxHealth);
         target.setHealth(newHealth);
-
-        debug("Healed " + target.getName() + " for " + amount + " health");
         return true;
     }
 }

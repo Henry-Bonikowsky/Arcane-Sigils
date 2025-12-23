@@ -18,18 +18,37 @@ public class SoundEffect extends AbstractEffect {
         String cleanedString = effectString.replaceAll("\\s+@\\w+(?::\\d+)?$", "").trim();
         String[] parts = cleanedString.split(":");
 
-        if (parts.length >= 2) {
-            params.set("sound", parts[1].toUpperCase());
-        }
-        if (parts.length >= 3) {
-            try {
-                params.setValue(Float.parseFloat(parts[2])); // volume
-            } catch (NumberFormatException ignored) {}
-        }
-        if (parts.length >= 4) {
-            try {
-                params.set("pitch", Float.parseFloat(parts[3]));
-            } catch (NumberFormatException ignored) {}
+        // SOUND:name:volume:pitch - supports both positional and key=value
+        int positionalIndex = 0;
+
+        for (int i = 1; i < parts.length; i++) {
+            String part = parts[i];
+
+            if (part.contains("=")) {
+                // Key=value format
+                String[] kv = part.split("=", 2);
+                if (kv.length == 2) {
+                    String key = kv[0].toLowerCase();
+                    String value = kv[1];
+                    switch (key) {
+                        case "sound", "name", "type" -> params.set("sound", value.toUpperCase());
+                        case "volume", "vol" -> params.setValue(parseDouble(value, 1.0));
+                        case "pitch" -> params.set("pitch", parseDouble(value, 1.0));
+                    }
+                }
+            } else {
+                // Positional format
+                positionalIndex++;
+                switch (positionalIndex) {
+                    case 1 -> params.set("sound", part.toUpperCase());
+                    case 2 -> {
+                        try { params.setValue(Float.parseFloat(part)); } catch (NumberFormatException ignored) {}
+                    }
+                    case 3 -> {
+                        try { params.set("pitch", Float.parseFloat(part)); } catch (NumberFormatException ignored) {}
+                    }
+                }
+            }
         }
 
         return params;
@@ -41,10 +60,10 @@ public class SoundEffect extends AbstractEffect {
         if (params == null) return false;
 
         String soundName = params.getString("sound", "ENTITY_EXPERIENCE_ORB_PICKUP");
-        float volume = (float) params.getValue();
+        // Check both "volume" param (from YAML) and getValue() (from legacy string format)
+        float volume = params.getFloat("volume", (float) params.getValue());
         if (volume <= 0) volume = 1.0f;
-        float pitch;
-        pitch = (float) params.getDouble("pitch", 1.0);
+        float pitch = params.getFloat("pitch", 1.0f);
 
         Sound sound = getSound(soundName);
         if (sound == null) {

@@ -1,0 +1,2648 @@
+package com.zenax.armorsets.gui;
+
+import com.zenax.armorsets.ArmorSetsPlugin;
+import com.zenax.armorsets.core.Sigil;
+import com.zenax.armorsets.gui.common.ItemBuilder;
+import com.zenax.armorsets.gui.handlers.*;
+import com.zenax.armorsets.gui.input.AnvilInputHelper;
+import com.zenax.armorsets.sets.ArmorSet;
+import com.zenax.armorsets.sets.SetSynergy;
+import com.zenax.armorsets.sets.SignalConfig;
+import com.zenax.armorsets.utils.TextUtil;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
+
+/**
+ * Manages GUI interfaces for the ArmorSets plugin.
+ * This class acts as a coordinator, delegating click handling to specialized handlers.
+ */
+public class GUIManager implements Listener, GUIHandlerContext {
+
+    private final ArmorSetsPlugin plugin;
+    private final Map<UUID, GUISession> activeSessions = new HashMap<>();
+    private final Set<UUID> transitioning = new HashSet<>();
+    private final Map<UUID, Long> lastClickTime = new HashMap<>();
+    private final Map<UUID, GUISession> pendingMessageInputs = new HashMap<>();
+    private static final long CLICK_COOLDOWN_MS = 250;
+
+    // Handlers
+    private final List<GUIHandler> handlers = new ArrayList<>();
+    private final SocketGUIHandler socketHandler;
+    private final UnsocketGUIHandler unsocketHandler;
+    private final ConfigHandler configHandler;
+
+    // Anvil input helper for text input without chat events
+    private final AnvilInputHelper anvilInput;
+
+    public GUIManager(ArmorSetsPlugin plugin) {
+        this.plugin = plugin;
+
+        // Initialize handlers
+        this.socketHandler = new SocketGUIHandler(plugin, this);
+        this.unsocketHandler = new UnsocketGUIHandler(plugin, this);
+        this.configHandler = new ConfigHandler(plugin, this);
+
+        // Initialize anvil input helper
+        this.anvilInput = new AnvilInputHelper(plugin);
+
+        // Register handlers
+        handlers.add(socketHandler);
+        handlers.add(unsocketHandler);
+        handlers.add(configHandler);
+    }
+
+    // ===== EVENT HANDLERS =====
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        GUISession session = activeSessions.get(player.getUniqueId());
+        if (session == null) return;
+
+        if (event.getClickedInventory() != event.getView().getTopInventory()) {
+            return;
+        }
+        event.setCancelled(true);
+
+        // Click cooldown
+        UUID playerId = player.getUniqueId();
+        long now = System.currentTimeMillis();
+        Long lastClick = lastClickTime.get(playerId);
+        if (lastClick != null && (now - lastClick) < CLICK_COOLDOWN_MS) {
+            return;
+        }
+        lastClickTime.put(playerId, now);
+
+        int slot = event.getRawSlot();
+
+        // Find appropriate handler
+        for (GUIHandler handler : handlers) {
+            if (handler.canHandle(session.getType())) {
+                handler.handleClick(player, session, slot, event);
+                return;
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player player) {
+            UUID uuid = player.getUniqueId();
+            if (transitioning.contains(uuid)) {
+                transitioning.remove(uuid);
+                return;
+            }
+            if (pendingMessageInputs.containsKey(uuid)) {
+                return;
+            }
+            activeSessions.remove(uuid);
+            lastClickTime.remove(uuid);
+            playSound(player, "close");
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerCommand(PlayerCommandPreprocessEvent event) {
+        Player player = event.getPlayer();
+        String message = event.getMessage();
+
+        if (message.startsWith("/as input ") && hasPendingMessageInput(player.getUniqueId())) {
+            event.setCancelled(true);
+            String input = message.substring(10).trim();
+            plugin.getLogger().info("Capturing input from " + player.getName() + ": " + input);
+            handleMessageInput(player, input);
+        }
+    }
+
+    // ===== GUIHandlerContext IMPLEMENTATION =====
+
+    @Override
+    public void openGUI(Player player, Inventory inv, GUISession session) {
+        UUID uuid = player.getUniqueId();
+        if (activeSessions.containsKey(uuid)) {
+            transitioning.add(uuid);
+        }
+        activeSessions.put(uuid, session);
+        player.openInventory(inv);
+        playSound(player, "open");
+    }
+
+    @Override
+    public void openSocketGUI(Player player, ItemStack armor, int armorSlot) {
+        socketHandler.openSocketGUI(player, armor, armorSlot);
+    }
+
+    @Override
+    public void openUnsocketGUI(Player player, ItemStack armor, int armorSlot) {
+        unsocketHandler.openUnsocketGUI(player, armor, armorSlot);
+    }
+
+    @Override
+    public void openBuildMainMenu(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Build Menu"));
+
+        ItemStack createSet = ItemBuilder.createGuiItem(Material.DIAMOND_CHESTPLATE, "&b&lCreate Set", "&7Build new armor set");
+        ItemStack createSigil = ItemBuilder.createGuiItem(Material.ECHO_SHARD, "&5&lCreate Sigil", "&7Build new sigil");
+        ItemStack editSet = ItemBuilder.createGuiItem(Material.COMPARATOR, "&6&lEdit Set", "&7Modify existing set");
+        ItemStack editSigil = ItemBuilder.createGuiItem(Material.REDSTONE, "&c&lEdit Sigil", "&7Modify existing sigil");
+
+        inv.setItem(10, createSet);
+        inv.setItem(12, createSigil);
+        inv.setItem(14, editSet);
+        inv.setItem(16, editSigil);
+
+        // Fill bottom row with decoration
+        ItemBuilder.fillBottomRow(inv, "&7Close menu");
+
+        GUISession session = new GUISession(GUIType.BUILD_MAIN_MENU);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSetBrowser(Player player) {
+        var allSets = plugin.getSetManager().getAllSets();
+        if (allSets.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo armor sets found."));
+            return;
+        }
+
+        List<ArmorSet> sets = new ArrayList<>(allSets);
+        int itemsPerPage = 45; // 5 rows of 9, leaving bottom row for pagination
+        int totalPages = ItemBuilder.calculateTotalPages(sets.size(), itemsPerPage);
+        int currentPage = 0;
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Armor Sets (&f" + sets.size() + "&8)"));
+
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, sets.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            ItemStack item = createSetBrowserItem(sets.get(i));
+            inv.setItem(i - startIndex, item);
+        }
+
+        // Fill bottom row with pagination
+        ItemBuilder.fillBottomRowWithPagination(inv, currentPage, totalPages, sets.size());
+
+        GUISession session = new GUISession(GUIType.SET_BROWSER);
+        session.setCurrentPage(currentPage);
+        session.put("totalPages", totalPages);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSigilBrowser(Player player) {
+        var allSigils = plugin.getSigilManager().getAllSigils();
+        if (allSigils.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo sigils found."));
+            return;
+        }
+
+        List<Sigil> sigils = new ArrayList<>(allSigils);
+        int itemsPerPage = 45; // 5 rows of 9, leaving bottom row for pagination
+        int totalPages = ItemBuilder.calculateTotalPages(sigils.size(), itemsPerPage);
+        int currentPage = 0;
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Sigils (&f" + sigils.size() + "&8)"));
+
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, sigils.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            ItemStack item = createSigilBrowserItem(sigils.get(i));
+            inv.setItem(i - startIndex, item);
+        }
+
+        // Fill bottom row with pagination
+        ItemBuilder.fillBottomRowWithPagination(inv, currentPage, totalPages, sigils.size());
+
+        GUISession session = new GUISession(GUIType.SIGIL_BROWSER);
+        session.setCurrentPage(currentPage);
+        session.put("totalPages", totalPages);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSetEditor(Player player, ArmorSet set) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Edit Set: &b" + set.getId()));
+
+        ItemStack setDisplay = new ItemStack(Material.DIAMOND_CHESTPLATE);
+        ItemMeta meta = setDisplay.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&b" + set.getId()));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&8Tier: &f" + set.getTier()));
+        lore.add(TextUtil.parseComponent("&8Material: &f" + set.getMaterial().name()));
+        lore.add(TextUtil.parseComponent("&8Pattern: &f" + set.getNamePattern()));
+        meta.lore(lore);
+        setDisplay.setItemMeta(meta);
+        inv.setItem(4, setDisplay);
+
+        inv.setItem(19, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&bView Synergies", "&7View all set bonuses"));
+        inv.setItem(20, ItemBuilder.createGuiItem(Material.NAME_TAG, "&eRename Set", "&7Change set name"));
+        inv.setItem(21, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Synergy", "&7Create new set bonus"));
+        inv.setItem(22, ItemBuilder.createGuiItem(Material.OAK_SIGN, "&6Edit Synergy", "&7Modify existing bonus"));
+        inv.setItem(23, ItemBuilder.createGuiItem(Material.ORANGE_DYE, "&6Manage Synergies", "&7Edit or remove bonuses"));
+        inv.setItem(25, ItemBuilder.createGuiItem(Material.PAPER, "&eExport Config", "&7Generate YAML file"));
+
+        // Fill bottom row with proper navigation
+        ItemBuilder.fillBottomRow(inv, "&7Return to Set Browser");
+
+        GUISession session = new GUISession(GUIType.SET_EDITOR);
+        session.put("setId", set.getId());
+        session.put("set", set);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSigilEditor(Player player, Sigil sigil) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Edit Sigil: &d" + sigil.getName()));
+
+        // Create sigil preview item
+        inv.setItem(4, createSigilPreviewItem(sigil));
+
+        inv.setItem(19, ItemBuilder.createGuiItem(Material.REDSTONE, "&cEffect Signals", "&7View current effects"));
+        inv.setItem(20, ItemBuilder.createGuiItem(Material.CHEST, "&bItem Display", "&7Customize shard appearance"));
+        inv.setItem(21, ItemBuilder.createGuiItem(Material.OAK_SIGN, "&6Edit Signal", "&7Modify existing signal"));
+        inv.setItem(22, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Signal", "&7Add new signal"));
+        inv.setItem(23, ItemBuilder.createGuiItem(Material.RED_DYE, "&cRemove Signal", "&7Remove existing signal"));
+        inv.setItem(25, ItemBuilder.createGuiItem(Material.PAPER, "&eSave to File", "&7Generate YAML file"));
+
+        // Fill bottom row with proper navigation
+        ItemBuilder.fillBottomRow(inv, "&7Return to Sigil Browser");
+
+        GUISession session = new GUISession(GUIType.SIGIL_EDITOR);
+        session.put("sigilId", sigil.getId());
+        session.put("sigil", sigil);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSigilCreator(Player player) {
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Create New Sigil"));
+
+        // Header - decorative nether star
+        inv.setItem(4, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&d&lNew Sigil",
+            "&7Create a new sigil with custom",
+            "&7effects and signals."));
+
+        // Instructions panel
+        inv.setItem(20, ItemBuilder.createGuiItem(Material.BOOK, "&e&lStep 1: Enter ID",
+            "&7Click the &aCreate &7button below,",
+            "&7then type the sigil ID in chat.",
+            "",
+            "&8Format: lowercase, underscores for spaces",
+            "&8Example: fire_resistance"));
+
+        inv.setItem(22, ItemBuilder.createGuiItem(Material.WRITABLE_BOOK, "&b&lStep 2: Configure",
+            "&7After entering the ID, the",
+            "&7sigil editor will open.",
+            "",
+            "&7You can set:",
+            "&8- Armor slot (helmet, chest, etc.)",
+            "&8- Signals and effects",
+            "&8- Item display appearance"));
+
+        inv.setItem(24, ItemBuilder.createGuiItem(Material.ENCHANTED_BOOK, "&a&lStep 3: Save",
+            "&7Use &eExport Config &7in the editor",
+            "&7to save your sigil to a YAML file.",
+            "",
+            "&7Reload the plugin to load it!"));
+
+        // Create button - centered
+        inv.setItem(40, ItemBuilder.createGuiItem(Material.LIME_DYE, "&a&lCreate Sigil",
+            "&7Click to enter a sigil ID",
+            "",
+            "&eClick to begin!"));
+
+        // Bottom row with standard UI
+        ItemBuilder.fillBottomRow(inv, "&7Return to Build Menu");
+
+        GUISession session = new GUISession(GUIType.SIGIL_CREATOR);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSynergyCreator(Player player, String setId) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Create Synergy: &b" + setId));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.PAPER, "&eInstructions",
+            "&7Click CREATE below to",
+            "&7enter a synergy ID",
+            "&7(lowercase, underscores for spaces)"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aCreate", "&7Click to enter synergy ID"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
+        GUISession session = new GUISession(GUIType.SYNERGY_CREATOR);
+        session.put("setId", setId);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSynergyEditor(Player player, String setId, String synergyId) {
+        ArmorSet set = plugin.getSetManager().getSet(setId);
+        if (set == null) {
+            player.sendMessage(TextUtil.colorize("&cSet not found"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Edit Synergy: &d" + synergyId));
+
+        ItemStack synergyInfo = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = synergyInfo.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&d" + synergyId));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&7Set: &f" + setId));
+        lore.add(TextUtil.parseComponent("&7Status: &aNew"));
+        meta.lore(lore);
+        synergyInfo.setItemMeta(meta);
+        inv.setItem(4, synergyInfo);
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.REDSTONE_TORCH, "&aSelect Signal", "&7Choose activation event"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Effect", "&7Add effect to synergy"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.YELLOW_DYE, "&eSet Chance", "&7Adjust activation chance"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.ORANGE_DYE, "&6Set Cooldown", "&7Adjust cooldown time"));
+        inv.setItem(31, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&aSave Synergy", "&7Save to set"));
+        inv.setItem(33, ItemBuilder.createGuiItem(Material.BARRIER, "&cCancel", "&7Discard changes"));
+
+        GUISession session = new GUISession(GUIType.SYNERGY_EDITOR);
+        session.put("setId", setId);
+        session.put("set", set);
+        session.put("synergyId", synergyId);
+        session.put("chance", 100.0);
+        session.put("cooldown", 0.0);
+        session.put("effects", new ArrayList<String>());
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSynergyEditor(Player player, ArmorSet set) {
+        var synergies = set.getSynergies();
+        if (synergies.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo synergies to edit"));
+            return;
+        }
+
+        int rows = Math.max(3, (int) Math.ceil((synergies.size() + 9) / 9.0));
+        int size = Math.min(rows * 9, 54);
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Select Synergy to Edit"));
+
+        int slot = 0;
+        for (SetSynergy synergy : synergies) {
+            ItemStack item = new ItemStack(Material.NETHER_STAR);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&b" + synergy.getId()));
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&7Signal: &f" + synergy.getSignal().getConfigKey()));
+            lore.add(TextUtil.parseComponent("&7Click to edit"));
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        GUISession session = new GUISession(GUIType.SYNERGY_EDITOR);
+        session.put("set", set);
+        session.put("setId", set.getId());
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSetSynergiesViewer(Player player, ArmorSet set) {
+        var synergies = set.getSynergies();
+        int size = Math.max(27, Math.min((int) Math.ceil((synergies.size() + 9) / 9.0) * 9, 54));
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Set Synergies: &b" + set.getId()));
+
+        ItemStack border = ItemBuilder.createBorderItem();
+        for (int i = 0; i < 9; i++) {
+            inv.setItem(i, border);
+        }
+
+        ItemStack setInfo = new ItemStack(Material.NETHER_STAR);
+        ItemMeta infoMeta = setInfo.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&b" + set.getId() + " &8- &eSynergies"));
+        List<Component> infoLore = new ArrayList<>();
+        infoLore.add(TextUtil.parseComponent("&8Tier: &f" + set.getTier()));
+        infoLore.add(TextUtil.parseComponent("&8Total Synergies: &f" + synergies.size()));
+        infoMeta.lore(infoLore);
+        setInfo.setItemMeta(infoMeta);
+        inv.setItem(4, setInfo);
+
+        if (synergies.isEmpty()) {
+            ItemStack noSynergies = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemMeta noMeta = noSynergies.getItemMeta();
+            noMeta.displayName(TextUtil.parseComponent("&8No Synergies"));
+            noSynergies.setItemMeta(noMeta);
+            inv.setItem(13, noSynergies);
+        } else {
+            int slot = 9;
+            for (SetSynergy synergy : synergies) {
+                if (slot >= size - 1) break;
+                ItemStack synergyItem = createSynergyDisplayItem(synergy);
+                inv.setItem(slot++, synergyItem);
+            }
+        }
+
+        inv.setItem(size - 1, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to set editor"));
+
+        GUISession session = new GUISession(GUIType.SET_SYNERGIES_VIEWER);
+        session.put("setId", set.getId());
+        session.put("set", set);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalRemover(Player player, String buildType, String buildId, Object target) {
+        Map<String, SignalConfig> signals = new HashMap<>();
+        String title;
+
+        if ("set".equalsIgnoreCase(buildType) && target instanceof ArmorSet set) {
+            title = "&8Remove Signal: &b" + set.getId();
+            for (SetSynergy synergy : set.getSynergies()) {
+                signals.put("synergy:" + synergy.getId(), synergy.getSignalConfig());
+            }
+        } else if ("sigil".equalsIgnoreCase(buildType) && target instanceof Sigil sigil) {
+            title = "&8Remove Signal: &d" + sigil.getName();
+            signals.putAll(sigil.getEffects());
+        } else {
+            player.sendMessage(TextUtil.colorize("&cInvalid target for signal removal"));
+            return;
+        }
+
+        if (signals.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo signals to remove."));
+            return;
+        }
+
+        // Calculate size: items fit in rows 0-4 (45 slots max), bottom row for nav
+        int contentSlots = signals.size();
+        int contentRows = (int) Math.ceil(contentSlots / 9.0);
+        int totalRows = Math.max(3, contentRows + 1); // +1 for bottom row, min 3 rows
+        int size = Math.min(totalRows * 9, 54);
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent(title));
+
+        // Place signal items starting from slot 0 (no first row border)
+        int slot = 0;
+        int maxContentSlot = size - 9; // Leave last row for navigation
+        for (Map.Entry<String, SignalConfig> entry : signals.entrySet()) {
+            if (slot >= maxContentSlot) break;
+
+            String signalKey = entry.getKey();
+            SignalConfig config = entry.getValue();
+
+            // Create signal item with TNT icon (for removal)
+            ItemStack signalItem = new ItemStack(Material.TNT);
+            ItemMeta meta = signalItem.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&c" + formatSignalName(signalKey)));
+
+            List<Component> lore = new ArrayList<>();
+            addSignalLoreLines(lore, signalKey, config, false);
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&e&lClick to view effects"));
+
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "signal_key"),
+                PersistentDataType.STRING,
+                signalKey
+            );
+
+            meta.lore(lore);
+            signalItem.setItemMeta(meta);
+            inv.setItem(slot++, signalItem);
+        }
+
+        // Fill bottom row with proper layout
+        ItemBuilder.fillBottomRow(inv, "&7Return to editor");
+
+        GUISession session = new GUISession(GUIType.SIGNAL_REMOVER);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("target", target);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalOverview(Player player, String buildType, String buildId, String signalKey) {
+        SignalConfig config = null;
+        String sigilName = "";
+
+        if ("sigil".equalsIgnoreCase(buildType)) {
+            Sigil sigil = plugin.getSigilManager().getSigil(buildId);
+            if (sigil != null) {
+                config = sigil.getEffects().get(signalKey);
+                sigilName = sigil.getName();
+            }
+        }
+
+        if (config == null) {
+            player.sendMessage(TextUtil.colorize("&cSignal not found"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Signal Overview"));
+
+        // Signal info item in center - use shared method with sigil name header
+        ItemStack signalItem = new ItemStack(Material.REDSTONE_TORCH);
+        ItemMeta signalMeta = signalItem.getItemMeta();
+        signalMeta.displayName(TextUtil.parseComponent("&b" + formatSignalName(signalKey)));
+
+        List<Component> signalLore = new ArrayList<>();
+        signalLore.add(TextUtil.parseComponent("&7Sigil: &f" + sigilName));
+        signalLore.add(Component.empty());
+
+        // Use the shared method to add signal details
+        addSignalLoreLines(signalLore, signalKey, config, false);
+
+        signalMeta.lore(signalLore);
+        signalItem.setItemMeta(signalMeta);
+        inv.setItem(13, signalItem);
+
+        // Add another effect button
+        inv.setItem(29, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Another Effect",
+            "&7Add more effects to this signal",
+            "&7Click to open effect selector"));
+
+        // Edit signal settings button
+        inv.setItem(31, ItemBuilder.createGuiItem(Material.COMPARATOR, "&bEdit Signal Settings",
+            "&7Modify chance, cooldown, conditions",
+            "&7Click to configure signal"));
+
+        // Done / Back to editor button
+        inv.setItem(33, ItemBuilder.createGuiItem(Material.EMERALD, "&aDone",
+            "&7Return to sigil editor",
+            "&7Signal has been saved"));
+
+        // Fill bottom row
+        ItemBuilder.fillBottomRow(inv, "&7Return to sigil editor");
+
+        GUISession session = new GUISession(GUIType.SIGNAL_OVERVIEW);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signalKey", signalKey);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalSelector(Player player, String buildType, String buildId) {
+        openSignalSelectorWithSlot(player, buildType, buildId, null);
+    }
+
+    @Override
+    public void openSignalSelectorWithSlot(Player player, String buildType, String buildId, String armorSlot) {
+        String title = armorSlot != null
+            ? "&8Signal Browser: " + TextUtil.toProperCase(armorSlot)
+            : "&8Signal Browser: " + buildId;
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent(title));
+
+        String[] triggers = {"ATTACK", "DEFENSE", "KILL_MOB", "KILL_PLAYER", "SHIFT", "FALL_DAMAGE",
+                "EFFECT_STATIC", "TICK", "BOW_HIT", "BOW_SHOOT", "BLOCK_BREAK", "BLOCK_PLACE", "INTERACT", "TRIDENT_THROW"};
+
+        for (int i = 0; i < triggers.length; i++) {
+            String trigger = triggers[i];
+            String desc = TextUtil.getSignalDescription(trigger);
+            inv.setItem(i, ItemBuilder.createGuiItem(Material.OAK_BUTTON, "&f" + trigger, "&8" + desc));
+        }
+
+        inv.setItem(44, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.SIGNAL_SELECTOR);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        if (armorSlot != null) {
+            session.put("armorSlot", armorSlot);
+        }
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectSelectorWithSlot(Player player, String buildType, String buildId, String trigger, String armorSlot) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Select Effects"));
+
+        String[] effects = {"HEAL", "DAMAGE", "POTION", "PARTICLE", "SOUND", "DISINTEGRATE", "AEGIS",
+                "INCREASE_DAMAGE", "MESSAGE", "CANCEL_EVENT", "TELEPORT", "SMOKEBOMB", "REPLENISH"};
+
+        for (int i = 0; i < effects.length; i++) {
+            String effect = effects[i];
+            String desc = TextUtil.getEffectDescription(effect);
+            inv.setItem(i, ItemBuilder.createGuiItem(Material.REDSTONE, "&f" + effect, "&8" + desc));
+        }
+
+        inv.setItem(44, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.EFFECT_SELECTOR);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", trigger);
+        if (armorSlot != null) {
+            session.put("armorSlot", armorSlot);
+        }
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalConfig(Player player, String buildType, String buildId, String trigger, String effect, String armorSlot, double chance, double cooldown) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Configure Signal"));
+
+        ItemStack info = new ItemStack(Material.PAPER);
+        ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&e" + trigger));
+        List<Component> infoLore = new ArrayList<>();
+        infoLore.add(TextUtil.parseComponent("&7Effect: &f" + effect));
+        infoLore.add(Component.empty());
+        infoLore.add(TextUtil.parseComponent("&7Chance: &f" + (int) chance + "%"));
+        infoLore.add(TextUtil.parseComponent("&7Cooldown: &f" + cooldown + "s"));
+        infoMeta.lore(infoLore);
+        info.setItemMeta(infoMeta);
+        inv.setItem(4, info);
+
+        // Clickable chance item - opens AnvilGUI input
+        inv.setItem(21, ItemBuilder.createGuiItem(Material.EXPERIENCE_BOTTLE, "&aChance: &f" + (int) chance + "%",
+            "&7Click to edit",
+            "",
+            "&8Range: 0-100%"));
+
+        // Clickable cooldown item - opens AnvilGUI input
+        inv.setItem(23, ItemBuilder.createGuiItem(Material.CLOCK, "&bCooldown: &f" + cooldown + "s",
+            "&7Click to edit",
+            "",
+            "&8Range: 0-3600s"));
+
+        // View/Add Conditions button
+        GUISession session = new GUISession(GUIType.SIGNAL_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", trigger);
+        session.put("effect", effect);
+        session.put("chance", chance);
+        session.put("cooldown", cooldown);
+        if (armorSlot != null) {
+            session.put("armorSlot", armorSlot);
+        }
+
+        // Initialize conditions list if not present
+        if (!session.has("conditions")) {
+            session.put("conditions", new ArrayList<String>());
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) session.get("conditions");
+        int conditionCount = conditions != null ? conditions.size() : 0;
+
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.BOOK, "&dView/Add Conditions",
+            "&7Current: &f" + conditionCount + " condition" + (conditionCount != 1 ? "s" : ""),
+            "&7Click to manage conditions"));
+
+        inv.setItem(39, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add signal with these settings"));
+        inv.setItem(41, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectViewer(Player player, Sigil sigil) {
+        var effects = sigil.getEffects();
+        int totalEffects = effects.values().stream().mapToInt(c -> c.getEffects().size()).sum();
+        // Ensure at least 45 slots for proper bottom row
+        int contentRows = Math.max(2, (int) Math.ceil((totalEffects + 9) / 9.0));
+        int size = Math.min((contentRows + 2) * 9, 54); // +1 for header, +1 for bottom row
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Effects: &d" + sigil.getName()));
+
+        ItemStack sigilInfo = new ItemStack(Material.NETHER_STAR);
+        ItemMeta infoMeta = sigilInfo.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&d" + sigil.getName()));
+        List<Component> infoLore = new ArrayList<>();
+        infoLore.add(TextUtil.parseComponent("&8Signals: &f" + effects.size()));
+        infoLore.add(TextUtil.parseComponent("&8Total Effects: &f" + totalEffects));
+        infoMeta.lore(infoLore);
+        sigilInfo.setItemMeta(infoMeta);
+        inv.setItem(4, sigilInfo);
+
+        if (effects.isEmpty()) {
+            ItemStack noEffects = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+            ItemMeta noMeta = noEffects.getItemMeta();
+            noMeta.displayName(TextUtil.parseComponent("&8No Effects Configured"));
+            noEffects.setItemMeta(noMeta);
+            inv.setItem(13, noEffects);
+        } else {
+            int slot = 9;
+            int maxSlot = size - 9; // Leave bottom row for navigation
+            for (var entry : effects.entrySet()) {
+                if (slot >= maxSlot) break;
+                ItemStack signalItem = createSignalDisplayItem(entry.getKey(), entry.getValue());
+                inv.setItem(slot++, signalItem);
+            }
+        }
+
+        // Fill bottom row with proper navigation
+        ItemBuilder.fillBottomRow(inv, "&7Return to Sigil Editor");
+
+        GUISession session = new GUISession(GUIType.EFFECT_VIEWER);
+        session.put("sigil", sigil);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openItemDisplayEditor(Player player, Sigil sigil) {
+        if (sigil.getItemForm() == null) {
+            sigil.setItemForm(new Sigil.ItemForm());
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Edit Item: &d" + sigil.getName()));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.PAPER, "&eInstructions",
+            "&7This editor allows you to",
+            "&7customize the item display"));
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.AMETHYST_SHARD, "&bSelect Material",
+            "&7Current: &f" + sigil.getItemForm().getMaterial().name()));
+        inv.setItem(13, ItemBuilder.createGuiItem(Material.NAME_TAG, "&aEdit Name",
+            "&7Current: &f" + sigil.getName()));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.BOOK, "&aEdit Description",
+            "&7Click to edit sigil description"));
+
+        // Fill bottom row with proper navigation
+        ItemBuilder.fillBottomRow(inv, "&7Return to Sigil Editor");
+
+        GUISession session = new GUISession(GUIType.ITEM_DISPLAY_EDITOR);
+        session.put("sigil", sigil);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openMaterialSelector(Player player, Sigil sigil) {
+        if (sigil.getItemForm() == null) {
+            sigil.setItemForm(new Sigil.ItemForm());
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Select Shard/Crystal Material"));
+
+        Material[] materials = {
+            Material.ECHO_SHARD, Material.AMETHYST_SHARD, Material.PRISMARINE_SHARD,
+            Material.PRISMARINE_CRYSTALS, Material.QUARTZ, Material.DIAMOND,
+            Material.EMERALD, Material.REDSTONE, Material.LAPIS_LAZULI,
+            Material.GLOWSTONE_DUST, Material.BLAZE_ROD, Material.BLAZE_POWDER,
+            Material.ENDER_PEARL, Material.ENDER_EYE, Material.NETHER_STAR
+        };
+
+        Material currentMaterial = sigil.getItemForm().getMaterial();
+        for (int i = 0; i < materials.length && i < 45; i++) {
+            Material mat = materials[i];
+            ItemStack item = new ItemStack(mat);
+            ItemMeta meta = item.getItemMeta();
+            String displayName = mat == currentMaterial ? "&a&l" + mat.name() + " &7(Selected)" : "&f" + mat.name();
+            meta.displayName(TextUtil.parseComponent(displayName));
+            item.setItemMeta(meta);
+            inv.setItem(i, item);
+        }
+
+        inv.setItem(49, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to item editor"));
+
+        GUISession session = new GUISession(GUIType.GENERIC);
+        session.put("sigil", sigil);
+        session.put("menuType", "MATERIAL_SELECTOR");
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalEditor(Player player, Sigil sigil) {
+        var effects = sigil.getEffects();
+        if (effects.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo signals to edit"));
+            return;
+        }
+
+        // Calculate size: items fit in rows 0-4 (45 slots max), bottom row for nav
+        int contentRows = (int) Math.ceil(effects.size() / 9.0);
+        int totalRows = Math.max(3, contentRows + 1); // +1 for bottom row, min 3 rows
+        int size = Math.min(totalRows * 9, 54);
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Signal Editor"));
+
+        int slot = 0;
+        int maxContentSlot = size - 9; // Leave last row for navigation
+        List<String> triggerKeys = new ArrayList<>();
+        for (String triggerKey : effects.keySet()) {
+            if (slot >= maxContentSlot) break;
+
+            ItemStack item = new ItemStack(Material.REDSTONE);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&c" + TextUtil.toProperCase(triggerKey.replace("_", " "))));
+            List<Component> lore = new ArrayList<>();
+            var config = effects.get(triggerKey);
+            lore.add(TextUtil.parseComponent("&7Mode: &f" + config.getSignalMode()));
+            lore.add(TextUtil.parseComponent("&7Effects: &f" + config.getEffects().size()));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&e&lClick to edit"));
+            meta.lore(lore);
+
+            // Store signal key in persistent data for click handling
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "signal_key"),
+                PersistentDataType.STRING,
+                triggerKey
+            );
+
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+            triggerKeys.add(triggerKey);
+        }
+
+        // Fill bottom row with proper layout
+        ItemBuilder.fillBottomRow(inv, "&7Return to sigil editor");
+
+        GUISession session = new GUISession(GUIType.SIGNAL_EDITOR);
+        session.put("sigil", sigil);
+        session.put("sigilId", sigil.getId());
+        session.put("isSigilTriggerEditor", true);
+        session.put("triggerKeys", triggerKeys);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSlotSelector(Player player, String setId) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Select Armor Slot"));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.DIAMOND_HELMET, "&bHelmet", "&7Add signal to helmet"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.DIAMOND_CHESTPLATE, "&bChestplate", "&7Add signal to chestplate"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.DIAMOND_LEGGINGS, "&bLeggings", "&7Add signal to leggings"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.DIAMOND_BOOTS, "&bBoots", "&7Add signal to boots"));
+        inv.setItem(22, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.SLOT_SELECTOR);
+        session.put("buildType", "set");
+        session.put("buildId", setId);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectConfigForType(Player player, String buildType, String buildId, String trigger, String effect, String armorSlot) {
+        switch (effect.toUpperCase()) {
+            case "PARTICLE" -> openEffectParticleConfig(player, buildType, buildId, trigger, armorSlot);
+            case "SOUND" -> openEffectSoundConfig(player, buildType, buildId, trigger, armorSlot);
+            case "POTION" -> openEffectPotionConfig(player, buildType, buildId, trigger, armorSlot);
+            case "MESSAGE" -> openEffectMessageConfig(player, buildType, buildId, trigger, armorSlot);
+            case "TELEPORT" -> openEffectTeleportConfig(player, buildType, buildId, trigger, armorSlot);
+            case "CANCEL_EVENT" -> openSignalConfig(player, buildType, buildId, trigger, "CANCEL_EVENT", armorSlot, 100, 0);
+            default -> openEffectValueConfig(player, buildType, buildId, trigger, effect, armorSlot);
+        }
+    }
+
+    @Override
+    public void openEffectValueConfig(Player player, String buildType, String buildId, String trigger, String effect, String armorSlot) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Configure: &f" + effect));
+
+        ItemStack info = new ItemStack(Material.PAPER);
+        ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&e" + effect));
+        info.setItemMeta(infoMeta);
+        inv.setItem(4, info);
+
+        double defaultValue = getDefaultValueForEffect(effect);
+
+        inv.setItem(19, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-10", "&7Decrease by 10"));
+        inv.setItem(20, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-1", "&7Decrease by 1"));
+
+        ItemStack valueDisplay = new ItemStack(Material.GOLD_INGOT);
+        ItemMeta valueMeta = valueDisplay.getItemMeta();
+        valueMeta.displayName(TextUtil.parseComponent("&aValue: &f" + (int) defaultValue));
+        valueDisplay.setItemMeta(valueMeta);
+        inv.setItem(22, valueDisplay);
+
+        inv.setItem(24, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+1", "&7Increase by 1"));
+        inv.setItem(25, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+10", "&7Increase by 10"));
+
+        inv.setItem(30, ItemBuilder.createGuiItem(Material.PLAYER_HEAD, "&a&l@Self &7(Selected)", "&7Apply to yourself"));
+        inv.setItem(31, ItemBuilder.createGuiItem(Material.ZOMBIE_HEAD, "&c@Victim", "&7Apply to target/victim"));
+
+        inv.setItem(39, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Continue to signal config"));
+        inv.setItem(41, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_VALUE_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", trigger);
+        session.put("effect", effect);
+        session.put("value", defaultValue);
+        session.put("target", "@Self");
+        session.put("radius", 5);
+        if (armorSlot != null) {
+            session.put("armorSlot", armorSlot);
+        }
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectParticleConfig(Player player, String buildType, String buildId, String trigger, String armorSlot) {
+        // Delegate to paginated version with defaults
+        openEffectParticleConfigPage(player, buildType, buildId, trigger, armorSlot, 0, "FLAME", 10);
+    }
+
+    @Override
+    public void openEffectSoundConfig(Player player, String buildType, String buildId, String signal, String armorSlot) {
+        // Delegate to paginated version with defaults
+        openEffectSoundConfigPage(player, buildType, buildId, signal, armorSlot, 0, "ENTITY_EXPERIENCE_ORB_PICKUP", 1.0, 1.0);
+    }
+
+    @Override
+    public void openEffectPotionConfig(Player player, String buildType, String buildId, String signal, String armorSlot) {
+        // Get all potion effect types
+        org.bukkit.potion.PotionEffectType[] allPotions = org.bukkit.potion.PotionEffectType.values();
+        List<org.bukkit.potion.PotionEffectType> validPotions = new ArrayList<>();
+        for (org.bukkit.potion.PotionEffectType p : allPotions) {
+            if (p != null) {
+                validPotions.add(p);
+            }
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Configure: &fPOTION"));
+
+        // Info item at slot 4
+        ItemStack info = ItemBuilder.createGuiItem(Material.POTION, "&ePOTION Effect",
+            "&7Selected: &fSPEED",
+            "&7Duration: &f10s",
+            "&7Amplifier: &f1",
+            "&7Target: &a@Self",
+            "",
+            "&7Click a potion below to select");
+        inv.setItem(4, info);
+
+        // Populate potion items (slots 9-35, up to 27 potions)
+        int slot = 9;
+        for (int i = 0; i < Math.min(27, validPotions.size()); i++) {
+            org.bukkit.potion.PotionEffectType potion = validPotions.get(i);
+            String potionName = potion.getKey().getKey().toUpperCase();
+
+            boolean isSelected = potionName.equals("SPEED");
+            Material mat = getPotionIcon(potionName);
+
+            ItemStack item = ItemBuilder.createGuiItem(mat,
+                (isSelected ? "&a" : "&7") + TextUtil.toProperCase(potionName.replace("_", " ")),
+                "&8" + potionName,
+                isSelected ? "&aSelected" : "&7Click to select");
+
+            ItemMeta meta = item.getItemMeta();
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "potion_id"),
+                PersistentDataType.STRING,
+                potionName
+            );
+            if (isSelected) {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        // Clickable duration item - opens AnvilGUI input (row 5)
+        inv.setItem(38, ItemBuilder.createGuiItem(Material.CLOCK, "&eDuration: &f10s",
+            "&7Click to edit",
+            "",
+            "&8Range: 1-3600 seconds"));
+
+        // Clickable amplifier item - opens AnvilGUI input
+        inv.setItem(42, ItemBuilder.createGuiItem(Material.EXPERIENCE_BOTTLE, "&eAmplifier: &f1",
+            "&7Click to edit",
+            "",
+            "&8Range: 1-10 (Level I-X)"));
+
+        // Target selection (row 6: slots 46-47)
+        inv.setItem(46, ItemBuilder.createGuiItem(Material.PLAYER_HEAD, "&a@Self &7(Selected)", "&7Apply to yourself"));
+        inv.setItem(47, ItemBuilder.createGuiItem(Material.ZOMBIE_HEAD, "&7@Victim", "&7Apply to target/victim"));
+
+        // Confirm/Cancel buttons
+        inv.setItem(51, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add potion effect"));
+        inv.setItem(53, ItemBuilder.createGuiItem(Material.RED_DYE, "&cBack", "&7Return to effect selector"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_POTION_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", signal);
+        session.put("potionType", "SPEED");
+        session.put("duration", 10);
+        session.put("amplifier", 0);
+        session.put("target", "@Self");
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectMessageConfig(Player player, String buildType, String buildId, String trigger, String armorSlot) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Configure: &fMESSAGE"));
+        inv.setItem(4, ItemBuilder.createGuiItem(Material.WRITABLE_BOOK, "&eMESSAGE Effect", "&7Sends a message"));
+        inv.setItem(18, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Continue"));
+        inv.setItem(26, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_MESSAGE_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", trigger);
+        session.put("message", "&aYou feel stronger!");
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectTeleportConfig(Player player, String buildType, String buildId, String trigger, String armorSlot) {
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Configure: &fTELEPORT"));
+        inv.setItem(4, ItemBuilder.createGuiItem(Material.CHORUS_FRUIT, "&eTELEPORT Effect", "&7Teleports target"));
+        inv.setItem(45, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Continue"));
+        inv.setItem(53, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_TELEPORT_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", trigger);
+        session.put("type", "RANDOM");
+        session.put("distance", 8.0);
+        session.put("facing", "KEEP");
+        session.put("teleportee", "@Self");
+        session.put("target", "@Self");
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void exportSetToYAML(Player player, ArmorSet set) {
+        File exportDir = new File(plugin.getDataFolder(), "armor-sets");
+        if (!exportDir.exists()) exportDir.mkdirs();
+
+        String fileName = set.getId().toLowerCase().replace(" ", "_") + ".yml";
+        File exportFile = new File(exportDir, fileName);
+
+        try {
+            YamlConfiguration config = exportFile.exists()
+                ? YamlConfiguration.loadConfiguration(exportFile)
+                : new YamlConfiguration();
+
+            String setId = set.getId();
+            String baseName = setId.contains("_t") ? setId.substring(0, setId.lastIndexOf("_t")) : setId;
+            String tierPath = baseName + ".tiers." + set.getTier();
+
+            config.set(tierPath + ".name_pattern", set.getNamePattern());
+            config.set(tierPath + ".material", set.getMaterial().name());
+
+            config.save(exportFile);
+            player.sendMessage(TextUtil.colorize("&aSuccessfully exported set to:"));
+            player.sendMessage(TextUtil.colorize("&7" + exportFile.getPath()));
+            playSound(player, "socket");
+
+        } catch (IOException e) {
+            player.sendMessage(TextUtil.colorize("&cFailed to export set: " + e.getMessage()));
+            playSound(player, "error");
+        }
+    }
+
+    @Override
+    public void exportSigilToYAML(Player player, Sigil sigil) {
+        File sigilDir = new File(plugin.getDataFolder(), "sigils");
+        if (!sigilDir.exists()) sigilDir.mkdirs();
+
+        String fileName = sigil.getSlot().toLowerCase() + "-sigils.yml";
+        File targetFile = new File(sigilDir, fileName);
+
+        try {
+            YamlConfiguration config = targetFile.exists()
+                ? YamlConfiguration.loadConfiguration(targetFile)
+                : new YamlConfiguration();
+
+            String sigilPath = sigil.getId();
+            config.set(sigilPath + ".name", sigil.getName());
+            config.set(sigilPath + ".slot", sigil.getSlot());
+            config.set(sigilPath + ".tier", sigil.getTier());
+            config.set(sigilPath + ".rarity", sigil.getRarity());
+
+            config.save(targetFile);
+            player.sendMessage(TextUtil.colorize("&aSuccessfully saved sigil to:"));
+            player.sendMessage(TextUtil.colorize("&7" + targetFile.getPath()));
+            playSound(player, "socket");
+
+            plugin.getSigilManager().loadSigils();
+
+        } catch (IOException e) {
+            player.sendMessage(TextUtil.colorize("&cFailed to save sigil: " + e.getMessage()));
+            playSound(player, "error");
+        }
+    }
+
+    @Override
+    public Map<UUID, GUISession> getPendingMessageInputs() {
+        return pendingMessageInputs;
+    }
+
+    @Override
+    public void addPendingMessageInput(UUID playerId, GUISession session) {
+        pendingMessageInputs.put(playerId, session);
+    }
+
+    @Override
+    public void playSound(Player player, String soundType) {
+        String soundName = plugin.getConfigManager().getMainConfig()
+                .getString("gui.sounds." + soundType, "BLOCK_NOTE_BLOCK_PLING");
+        try {
+            Sound sound = Sound.valueOf(soundName.toUpperCase());
+            player.playSound(player.getLocation(), sound, 0.5f, 1.0f);
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
+
+    @Override
+    public AnvilInputHelper getAnvilInput() {
+        return anvilInput;
+    }
+
+    @Override
+    public void openSigilSignalConfigEditor(Player player, Sigil sigil, String signalKey) {
+        var signalConfig = sigil.getEffects().get(signalKey);
+        if (signalConfig == null) {
+            player.sendMessage(TextUtil.colorize("&cSignal not found"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Edit Signal: &c" + formatSignalName(signalKey)));
+
+        ItemStack info = new ItemStack(Material.REDSTONE);
+        ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&c" + formatSignalName(signalKey)));
+        List<Component> infoLore = new ArrayList<>();
+        addSignalLoreLines(infoLore, signalKey, signalConfig, false);
+        infoMeta.lore(infoLore);
+        info.setItemMeta(infoMeta);
+        inv.setItem(4, info);
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.REPEATER, "&bSignal Mode", "&7Toggle CHANCE/COOLDOWN"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.EXPERIENCE_BOTTLE, "&aSet Chance", "&7Click to set chance (0-100%)"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.CLOCK, "&aCooldown", "&7Click to set cooldown (seconds)"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&bEffects", "&7View effects"));
+
+        // Fill bottom row with proper navigation
+        ItemBuilder.fillBottomRow(inv, "&7Return to Signal Overview");
+
+        GUISession session = new GUISession(GUIType.GENERIC);
+        session.put("sigil", sigil);
+        session.put("sigilId", sigil.getId());
+        session.put("signalKey", signalKey);
+        session.put("signalConfig", signalConfig);
+        session.put("isEditingSigilSignal", true);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openSignalSelectorForSynergy(Player player, String setId, String synergyId) {
+        Inventory inv = Bukkit.createInventory(null, 45, TextUtil.parseComponent("&8Signal Browser: &b" + synergyId));
+
+        String[] triggers = {"ATTACK", "DEFENSE", "KILL_MOB", "KILL_PLAYER", "SHIFT", "FALL_DAMAGE",
+                "EFFECT_STATIC", "TICK", "BOW_HIT", "BOW_SHOOT", "BLOCK_BREAK", "BLOCK_PLACE", "INTERACT", "TRIDENT_THROW"};
+
+        for (int i = 0; i < triggers.length; i++) {
+            inv.setItem(i, ItemBuilder.createGuiItem(Material.SUNFLOWER, "&b" + TextUtil.toProperCase(triggers[i].replace("_", " ")),
+                    "&7Synergy signal"));
+        }
+
+        GUISession session = new GUISession(GUIType.SIGNAL_SELECTOR);
+        session.put("setId", setId);
+        session.put("synergyId", synergyId);
+        session.put("creationMode", "SYNERGY");
+        openGUI(player, inv, session);
+    }
+
+    // ===== CONDITION GUI METHODS =====
+
+    @Override
+    public void openConditionCategorySelector(Player player, GUISession parentSession) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Select Condition Category"));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.APPLE, "&cHealth", "&7Health-based conditions"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.POTION, "&5Potion", "&7Potion effect conditions"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.GRASS_BLOCK, "&aEnvironmental", "&7Environmental conditions"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.DIAMOND_SWORD, "&bCombat", "&7Combat-related conditions"));
+        inv.setItem(18, ItemBuilder.createGuiItem(Material.NETHER_STAR, "&eMeta", "&7Meta conditions"));
+        inv.setItem(26, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to previous menu"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_CATEGORY_SELECTOR);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionTypeSelector(Player player, com.zenax.armorsets.events.ConditionCategory category, GUISession parentSession) {
+        com.zenax.armorsets.events.ConditionType[] types = com.zenax.armorsets.events.ConditionType.getByCategory(category);
+
+        int size = Math.max(27, Math.min((int) Math.ceil((types.length + 9) / 9.0) * 9, 54));
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8" + TextUtil.toProperCase(category.name()) + " Conditions"));
+
+        int slot = 0;
+        for (com.zenax.armorsets.events.ConditionType type : types) {
+            if (slot >= size - 1) break;
+
+            ItemStack item = new ItemStack(type.getIcon());
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&b" + type.getDisplayName()));
+
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&7" + type.getDescription()));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&eExample: &f" + type.getExampleFormat()));
+            lore.add(TextUtil.parseComponent("&8" + type.getExampleDescription()));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&aClick to configure"));
+
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        inv.setItem(size - 1, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to category selector"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_TYPE_SELECTOR);
+        session.put("category", category);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionParameterConfig(Player player, com.zenax.armorsets.events.ConditionType type, GUISession parentSession) {
+        int size = type.hasParameters() ? 36 : 27;
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent("&8Configure: &b" + type.getDisplayName()));
+
+        ItemStack info = new ItemStack(type.getIcon());
+        ItemMeta infoMeta = info.getItemMeta();
+        infoMeta.displayName(TextUtil.parseComponent("&b" + type.getDisplayName()));
+        List<Component> infoLore = new ArrayList<>();
+        infoLore.add(TextUtil.parseComponent("&7" + type.getDescription()));
+        infoLore.add(Component.empty());
+        infoLore.add(TextUtil.parseComponent("&eFormat: &f" + type.getExampleFormat()));
+        infoMeta.lore(infoLore);
+        info.setItemMeta(infoMeta);
+        inv.setItem(4, info);
+
+        if (type.hasParameters()) {
+            // Value adjustment controls
+            inv.setItem(19, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-10", "&7Decrease by 10"));
+            inv.setItem(20, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-1", "&7Decrease by 1"));
+
+            ItemStack valueDisplay = new ItemStack(Material.GOLD_INGOT);
+            ItemMeta valueMeta = valueDisplay.getItemMeta();
+            valueMeta.displayName(TextUtil.parseComponent("&aValue: &f0"));
+            valueDisplay.setItemMeta(valueMeta);
+            inv.setItem(22, valueDisplay);
+
+            inv.setItem(24, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+1", "&7Increase by 1"));
+            inv.setItem(25, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+10", "&7Increase by 10"));
+
+            inv.setItem(30, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add this condition"));
+            inv.setItem(32, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+        } else {
+            inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add this condition"));
+            inv.setItem(14, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Go back"));
+        }
+
+        GUISession session = new GUISession(GUIType.CONDITION_PARAMETER_CONFIG);
+        session.put("conditionType", type);
+        session.put("parentSession", parentSession);
+        session.put("value", 0);
+        session.put("comparison", "<");
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionViewer(Player player, GUISession triggerSession) {
+        @SuppressWarnings("unchecked")
+        List<String> conditions = (List<String>) triggerSession.get("conditions");
+        if (conditions == null) {
+            conditions = new ArrayList<>();
+            triggerSession.put("conditions", conditions);
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Conditions (&f" + conditions.size() + "&8)"));
+
+        int slot = 9;
+        for (String condition : conditions) {
+            if (slot >= 27) break;
+
+            ItemStack item = new ItemStack(Material.PAPER);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&e" + condition));
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&7Click to edit"));
+            lore.add(TextUtil.parseComponent("&cShift-click to remove"));
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        inv.setItem(27, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aAdd Condition", "&7Add a new condition"));
+        inv.setItem(29, ItemBuilder.createGuiItem(Material.RED_DYE, "&cRemove All", "&7Clear all conditions"));
+        inv.setItem(35, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to signal config"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("signalSession", triggerSession);
+        session.put("conditions", conditions);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openConditionEditor(Player player, String conditionString, GUISession parentSession) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Edit Condition"));
+
+        ItemStack conditionInfo = new ItemStack(Material.PAPER);
+        ItemMeta meta = conditionInfo.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&e" + conditionString));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&7Editing this condition"));
+        meta.lore(lore);
+        conditionInfo.setItemMeta(meta);
+        inv.setItem(4, conditionInfo);
+
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aSave", "&7Save changes"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Discard changes"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_EDITOR);
+        session.put("conditionString", conditionString);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Toggle the condition logic mode between AND and OR
+     */
+    @Override
+    public void toggleConditionLogic(Player player, GUISession triggerSession) {
+        if (triggerSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No signal session"));
+            return;
+        }
+
+        String logicMode = triggerSession.getString("logicMode");
+        if (logicMode == null) {
+            logicMode = "AND";
+        }
+
+        String newMode = "AND".equals(logicMode) ? "OR" : "AND";
+        triggerSession.put("logicMode", newMode);
+
+        player.sendMessage(TextUtil.colorize("&aCondition logic set to: &f" + newMode));
+        playSound(player, "click");
+
+        // Refresh the condition viewer
+        openConditionViewer(player, triggerSession);
+    }
+
+    /**
+     * Open the condition preset manager GUI
+     */
+    @Override
+    public void openConditionPresetManager(Player player, GUISession triggerSession) {
+        if (triggerSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No signal session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Manage Presets"));
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aSave as Preset", "&7Save current conditions", "&7as a reusable preset"));
+        inv.setItem(13, ItemBuilder.createGuiItem(Material.BLUE_DYE, "&bLoad Preset", "&7Apply saved presets", "&7to this signal"));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("signalSession", triggerSession);
+        session.put("isPresetManager", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition template selector GUI
+     */
+    @Override
+    public void openConditionTemplateSelector(Player player, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Select Template"));
+
+        com.zenax.armorsets.events.ConditionTemplate[] templates = com.zenax.armorsets.events.ConditionTemplate.values();
+        int slot = 10;
+        for (com.zenax.armorsets.events.ConditionTemplate template : templates) {
+            if (slot >= 27) break;
+            ItemStack item = new ItemStack(template.getIcon());
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&f" + template.getDisplayName()));
+            List<Component> lore = new ArrayList<>();
+            for (String line : template.getFormattedLore()) {
+                lore.add(TextUtil.parseComponent(line));
+            }
+            meta.lore(lore);
+            item.setItemMeta(meta);
+            inv.setItem(slot, item);
+            slot++;
+        }
+
+        inv.setItem(35, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("parentSession", parentSession);
+        session.put("isTemplateSelector", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition parameter editor GUI
+     */
+    @Override
+    public void openConditionParameterEditor(Player player, String conditionString, int conditionIndex, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 36, TextUtil.parseComponent("&8Edit: &f" + conditionString));
+
+        ItemStack info = new ItemStack(Material.PAPER);
+        ItemMeta meta = info.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&e" + conditionString));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&7Editing condition parameters"));
+        meta.lore(lore);
+        info.setItemMeta(meta);
+        inv.setItem(4, info);
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Save changes"));
+        inv.setItem(15, ItemBuilder.createGuiItem(Material.RED_DYE, "&cCancel", "&7Discard"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_VIEWER);
+        session.put("parentSession", parentSession);
+        session.put("conditionString", conditionString);
+        session.put("conditionIndex", conditionIndex);
+        session.put("isParameterEditor", true);
+        openGUI(player, inv, session);
+    }
+
+    /**
+     * Open the condition preset selector GUI
+     */
+    @Override
+    public void openConditionPresetSelector(Player player, GUISession parentSession) {
+        if (parentSession == null) {
+            player.sendMessage(TextUtil.colorize("&cError: No parent session"));
+            return;
+        }
+
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Load Preset"));
+
+        inv.setItem(11, ItemBuilder.createGuiItem(Material.BLUE_DYE, "&bNo Presets Saved", "&7Create one first using", "&7'Save as Preset'"));
+        inv.setItem(26, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", "&7Return to conditions"));
+
+        GUISession session = new GUISession(GUIType.CONDITION_PRESET_SELECTOR);
+        session.put("parentSession", parentSession);
+        openGUI(player, inv, session);
+    }
+
+    // ===== PAGINATION HELPER METHODS =====
+
+    public void openSetBrowserPage(Player player, int page) {
+        var allSets = plugin.getSetManager().getAllSets();
+        if (allSets.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo armor sets found."));
+            return;
+        }
+
+        List<ArmorSet> sets = new ArrayList<>(allSets);
+        int itemsPerPage = 45;
+        int totalPages = ItemBuilder.calculateTotalPages(sets.size(), itemsPerPage);
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Armor Sets (&f" + sets.size() + "&8)"));
+
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, sets.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            ItemStack item = createSetBrowserItem(sets.get(i));
+            inv.setItem(i - startIndex, item);
+        }
+
+        ItemBuilder.fillBottomRowWithPagination(inv, currentPage, totalPages, sets.size());
+
+        GUISession session = new GUISession(GUIType.SET_BROWSER);
+        session.setCurrentPage(currentPage);
+        session.put("totalPages", totalPages);
+        openGUI(player, inv, session);
+    }
+
+    public void openSigilBrowserPage(Player player, int page) {
+        var allSigils = plugin.getSigilManager().getAllSigils();
+        if (allSigils.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo sigils found."));
+            return;
+        }
+
+        List<Sigil> sigils = new ArrayList<>(allSigils);
+        int itemsPerPage = 45;
+        int totalPages = ItemBuilder.calculateTotalPages(sigils.size(), itemsPerPage);
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Sigils (&f" + sigils.size() + "&8)"));
+
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, sigils.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            ItemStack item = createSigilBrowserItem(sigils.get(i));
+            inv.setItem(i - startIndex, item);
+        }
+
+        ItemBuilder.fillBottomRowWithPagination(inv, currentPage, totalPages, sigils.size());
+
+        GUISession session = new GUISession(GUIType.SIGIL_BROWSER);
+        session.setCurrentPage(currentPage);
+        session.put("totalPages", totalPages);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openBrowserFilterGUI(Player player, GUISession browserSession) {
+        // Stub implementation - can be expanded in the future
+        player.sendMessage(TextUtil.colorize("&7Filter feature coming soon!"));
+    }
+
+    @Override
+    public void openSetCreator(Player player) {
+        // Stub implementation - can be expanded in the future
+        player.sendMessage(TextUtil.colorize("&7Set creator coming soon!"));
+    }
+
+    @Override
+    public void openConfirmationDialog(Player player, String title, String message, Runnable onConfirm, Runnable onCancel) {
+        // Stub implementation - can be expanded in the future
+        player.sendMessage(TextUtil.colorize("&7Confirmation dialog coming soon!"));
+    }
+
+    @Override
+    public void openEffectRemover(Player player, String buildType, String buildId, Object target, String signalKey, SignalConfig config) {
+        List<String> effects = config.getEffects();
+        if (effects == null || effects.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("&cNo effects to remove."));
+            return;
+        }
+
+        String displayName = signalKey.contains(":")
+            ? TextUtil.toProperCase(signalKey.replace(":", " - ").replace("_", " "))
+            : TextUtil.toProperCase(signalKey.replace("_", " "));
+        String title = "&8Effects: &c" + displayName;
+
+        // Calculate size: items fit in rows 0-4 (45 slots max), bottom row for nav
+        int contentRows = (int) Math.ceil(effects.size() / 9.0);
+        int totalRows = Math.max(3, contentRows + 1); // +1 for bottom row, min 3 rows
+        int size = Math.min(totalRows * 9, 54);
+        Inventory inv = Bukkit.createInventory(null, size, TextUtil.parseComponent(title));
+
+        // Place effect items starting from slot 0
+        int slot = 0;
+        int maxContentSlot = size - 9; // Leave last row for navigation
+        for (int i = 0; i < effects.size() && slot < maxContentSlot; i++) {
+            String effect = effects.get(i);
+
+            ItemStack effectItem = new ItemStack(Material.BLAZE_POWDER);
+            ItemMeta meta = effectItem.getItemMeta();
+            meta.displayName(TextUtil.parseComponent("&6" + TextUtil.toProperCase(effect.split(":")[0].replace("_", " "))));
+
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent("&8" + effect));
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&c&lClick to remove!"));
+            meta.lore(lore);
+
+            // Store effect index in persistent data for click handling
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "effect_index"),
+                PersistentDataType.INTEGER,
+                i
+            );
+
+            effectItem.setItemMeta(meta);
+            inv.setItem(slot++, effectItem);
+        }
+
+        // Fill bottom row with proper layout
+        ItemBuilder.fillBottomRow(inv, "&7Return to signals");
+
+        GUISession session = new GUISession(GUIType.EFFECT_REMOVER);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("target", target);
+        session.put("signalKey", signalKey);
+        session.put("triggerConfig", config);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openEffectParticleConfigPage(Player player, String buildType, String buildId, String signal, String armorSlot, int page, String selectedParticle, int count) {
+        // Get all particle types
+        Particle[] allParticles = Particle.values();
+        List<Particle> validParticles = new ArrayList<>();
+        for (Particle p : allParticles) {
+            // Filter out particles that require data or are not spawnable
+            String name = p.name();
+            if (!name.contains("LEGACY") && !name.equals("BLOCK_MARKER") && !name.equals("VIBRATION")) {
+                validParticles.add(p);
+            }
+        }
+
+        int itemsPerPage = 27; // 3 rows of particles (slots 9-35)
+        int totalPages = ItemBuilder.calculateTotalPages(validParticles.size(), itemsPerPage);
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Particle: Page " + (currentPage + 1) + "/" + totalPages));
+
+        // Info item at slot 4
+        ItemStack info = ItemBuilder.createGuiItem(Material.BLAZE_POWDER, "&ePARTICLE Effect",
+            "&7Selected: &f" + (selectedParticle != null ? selectedParticle : "None"),
+            "&7Count: &f" + count,
+            "",
+            "&7Click a particle below to select");
+        inv.setItem(4, info);
+
+        // Populate particle items (slots 9-35)
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, validParticles.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            Particle particle = validParticles.get(i);
+            int slot = 9 + (i - startIndex);
+
+            boolean isSelected = particle.name().equals(selectedParticle);
+            Material mat = getParticleIcon(particle.name());
+
+            ItemStack item = ItemBuilder.createGuiItem(mat,
+                (isSelected ? "&a" : "&7") + particle.name(),
+                isSelected ? "&aSelected" : "&7Click to select");
+
+            ItemMeta meta = item.getItemMeta();
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "particle_type"),
+                PersistentDataType.STRING,
+                particle.name()
+            );
+            if (isSelected) {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            item.setItemMeta(meta);
+            inv.setItem(slot, item);
+        }
+
+        // Count adjustment buttons (row 5: slots 36-44)
+        inv.setItem(37, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-10", "&7Decrease count by 10"));
+        inv.setItem(38, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-1", "&7Decrease count by 1"));
+        inv.setItem(40, ItemBuilder.createGuiItem(Material.GOLD_INGOT, "&eCount: &f" + count, "&7Current particle count"));
+        inv.setItem(42, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+1", "&7Increase count by 1"));
+        inv.setItem(43, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+10", "&7Increase count by 10"));
+
+        // Bottom row (slots 45-53)
+        inv.setItem(45, ItemBuilder.createPrevPageButton(currentPage));
+        inv.setItem(48, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add particle effect"));
+        inv.setItem(50, ItemBuilder.createGuiItem(Material.RED_DYE, "&cBack", "&7Return to effect selector"));
+        inv.setItem(53, ItemBuilder.createNextPageButton(currentPage, totalPages));
+
+        GUISession session = new GUISession(GUIType.EFFECT_PARTICLE_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", signal);
+        session.put("particleType", selectedParticle != null ? selectedParticle : "FLAME");
+        session.put("count", count);
+        session.put("page", currentPage);
+        session.put("totalPages", totalPages);
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openParticleMaterialConfig(Player player, String buildType, String buildId, String signal, String armorSlot, String particleType, int count, String material) {
+        // Common block materials for BLOCK/ITEM particles
+        List<Material> commonMaterials = List.of(
+            Material.STONE, Material.COBBLESTONE, Material.DIRT, Material.GRASS_BLOCK,
+            Material.OAK_PLANKS, Material.SPRUCE_PLANKS, Material.BIRCH_PLANKS, Material.DARK_OAK_PLANKS,
+            Material.SAND, Material.GRAVEL, Material.RED_SAND, Material.SOUL_SAND,
+            Material.NETHERRACK, Material.END_STONE, Material.OBSIDIAN, Material.CRYING_OBSIDIAN,
+            Material.DIAMOND_BLOCK, Material.GOLD_BLOCK, Material.IRON_BLOCK, Material.EMERALD_BLOCK,
+            Material.REDSTONE_BLOCK, Material.LAPIS_BLOCK, Material.COAL_BLOCK, Material.COPPER_BLOCK,
+            Material.GLASS, Material.WHITE_WOOL, Material.RED_WOOL, Material.BLUE_WOOL,
+            Material.ICE, Material.PACKED_ICE, Material.BLUE_ICE, Material.SNOW_BLOCK,
+            Material.GLOWSTONE, Material.SEA_LANTERN, Material.SHROOMLIGHT, Material.MAGMA_BLOCK,
+            Material.PRISMARINE, Material.DARK_PRISMARINE, Material.PURPUR_BLOCK, Material.ANCIENT_DEBRIS,
+            Material.DEEPSLATE, Material.AMETHYST_BLOCK, Material.CALCITE, Material.TUFF
+        );
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8" + particleType + ": Select Material"));
+
+        // Info item
+        ItemStack info = ItemBuilder.createGuiItem(Material.PAPER, "&e" + particleType + " Particle",
+            "&7Selected Material: &f" + (material != null ? material : "STONE"),
+            "&7Count: &f" + count,
+            "",
+            "&7Click a block to select material");
+        inv.setItem(4, info);
+
+        // Populate materials (slots 9-44)
+        int slot = 9;
+        for (Material mat : commonMaterials) {
+            if (slot >= 45) break;
+
+            boolean isSelected = mat.name().equals(material);
+            ItemStack item = new ItemStack(mat);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(TextUtil.parseComponent((isSelected ? "&a" : "&7") + mat.name()));
+            List<Component> lore = new ArrayList<>();
+            lore.add(TextUtil.parseComponent(isSelected ? "&aSelected" : "&7Click to select"));
+            meta.lore(lore);
+
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "material_type"),
+                PersistentDataType.STRING,
+                mat.name()
+            );
+            if (isSelected) {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+        }
+
+        // Bottom row
+        inv.setItem(48, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add particle effect"));
+        inv.setItem(50, ItemBuilder.createGuiItem(Material.RED_DYE, "&cBack", "&7Return to particle selector"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_PARTICLE_MATERIAL_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", signal);
+        session.put("particleType", particleType);
+        session.put("count", count);
+        session.put("material", material != null ? material : "STONE");
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    @Override
+    public void openParticleDustConfig(Player player, String buildType, String buildId, String signal, String armorSlot, String particleType, int count, int red, int green, int blue, float size) {
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8" + particleType + ": Select Color"));
+
+        // Color preview using wool/concrete
+        Material previewMat = getColorPreviewMaterial(red, green, blue);
+        ItemStack preview = ItemBuilder.createGuiItem(previewMat, "&eColor Preview",
+            "&7Red: &c" + red,
+            "&7Green: &a" + green,
+            "&7Blue: &9" + blue,
+            "&7Size: &f" + size,
+            "",
+            "&7Adjust values below");
+        inv.setItem(4, preview);
+
+        // Preset colors (row 2: slots 9-17)
+        inv.setItem(9, createColorButton("&cRed", 255, 0, 0));
+        inv.setItem(10, createColorButton("&6Orange", 255, 165, 0));
+        inv.setItem(11, createColorButton("&eYellow", 255, 255, 0));
+        inv.setItem(12, createColorButton("&aLime", 0, 255, 0));
+        inv.setItem(13, createColorButton("&2Green", 0, 128, 0));
+        inv.setItem(14, createColorButton("&bCyan", 0, 255, 255));
+        inv.setItem(15, createColorButton("&9Blue", 0, 0, 255));
+        inv.setItem(16, createColorButton("&dMagenta", 255, 0, 255));
+        inv.setItem(17, createColorButton("&5Purple", 128, 0, 128));
+
+        // Red adjustment (row 3)
+        inv.setItem(19, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-50 Red", "&7Decrease red"));
+        inv.setItem(20, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-10 Red", "&7Decrease red"));
+        inv.setItem(21, ItemBuilder.createGuiItem(Material.RED_WOOL, "&cRed: &f" + red, "&7Current red value"));
+        inv.setItem(23, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+10 Red", "&7Increase red"));
+        inv.setItem(24, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+50 Red", "&7Increase red"));
+
+        // Green adjustment (row 4)
+        inv.setItem(28, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-50 Green", "&7Decrease green"));
+        inv.setItem(29, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-10 Green", "&7Decrease green"));
+        inv.setItem(30, ItemBuilder.createGuiItem(Material.LIME_WOOL, "&aGreen: &f" + green, "&7Current green value"));
+        inv.setItem(32, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+10 Green", "&7Increase green"));
+        inv.setItem(33, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+50 Green", "&7Increase green"));
+
+        // Blue adjustment (row 5)
+        inv.setItem(37, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&c-50 Blue", "&7Decrease blue"));
+        inv.setItem(38, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-10 Blue", "&7Decrease blue"));
+        inv.setItem(39, ItemBuilder.createGuiItem(Material.BLUE_WOOL, "&9Blue: &f" + blue, "&7Current blue value"));
+        inv.setItem(41, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+10 Blue", "&7Increase blue"));
+        inv.setItem(42, ItemBuilder.createGuiItem(Material.GREEN_STAINED_GLASS_PANE, "&2+50 Blue", "&7Increase blue"));
+
+        // Size adjustment + confirm/back (row 6)
+        inv.setItem(45, ItemBuilder.createGuiItem(Material.ORANGE_STAINED_GLASS_PANE, "&6-0.5 Size", "&7Decrease size"));
+        inv.setItem(46, ItemBuilder.createGuiItem(Material.GOLD_INGOT, "&eSize: &f" + size, "&7Particle size (0.5-4.0)"));
+        inv.setItem(47, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&a+0.5 Size", "&7Increase size"));
+        inv.setItem(51, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add particle effect"));
+        inv.setItem(53, ItemBuilder.createGuiItem(Material.RED_DYE, "&cBack", "&7Return to particle selector"));
+
+        GUISession session = new GUISession(GUIType.EFFECT_PARTICLE_DUST_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", signal);
+        session.put("particleType", particleType);
+        session.put("count", count);
+        session.put("red", red);
+        session.put("green", green);
+        session.put("blue", blue);
+        session.put("size", size);
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    private ItemStack createColorButton(String colorName, int r, int g, int b) {
+        Material mat = getColorPreviewMaterial(r, g, b);
+        ItemStack item = ItemBuilder.createGuiItem(mat, colorName, "&7Click to apply", "&8RGB: " + r + ", " + g + ", " + b);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "color_r"), PersistentDataType.INTEGER, r);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "color_g"), PersistentDataType.INTEGER, g);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "color_b"), PersistentDataType.INTEGER, b);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private Material getColorPreviewMaterial(int r, int g, int b) {
+        // Simple color matching to wool colors
+        if (r > 200 && g < 100 && b < 100) return Material.RED_WOOL;
+        if (r > 200 && g > 100 && g < 200 && b < 100) return Material.ORANGE_WOOL;
+        if (r > 200 && g > 200 && b < 100) return Material.YELLOW_WOOL;
+        if (r < 100 && g > 200 && b < 100) return Material.LIME_WOOL;
+        if (r < 100 && g < 200 && g > 50 && b < 100) return Material.GREEN_WOOL;
+        if (r < 100 && g > 200 && b > 200) return Material.CYAN_WOOL;
+        if (r < 100 && g < 100 && b > 200) return Material.BLUE_WOOL;
+        if (r > 200 && g < 100 && b > 200) return Material.MAGENTA_WOOL;
+        if (r > 100 && r < 200 && g < 100 && b > 100) return Material.PURPLE_WOOL;
+        if (r > 200 && g > 200 && b > 200) return Material.WHITE_WOOL;
+        if (r < 50 && g < 50 && b < 50) return Material.BLACK_WOOL;
+        return Material.LIGHT_GRAY_WOOL;
+    }
+
+    @Override
+    public void openEffectSoundConfigPage(Player player, String buildType, String buildId, String signal, String armorSlot, int page, String selectedSound, double volume, double pitch) {
+        // Get common/useful sounds (not all 1000+ sounds)
+        List<String> commonSounds = List.of(
+            "ENTITY_EXPERIENCE_ORB_PICKUP", "ENTITY_PLAYER_LEVELUP", "BLOCK_NOTE_BLOCK_PLING",
+            "BLOCK_NOTE_BLOCK_CHIME", "BLOCK_NOTE_BLOCK_BELL", "BLOCK_NOTE_BLOCK_HARP",
+            "ENTITY_ARROW_HIT_PLAYER", "ENTITY_ENDER_DRAGON_GROWL", "ENTITY_WITHER_SPAWN",
+            "ENTITY_LIGHTNING_BOLT_THUNDER", "ENTITY_GENERIC_EXPLODE", "BLOCK_ANVIL_LAND",
+            "ENTITY_BLAZE_SHOOT", "ENTITY_FIREWORK_ROCKET_BLAST", "ENTITY_ZOMBIE_VILLAGER_CURE",
+            "BLOCK_BEACON_ACTIVATE", "BLOCK_END_PORTAL_SPAWN", "ENTITY_EVOKER_PREPARE_SUMMON",
+            "ENTITY_ILLUSIONER_CAST_SPELL", "ITEM_TOTEM_USE", "ENTITY_ELDER_GUARDIAN_CURSE",
+            "ENTITY_ENDERMAN_TELEPORT", "ENTITY_SHULKER_TELEPORT", "BLOCK_PORTAL_TRAVEL",
+            "ENTITY_WOLF_HOWL", "ENTITY_CAT_PURREOW", "ENTITY_VILLAGER_YES", "ENTITY_VILLAGER_NO"
+        );
+
+        int itemsPerPage = 27; // 3 rows of sounds (slots 9-35)
+        int totalPages = ItemBuilder.calculateTotalPages(commonSounds.size(), itemsPerPage);
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        Inventory inv = Bukkit.createInventory(null, 54, TextUtil.parseComponent("&8Sound: Page " + (currentPage + 1) + "/" + totalPages));
+
+        // Info item at slot 4
+        ItemStack info = ItemBuilder.createGuiItem(Material.NOTE_BLOCK, "&eSOUND Effect",
+            "&7Selected: &f" + (selectedSound != null ? selectedSound : "None"),
+            "&7Volume: &f" + volume,
+            "&7Pitch: &f" + pitch,
+            "",
+            "&7Click a sound below to select");
+        inv.setItem(4, info);
+
+        // Populate sound items (slots 9-35)
+        int startIndex = ItemBuilder.getPageStartIndex(currentPage, itemsPerPage);
+        int endIndex = ItemBuilder.getPageEndIndex(currentPage, itemsPerPage, commonSounds.size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            String sound = commonSounds.get(i);
+            int slot = 9 + (i - startIndex);
+
+            boolean isSelected = sound.equals(selectedSound);
+            Material mat = isSelected ? Material.JUKEBOX : Material.NOTE_BLOCK;
+
+            String shortName = sound.replace("ENTITY_", "").replace("BLOCK_", "").replace("ITEM_", "");
+            ItemStack item = ItemBuilder.createGuiItem(mat,
+                (isSelected ? "&a" : "&7") + shortName,
+                "&8" + sound,
+                isSelected ? "&aSelected" : "&7Click to select");
+
+            ItemMeta meta = item.getItemMeta();
+            meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "sound_type"),
+                PersistentDataType.STRING,
+                sound
+            );
+            if (isSelected) {
+                meta.addEnchant(org.bukkit.enchantments.Enchantment.UNBREAKING, 1, true);
+                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            }
+            item.setItemMeta(meta);
+            inv.setItem(slot, item);
+        }
+
+        // Volume/Pitch adjustment buttons (row 5: slots 36-44)
+        inv.setItem(36, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&cVol -0.1", "&7Decrease volume"));
+        inv.setItem(37, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&aVol +0.1", "&7Increase volume"));
+        inv.setItem(38, ItemBuilder.createGuiItem(Material.GOLD_INGOT, "&eVolume: &f" + String.format("%.1f", volume), "&7Current volume"));
+        inv.setItem(42, ItemBuilder.createGuiItem(Material.RED_STAINED_GLASS_PANE, "&cPitch -0.1", "&7Decrease pitch"));
+        inv.setItem(43, ItemBuilder.createGuiItem(Material.LIME_STAINED_GLASS_PANE, "&aPitch +0.1", "&7Increase pitch"));
+        inv.setItem(44, ItemBuilder.createGuiItem(Material.GOLD_INGOT, "&ePitch: &f" + String.format("%.1f", pitch), "&7Current pitch"));
+
+        // Bottom row (slots 45-53)
+        inv.setItem(45, ItemBuilder.createPrevPageButton(currentPage));
+        inv.setItem(48, ItemBuilder.createGuiItem(Material.LIME_DYE, "&aConfirm", "&7Add sound effect"));
+        inv.setItem(50, ItemBuilder.createGuiItem(Material.RED_DYE, "&cBack", "&7Return to effect selector"));
+        inv.setItem(53, ItemBuilder.createNextPageButton(currentPage, totalPages));
+
+        GUISession session = new GUISession(GUIType.EFFECT_SOUND_CONFIG);
+        session.put("buildType", buildType);
+        session.put("buildId", buildId);
+        session.put("signal", signal);
+        session.put("soundType", selectedSound != null ? selectedSound : "ENTITY_EXPERIENCE_ORB_PICKUP");
+        session.put("volume", volume);
+        session.put("pitch", pitch);
+        session.put("page", currentPage);
+        session.put("totalPages", totalPages);
+        if (armorSlot != null) session.put("armorSlot", armorSlot);
+        openGUI(player, inv, session);
+    }
+
+    // ===== PUBLIC API METHODS =====
+
+    public void closeAll() {
+        for (UUID uuid : new HashSet<>(activeSessions.keySet())) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player != null) {
+                player.closeInventory();
+            }
+        }
+        activeSessions.clear();
+    }
+
+    public boolean hasPendingMessageInput(UUID playerId) {
+        return pendingMessageInputs.containsKey(playerId);
+    }
+
+    public boolean handleMessageInput(Player player, String input) {
+        GUISession session = pendingMessageInputs.remove(player.getUniqueId());
+        if (session == null) return false;
+
+        String inputType = session.getString("inputType");
+
+        if ("SIGIL_ID".equals(inputType)) {
+            return handleSigilIdInput(player, input);
+        }
+        if ("SYNERGY_ID".equals(inputType)) {
+            return handleSynergyIdInput(player, input, session);
+        }
+        if ("RENAME_SET".equals(inputType)) {
+            return handleRenameSetInput(player, input, session);
+        }
+        if ("RENAME_SIGIL".equals(inputType)) {
+            return handleRenameSigilInput(player, input, session);
+        }
+        if ("EDIT_SIGIL_DESCRIPTION".equals(inputType)) {
+            return handleEditSigilDescriptionInput(player, input, session);
+        }
+        if ("SIGIL_TRIGGER_CHANCE".equals(inputType)) {
+            return handleSigilTriggerChanceInput(player, input, session);
+        }
+        if ("SIGIL_TRIGGER_COOLDOWN".equals(inputType)) {
+            return handleSigilTriggerCooldownInput(player, input, session);
+        }
+
+        return false;
+    }
+
+    // ===== PRIVATE HELPER METHODS =====
+
+    private ItemStack createSetBrowserItem(ArmorSet set) {
+        ItemStack item = new ItemStack(Material.DIAMOND_CHESTPLATE);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&b" + set.getId()));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&8Tier: &f" + set.getTier()));
+        lore.add(TextUtil.parseComponent("&7Click for details"));
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createSigilBrowserItem(Sigil sigil) {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&d" + sigil.getName()));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&8ID: &f" + sigil.getId()));
+        lore.add(TextUtil.parseComponent("&7Click for details"));
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createSynergyDisplayItem(SetSynergy synergy) {
+        ItemStack item = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&d" + TextUtil.toProperCase(synergy.getId().replace("_", " "))));
+        List<Component> lore = new ArrayList<>();
+        lore.add(TextUtil.parseComponent("&bSignal: &f" + synergy.getSignal().getConfigKey()));
+        lore.add(TextUtil.parseComponent("&eChance: &f" + synergy.getSignalConfig().getChance() + "%"));
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Create a full sigil preview item with human-readable signal/effect/condition info.
+     */
+    private ItemStack createSigilPreviewItem(Sigil sigil) {
+        Material previewMaterial = Material.NETHER_STAR;
+        if (sigil.getItemForm() != null && sigil.getItemForm().getMaterial() != null) {
+            previewMaterial = sigil.getItemForm().getMaterial();
+        }
+
+        ItemStack item = new ItemStack(previewMaterial);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&d" + sigil.getName()));
+
+        List<Component> lore = new ArrayList<>();
+
+        // Description
+        for (String desc : sigil.getDescription()) {
+            lore.add(TextUtil.parseComponent("&7" + TextUtil.toProperCase(desc)));
+        }
+        lore.add(Component.empty());
+
+        // Basic info
+        lore.add(TextUtil.parseComponent("&8ID: &f" + sigil.getId()));
+        lore.add(TextUtil.parseComponent("&8Tier: &f" + sigil.getTier()));
+        lore.add(TextUtil.parseComponent("&8Slot: &f" + TextUtil.toProperCase(sigil.getSlot())));
+
+        // Signals and effects
+        var signals = sigil.getEffects();
+        if (!signals.isEmpty()) {
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&e&lSignals: &f" + signals.size()));
+
+            for (var entry : signals.entrySet()) {
+                addSignalLoreLines(lore, entry.getKey(), entry.getValue(), true);
+            }
+        } else {
+            lore.add(Component.empty());
+            lore.add(TextUtil.parseComponent("&8No signals configured"));
+        }
+
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Create a signal display item with human-readable effect/condition info.
+     */
+    private ItemStack createSignalDisplayItem(String signalKey, SignalConfig config) {
+        ItemStack item = new ItemStack(Material.REDSTONE_TORCH);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(TextUtil.parseComponent("&b" + formatSignalName(signalKey)));
+
+        List<Component> lore = new ArrayList<>();
+        addSignalLoreLines(lore, signalKey, config, false);
+
+        meta.lore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Add human-readable signal info to a lore list.
+     * Used by both sigil preview and signal display items.
+     *
+     * @param lore The lore list to add to
+     * @param signalKey The signal key (e.g., "on_attack")
+     * @param config The signal configuration
+     * @param compact If true, show signal name inline; if false, show as header info
+     */
+    private void addSignalLoreLines(List<Component> lore, String signalKey, SignalConfig config, boolean compact) {
+        String mode = config.getSignalMode() != null ? config.getSignalMode().toString() : "CHANCE";
+        String modeValue = "CHANCE".equalsIgnoreCase(mode)
+            ? (int) config.getChance() + "%"
+            : config.getCooldown() + "s";
+
+        if (compact) {
+            // Compact format for sigil preview (signal name with mode value)
+            lore.add(TextUtil.parseComponent("&b" + formatSignalName(signalKey) + " &7(" + modeValue + ")"));
+        } else {
+            // Detailed format for signal display item
+            lore.add(TextUtil.parseComponent("&eMode: &f" + TextUtil.toProperCase(mode)));
+            if ("CHANCE".equalsIgnoreCase(mode)) {
+                lore.add(TextUtil.parseComponent("&eChance: &f" + (int) config.getChance() + "%"));
+            } else {
+                lore.add(TextUtil.parseComponent("&eCooldown: &f" + config.getCooldown() + "s"));
+            }
+            lore.add(Component.empty());
+        }
+
+        // Effects
+        String indent = compact ? "  " : "";
+        if (!compact) {
+            lore.add(TextUtil.parseComponent("&aEffects: &f" + config.getEffects().size()));
+        }
+        for (String effect : config.getEffects()) {
+            lore.add(TextUtil.parseComponent(indent + "&a• &f" + formatEffectHumanReadable(effect)));
+        }
+
+        // Conditions
+        if (!config.getConditions().isEmpty()) {
+            if (!compact) lore.add(Component.empty());
+            String logic = config.getConditionLogic() != null ? config.getConditionLogic().toString() : "AND";
+            if (compact) {
+                lore.add(TextUtil.parseComponent(indent + "&dConditions (" + logic + "):"));
+            } else {
+                lore.add(TextUtil.parseComponent("&dConditions (" + logic + "): &f" + config.getConditions().size()));
+            }
+            for (String condition : config.getConditions()) {
+                lore.add(TextUtil.parseComponent(indent + (compact ? "  " : "") + "&8• &f" + formatConditionHumanReadable(condition)));
+            }
+        }
+    }
+
+    /**
+     * Format a signal key into a human-readable name.
+     * E.g., "on_attack" -> "On Attack", "on_damage_taken" -> "On Damage Taken"
+     */
+    private String formatSignalName(String signalKey) {
+        if (signalKey == null || signalKey.isEmpty()) return "Unknown";
+        return TextUtil.toProperCase(signalKey.replace("_", " "));
+    }
+
+    /**
+     * Format an effect string into a human-readable description.
+     * E.g., "POTION:SPEED:10:2" -> "Speed II for 10s"
+     * E.g., "DEAL_DAMAGE:5 @Victim" -> "Deal 5 damage to target"
+     */
+    private String formatEffectHumanReadable(String effectString) {
+        if (effectString == null || effectString.isEmpty()) return "Unknown effect";
+
+        // Remove target suffix for parsing
+        String target = "";
+        String effect = effectString;
+        if (effectString.contains(" @")) {
+            int targetIdx = effectString.lastIndexOf(" @");
+            target = effectString.substring(targetIdx + 2);
+            effect = effectString.substring(0, targetIdx);
+        }
+
+        String[] parts = effect.split(":");
+        String type = parts[0].toUpperCase();
+
+        try {
+            return switch (type) {
+                case "POTION" -> {
+                    String potionType = parts.length > 1 ? TextUtil.toProperCase(parts[1].replace("_", " ")) : "Effect";
+                    int duration = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+                    int level = parts.length > 3 ? Integer.parseInt(parts[3]) : 1;
+                    String levelStr = level > 1 ? " " + toRomanNumeral(level) : "";
+                    yield potionType + levelStr + " for " + duration + "s";
+                }
+                case "DEAL_DAMAGE" -> {
+                    double dmg = parts.length > 1 ? Double.parseDouble(parts[1]) : 0;
+                    yield "Deal " + (int) dmg + " damage" + (target.isEmpty() ? "" : " to " + target.toLowerCase());
+                }
+                case "HEAL" -> {
+                    double heal = parts.length > 1 ? Double.parseDouble(parts[1]) : 0;
+                    yield "Heal " + (int) (heal / 2) + " hearts";
+                }
+                case "SET_FIRE" -> {
+                    int ticks = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+                    yield "Set fire for " + (ticks / 20) + "s";
+                }
+                case "LAUNCH" -> {
+                    double power = parts.length > 1 ? Double.parseDouble(parts[1]) : 1;
+                    yield "Launch with power " + power;
+                }
+                case "PARTICLE" -> {
+                    String particleType = parts.length > 1 ? TextUtil.toProperCase(parts[1].replace("_", " ")) : "Particle";
+                    int count = parts.length > 2 ? Integer.parseInt(parts[2]) : 1;
+                    yield particleType + " particle x" + count;
+                }
+                case "SOUND" -> {
+                    String soundType = parts.length > 1 ? TextUtil.toProperCase(parts[1].replace("_", " ").replace(".", " ")) : "Sound";
+                    yield "Play " + soundType;
+                }
+                case "MESSAGE" -> {
+                    String msg = parts.length > 1 ? parts[1] : "message";
+                    yield "Show: \"" + (msg.length() > 20 ? msg.substring(0, 17) + "..." : msg) + "\"";
+                }
+                case "TELEPORT" -> {
+                    double dist = parts.length > 1 ? Double.parseDouble(parts[1]) : 5;
+                    yield "Teleport " + (int) dist + " blocks forward";
+                }
+                case "KNOCKBACK" -> {
+                    double kb = parts.length > 1 ? Double.parseDouble(parts[1]) : 1;
+                    yield "Knockback x" + kb;
+                }
+                case "STEAL_HEALTH" -> {
+                    double amt = parts.length > 1 ? Double.parseDouble(parts[1]) : 2;
+                    yield "Steal " + (int) (amt / 2) + " hearts";
+                }
+                case "EXPLODE" -> {
+                    double power = parts.length > 1 ? Double.parseDouble(parts[1]) : 2;
+                    yield "Explode (power " + power + ")";
+                }
+                case "LIGHTNING" -> "Strike lightning";
+                case "FREEZE" -> {
+                    int ticks = parts.length > 1 ? Integer.parseInt(parts[1]) : 100;
+                    yield "Freeze for " + (ticks / 20) + "s";
+                }
+                default -> TextUtil.toProperCase(type.replace("_", " "));
+            };
+        } catch (Exception e) {
+            return TextUtil.toProperCase(type.replace("_", " "));
+        }
+    }
+
+    /**
+     * Format a condition string into a human-readable description.
+     * E.g., "HEALTH:50:100" -> "Health 50-100%"
+     * E.g., "BIOME:DESERT" -> "In Desert biome"
+     */
+    private String formatConditionHumanReadable(String conditionString) {
+        if (conditionString == null || conditionString.isEmpty()) return "Unknown condition";
+
+        String[] parts = conditionString.split(":");
+        String type = parts[0].toUpperCase();
+
+        try {
+            return switch (type) {
+                case "HEALTH" -> {
+                    int min = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+                    int max = parts.length > 2 ? Integer.parseInt(parts[2]) : 100;
+                    yield "Health " + min + "-" + max + "%";
+                }
+                case "HEALTH_BELOW" -> {
+                    int threshold = parts.length > 1 ? Integer.parseInt(parts[1]) : 50;
+                    yield "Health below " + threshold + "%";
+                }
+                case "HEALTH_ABOVE" -> {
+                    int threshold = parts.length > 1 ? Integer.parseInt(parts[1]) : 50;
+                    yield "Health above " + threshold + "%";
+                }
+                case "BIOME" -> {
+                    String biome = parts.length > 1 ? TextUtil.toProperCase(parts[1].replace("_", " ")) : "any";
+                    yield "In " + biome + " biome";
+                }
+                case "TIME_DAY" -> "During daytime";
+                case "TIME_NIGHT" -> "During nighttime";
+                case "SNEAKING" -> "While sneaking";
+                case "SPRINTING" -> "While sprinting";
+                case "ON_FIRE" -> "While on fire";
+                case "IN_WATER" -> "While in water";
+                case "IN_LAVA" -> "While in lava";
+                case "ON_GROUND" -> "While on ground";
+                case "IN_AIR" -> "While in air";
+                case "HAS_POTION" -> {
+                    String potion = parts.length > 1 ? TextUtil.toProperCase(parts[1].replace("_", " ")) : "any";
+                    yield "Has " + potion + " effect";
+                }
+                case "WORLD" -> {
+                    String world = parts.length > 1 ? parts[1] : "any";
+                    yield "In world: " + world;
+                }
+                case "PERMISSION" -> {
+                    String perm = parts.length > 1 ? parts[1] : "any";
+                    yield "Has permission: " + perm;
+                }
+                default -> TextUtil.toProperCase(type.replace("_", " "));
+            };
+        } catch (Exception e) {
+            return TextUtil.toProperCase(type.replace("_", " "));
+        }
+    }
+
+    /**
+     * Convert an integer to Roman numeral (for potion levels).
+     */
+    private String toRomanNumeral(int num) {
+        return switch (num) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            default -> String.valueOf(num);
+        };
+    }
+
+    /**
+     * Get a meaningful icon material for a particle type.
+     */
+    private Material getParticleIcon(String particleName) {
+        return switch (particleName) {
+            // Fire/Heat particles
+            case "FLAME", "SOUL_FIRE_FLAME" -> Material.BLAZE_POWDER;
+            case "LAVA" -> Material.LAVA_BUCKET;
+            case "SMOKE", "LARGE_SMOKE", "CAMPFIRE_SIGNAL_SMOKE", "CAMPFIRE_COSY_SMOKE" -> Material.COAL;
+            case "ASH", "WHITE_ASH" -> Material.GRAY_DYE;
+
+            // Water particles
+            case "DRIPPING_WATER", "FALLING_WATER", "SPLASH", "BUBBLE", "BUBBLE_COLUMN_UP", "BUBBLE_POP", "CURRENT_DOWN", "FISHING" -> Material.WATER_BUCKET;
+            case "RAIN" -> Material.BLUE_DYE;
+            case "DRIPPING_DRIPSTONE_WATER", "FALLING_DRIPSTONE_WATER" -> Material.POINTED_DRIPSTONE;
+
+            // Lava/Drip particles
+            case "DRIPPING_LAVA", "FALLING_LAVA", "LANDING_LAVA" -> Material.MAGMA_CREAM;
+            case "DRIPPING_HONEY", "FALLING_HONEY", "LANDING_HONEY" -> Material.HONEY_BOTTLE;
+            case "DRIPPING_OBSIDIAN_TEAR", "FALLING_OBSIDIAN_TEAR", "LANDING_OBSIDIAN_TEAR" -> Material.CRYING_OBSIDIAN;
+
+            // Magic/Enchant particles
+            case "ENCHANT", "ENCHANTED_HIT" -> Material.ENCHANTING_TABLE;
+            case "WITCH" -> Material.CAULDRON;
+            case "SPELL", "INSTANT_EFFECT", "AMBIENT_ENTITY_EFFECT", "ENTITY_EFFECT" -> Material.BREWING_STAND;
+            case "PORTAL" -> Material.OBSIDIAN;
+            case "END_ROD" -> Material.END_ROD;
+            case "TOTEM_OF_UNDYING" -> Material.TOTEM_OF_UNDYING;
+
+            // Nature particles
+            case "SPORE_BLOSSOM_AIR", "FALLING_SPORE_BLOSSOM" -> Material.SPORE_BLOSSOM;
+            case "CRIMSON_SPORE" -> Material.CRIMSON_FUNGUS;
+            case "WARPED_SPORE" -> Material.WARPED_FUNGUS;
+            case "CHERRY_LEAVES" -> Material.CHERRY_LEAVES;
+            case "SNOWFLAKE" -> Material.SNOWBALL;
+            case "WAX_ON", "WAX_OFF" -> Material.HONEYCOMB;
+            case "SCRAPE" -> Material.COPPER_INGOT;
+
+            // Damage/Combat particles
+            case "DAMAGE_INDICATOR", "CRIT" -> Material.DIAMOND_SWORD;
+            case "ANGRY_VILLAGER" -> Material.IRON_SWORD;
+            case "HEART" -> Material.RED_DYE;
+            case "SWEEP_ATTACK" -> Material.IRON_SWORD;
+
+            // Block/Item particles
+            case "BLOCK", "FALLING_DUST" -> Material.COBBLESTONE;
+            case "ITEM" -> Material.APPLE;
+            case "COMPOSTER" -> Material.COMPOSTER;
+            case "SCULK_CHARGE", "SCULK_CHARGE_POP", "SCULK_SOUL", "SHRIEK" -> Material.SCULK;
+            case "SONIC_BOOM" -> Material.SCULK_SHRIEKER;
+
+            // Explosion particles
+            case "EXPLOSION", "EXPLOSION_EMITTER" -> Material.TNT;
+            case "FIREWORK" -> Material.FIREWORK_ROCKET;
+            case "FLASH" -> Material.GLOWSTONE_DUST;
+
+            // Soul particles
+            case "SOUL" -> Material.SOUL_SAND;
+
+            // Redstone/Electric
+            case "ELECTRIC_SPARK" -> Material.LIGHTNING_ROD;
+            case "DUST", "DUST_COLOR_TRANSITION" -> Material.REDSTONE;
+            case "GLOW" -> Material.GLOW_INK_SAC;
+            case "GLOW_SQUID_INK", "SQUID_INK" -> Material.INK_SAC;
+
+            // Cloud/Poof particles
+            case "CLOUD", "POOF", "SMALL_FLAME" -> Material.WHITE_WOOL;
+            case "SPIT" -> Material.LLAMA_SPAWN_EGG;
+
+            // Misc
+            case "NOTE" -> Material.NOTE_BLOCK;
+            case "HAPPY_VILLAGER" -> Material.EMERALD;
+            case "NAUTILUS" -> Material.NAUTILUS_SHELL;
+            case "DOLPHIN" -> Material.DOLPHIN_SPAWN_EGG;
+            case "SNEEZE" -> Material.BAMBOO;
+            case "EGG_CRACK" -> Material.EGG;
+            case "TRIAL_SPAWNER_DETECTION" -> Material.TRIAL_SPAWNER;
+            case "VAULT_CONNECTION" -> Material.VAULT;
+
+            // Default
+            default -> Material.GUNPOWDER;
+        };
+    }
+
+    /**
+     * Get a meaningful icon material for a potion effect type.
+     */
+    private Material getPotionIcon(String potionName) {
+        return switch (potionName.toUpperCase()) {
+            case "SPEED" -> Material.SUGAR;
+            case "SLOWNESS" -> Material.COBWEB;
+            case "HASTE" -> Material.GOLDEN_PICKAXE;
+            case "MINING_FATIGUE" -> Material.CLAY_BALL;
+            case "STRENGTH" -> Material.BLAZE_POWDER;
+            case "INSTANT_HEALTH", "HEALING" -> Material.GLISTERING_MELON_SLICE;
+            case "INSTANT_DAMAGE", "HARMING" -> Material.FERMENTED_SPIDER_EYE;
+            case "JUMP_BOOST", "JUMP" -> Material.RABBIT_FOOT;
+            case "NAUSEA", "CONFUSION" -> Material.PUFFERFISH;
+            case "REGENERATION" -> Material.GHAST_TEAR;
+            case "RESISTANCE" -> Material.IRON_CHESTPLATE;
+            case "FIRE_RESISTANCE" -> Material.MAGMA_CREAM;
+            case "WATER_BREATHING" -> Material.PUFFERFISH;
+            case "INVISIBILITY" -> Material.GLASS;
+            case "BLINDNESS" -> Material.INK_SAC;
+            case "NIGHT_VISION" -> Material.GOLDEN_CARROT;
+            case "HUNGER" -> Material.ROTTEN_FLESH;
+            case "WEAKNESS" -> Material.WOODEN_SWORD;
+            case "POISON" -> Material.SPIDER_EYE;
+            case "WITHER" -> Material.WITHER_SKELETON_SKULL;
+            case "HEALTH_BOOST" -> Material.GOLDEN_APPLE;
+            case "ABSORPTION" -> Material.ENCHANTED_GOLDEN_APPLE;
+            case "SATURATION" -> Material.COOKED_BEEF;
+            case "GLOWING" -> Material.SPECTRAL_ARROW;
+            case "LEVITATION" -> Material.SHULKER_SHELL;
+            case "LUCK" -> Material.RABBIT_FOOT;
+            case "UNLUCK", "BAD_LUCK" -> Material.POISONOUS_POTATO;
+            case "SLOW_FALLING" -> Material.PHANTOM_MEMBRANE;
+            case "CONDUIT_POWER" -> Material.CONDUIT;
+            case "DOLPHINS_GRACE" -> Material.HEART_OF_THE_SEA;
+            case "BAD_OMEN" -> Material.OMINOUS_BOTTLE;
+            case "HERO_OF_THE_VILLAGE" -> Material.EMERALD;
+            case "DARKNESS" -> Material.SCULK;
+            case "TRIAL_OMEN" -> Material.OMINOUS_TRIAL_KEY;
+            case "RAID_OMEN" -> Material.OMINOUS_BOTTLE;
+            case "WIND_CHARGED" -> Material.WIND_CHARGE;
+            case "WEAVING" -> Material.COBWEB;
+            case "OOZING" -> Material.SLIME_BALL;
+            case "INFESTED" -> Material.SILVERFISH_SPAWN_EGG;
+            default -> Material.POTION;
+        };
+    }
+
+    private double getDefaultValueForEffect(String effect) {
+        return switch (effect.toUpperCase()) {
+            case "HEAL" -> 4;
+            case "DAMAGE", "INCREASE_DAMAGE" -> 10;
+            case "AEGIS" -> 20;
+            case "DISINTEGRATE" -> 2;
+            case "TELEPORT" -> 8;
+            case "SMOKEBOMB" -> 5;
+            case "REPLENISH" -> 4;
+            default -> 10;
+        };
+    }
+
+    // ===== INPUT HANDLERS =====
+
+    private boolean handleSigilIdInput(Player player, String sigilId) {
+        if (sigilId.isEmpty() || !sigilId.matches("^[a-z0-9_]+$")) {
+            player.sendMessage(TextUtil.colorize("&cInvalid sigil ID! Use lowercase letters, numbers, and underscores only."));
+            openSigilCreator(player);
+            return false;
+        }
+
+        if (plugin.getSigilManager().getSigil(sigilId) != null) {
+            player.sendMessage(TextUtil.colorize("&cA sigil with that ID already exists!"));
+            openSigilCreator(player);
+            return false;
+        }
+
+        // Create new sigil with default values
+        Sigil newSigil = new Sigil(sigilId);
+        newSigil.setName(TextUtil.toProperCase(sigilId.replace("_", " ")));
+        newSigil.setDescription(List.of("A new sigil"));
+        newSigil.setSlot("helmet"); // Default slot - can be changed in Item Display editor
+        newSigil.setTier(1);
+
+        // Set default item form with nether star
+        Sigil.ItemForm itemForm = new Sigil.ItemForm();
+        itemForm.setMaterial(Material.NETHER_STAR);
+        itemForm.setName("&d" + newSigil.getName());
+        itemForm.setLore(List.of("&7A new sigil"));
+        newSigil.setItemForm(itemForm);
+
+        player.sendMessage(TextUtil.colorize("&a&lSigil created! &7Opening editor..."));
+        player.sendMessage(TextUtil.colorize("&7Configure your sigil, then use &eExport Config &7to save it."));
+        player.sendMessage(TextUtil.colorize("&8Note: Reload the plugin after exporting to load your new sigil."));
+
+        // Go directly to the sigil editor - reuse existing GUI
+        openSigilEditor(player, newSigil);
+        return true;
+    }
+
+    private void openSlotSelectorForSigilCreation(Player player, Sigil sigil) {
+        Inventory inv = Bukkit.createInventory(null, 27, TextUtil.parseComponent("&8Select Armor Slot"));
+
+        inv.setItem(10, ItemBuilder.createGuiItem(Material.DIAMOND_HELMET, "&bHelmet", "&7Sigil for helmet"));
+        inv.setItem(12, ItemBuilder.createGuiItem(Material.DIAMOND_CHESTPLATE, "&bChestplate", "&7Sigil for chestplate"));
+        inv.setItem(14, ItemBuilder.createGuiItem(Material.DIAMOND_LEGGINGS, "&bLeggings", "&7Sigil for leggings"));
+        inv.setItem(16, ItemBuilder.createGuiItem(Material.DIAMOND_BOOTS, "&bBoots", "&7Sigil for boots"));
+        inv.setItem(26, ItemBuilder.createGuiItem(Material.BARRIER, "&cBack", ""));
+
+        GUISession session = new GUISession(GUIType.SLOT_SELECTOR);
+        session.put("creationMode", "SIGIL");
+        session.put("sigil", sigil);
+        openGUI(player, inv, session);
+    }
+
+    private boolean handleSynergyIdInput(Player player, String synergyId, GUISession session) {
+        String setId = session.getString("setId");
+        ArmorSet set = plugin.getSetManager().getSet(setId);
+
+        if (set == null || synergyId.isEmpty() || !synergyId.matches("^[a-z0-9_]+$")) {
+            player.sendMessage(TextUtil.colorize("&cInvalid synergy ID"));
+            openSynergyCreator(player, setId);
+            return false;
+        }
+
+        player.sendMessage(TextUtil.colorize("&aCreated synergy: &f" + synergyId));
+        openSignalSelectorForSynergy(player, setId, synergyId);
+        return true;
+    }
+
+    private boolean handleRenameSetInput(Player player, String newName, GUISession session) {
+        ArmorSet set = session.get("set", ArmorSet.class);
+        if (set != null && !newName.isEmpty()) {
+            set.setNamePattern(newName);
+            player.sendMessage(TextUtil.colorize("&aSet renamed to: &f" + newName));
+            openSetEditor(player, set);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleRenameSigilInput(Player player, String newName, GUISession session) {
+        Sigil sigil = session.get("sigil", Sigil.class);
+        if (sigil != null && !newName.isEmpty()) {
+            sigil.setName(newName);
+            player.sendMessage(TextUtil.colorize("&aSigil renamed to: &f" + newName));
+            openItemDisplayEditor(player, sigil);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleEditSigilDescriptionInput(Player player, String description, GUISession session) {
+        Sigil sigil = session.get("sigil", Sigil.class);
+        if (sigil != null && !description.isEmpty()) {
+            sigil.setDescription(List.of(description.split("\\|")));
+            player.sendMessage(TextUtil.colorize("&aDescription updated"));
+            openItemDisplayEditor(player, sigil);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean handleSigilTriggerChanceInput(Player player, String input, GUISession session) {
+        Sigil sigil = session.get("sigil", Sigil.class);
+        String triggerKey = session.getString("triggerKey");
+
+        if (sigil != null && triggerKey != null) {
+            try {
+                double chance = Double.parseDouble(input);
+                var config = sigil.getEffects().get(triggerKey);
+                if (config != null) {
+                    config.setChance(Math.max(0, Math.min(100, chance)));
+                    player.sendMessage(TextUtil.colorize("&aChance set to: &f" + (int) chance + "%"));
+                    openSigilSignalConfigEditor(player, sigil, triggerKey);
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        player.sendMessage(TextUtil.colorize("&cInvalid input"));
+        return false;
+    }
+
+    private boolean handleSigilTriggerCooldownInput(Player player, String input, GUISession session) {
+        Sigil sigil = session.get("sigil", Sigil.class);
+        String triggerKey = session.getString("triggerKey");
+
+        if (sigil != null && triggerKey != null) {
+            try {
+                double cooldown = Double.parseDouble(input);
+                var config = sigil.getEffects().get(triggerKey);
+                if (config != null) {
+                    config.setCooldown(Math.max(0, cooldown));
+                    player.sendMessage(TextUtil.colorize("&aCooldown set to: &f" + cooldown + "s"));
+                    openSigilSignalConfigEditor(player, sigil, triggerKey);
+                    return true;
+                }
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        player.sendMessage(TextUtil.colorize("&cInvalid input"));
+        return false;
+    }
+}

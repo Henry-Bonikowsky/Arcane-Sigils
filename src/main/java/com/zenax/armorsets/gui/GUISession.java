@@ -1,148 +1,70 @@
 package com.zenax.armorsets.gui;
 
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Represents an active GUI session for a player.
- * Stores the GUI type, associated data, and any context-specific information
- * needed to handle interactions and state management.
+ * Represents a player's GUI session with arbitrary data storage and navigation history.
  */
-public class    GUISession {
+public class GUISession {
 
     private final GUIType type;
-    private final ItemStack armor;
-    private final int armorSlot;
     private final Map<String, Object> data;
-    private final long createdAt;
+    private final Stack<NavigationFrame> navigationHistory;
 
-    /**
-     * Create a session with armor context.
-     *
-     * @param type      The GUI type
-     * @param armor     The armor piece being modified (can be null)
-     * @param armorSlot The slot the armor is in (-1 if not applicable)
-     */
-    public GUISession(GUIType type, ItemStack armor, int armorSlot) {
-        this.type = type;
-        this.armor = armor;
-        this.armorSlot = armorSlot;
-        this.data = new HashMap<>();
-        this.createdAt = System.currentTimeMillis();
-    }
-
-    /**
-     * Create a session without armor context.
-     *
-     * @param type The GUI type
-     */
     public GUISession(GUIType type) {
-        this(type, null, -1);
+        this.type = type;
+        this.data = new HashMap<>();
+        this.navigationHistory = new Stack<>();
     }
 
-    // ===== GETTERS =====
-
     /**
-     * Get the GUI type for this session.
+     * Get the current GUI type.
      */
     public GUIType getType() {
         return type;
     }
 
     /**
-     * Get the armor piece associated with this session.
-     */
-    public ItemStack getArmor() {
-        return armor;
-    }
-
-    /**
-     * Get the armor slot this session is working with.
-     */
-    public int getArmorSlot() {
-        return armorSlot;
-    }
-
-    /**
-     * Get the timestamp when this session was created.
-     */
-    public long getCreatedAt() {
-        return createdAt;
-    }
-
-    // ===== DATA STORAGE =====
-
-    /**
-     * Store a value in the session data.
-     *
-     * @param key   The key to store under
-     * @param value The value to store
+     * Store arbitrary data in the session.
      */
     public void put(String key, Object value) {
         data.put(key, value);
     }
 
     /**
-     * Retrieve a value from the session data.
-     *
-     * @param key The key to look up
-     * @return The value, or null if not found
+     * Retrieve data from the session with type safety.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T get(String key, Class<T> type) {
+        Object value = data.get(key);
+        if (value == null) {
+            return null;
+        }
+        return (T) value;
+    }
+
+    /**
+     * Get raw value without type checking.
      */
     public Object get(String key) {
         return data.get(key);
     }
 
     /**
-     * Retrieve a value from the session data with type casting.
-     *
-     * @param key   The key to look up
-     * @param type  The expected type
-     * @param <T>   The type parameter
-     * @return The value cast to the expected type, or null if not found or wrong type
-     */
-    @SuppressWarnings("unchecked")
-    public <T> T get(String key, Class<T> type) {
-        Object value = data.get(key);
-        if (value != null && type.isInstance(value)) {
-            return (T) value;
-        }
-        return null;
-    }
-
-    /**
-     * Retrieve a string value from the session data.
-     *
-     * @param key The key to look up
-     * @return The string value, or null if not found
-     */
-    public String getString(String key) {
-        Object value = data.get(key);
-        return value != null ? value.toString() : null;
-    }
-
-    /**
-     * Retrieve an integer value from the session data.
-     *
-     * @param key          The key to look up
-     * @param defaultValue The default value if not found
-     * @return The integer value, or the default if not found
+     * Get an integer value with a default.
      */
     public int getInt(String key, int defaultValue) {
         Object value = data.get(key);
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
+        if (value instanceof Integer) {
+            return (Integer) value;
         }
         return defaultValue;
     }
 
     /**
-     * Retrieve a double value from the session data.
-     *
-     * @param key          The key to look up
-     * @param defaultValue The default value if not found
-     * @return The double value, or the default if not found
+     * Get a double value with a default.
      */
     public double getDouble(String key, double defaultValue) {
         Object value = data.get(key);
@@ -153,96 +75,178 @@ public class    GUISession {
     }
 
     /**
-     * Check if a key exists in the session data.
-     *
-     * @param key The key to check
-     * @return true if the key exists
+     * Get a boolean value (optional).
+     */
+    public boolean getBooleanOpt(String key) {
+        Object value = data.get(key);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        return false;
+    }
+
+    /**
+     * Check if a key exists in session data.
      */
     public boolean has(String key) {
         return data.containsKey(key);
     }
 
     /**
-     * Remove a value from the session data.
-     *
-     * @param key The key to remove
-     * @return The removed value, or null if not found
+     * Create a session validator for requiring multiple values at once.
+     * Usage:
+     * <pre>
+     * var v = session.validator(player);
+     * Sigil sigil = v.require("sigil", Sigil.class);
+     * String key = v.require("signalKey", String.class);
+     * if (v.handleInvalid()) return;
+     * // Both sigil and key are guaranteed non-null here
+     * </pre>
      */
-    public Object remove(String key) {
-        return data.remove(key);
+    public Validator validator(Player player) {
+        return new Validator(this, player);
+    }
+
+    /**
+     * Remove a key from session data.
+     */
+    public void remove(String key) {
+        data.remove(key);
+    }
+
+    /**
+     * Get all session data (read-only).
+     */
+    public Map<String, Object> getData() {
+        return Collections.unmodifiableMap(data);
     }
 
     /**
      * Clear all session data.
      */
-    public void clearData() {
+    public void clear() {
         data.clear();
     }
 
-    // ===== CONVENIENCE METHODS =====
-
     /**
-     * Check if this session has armor context.
+     * Push current GUI state onto navigation history.
      */
-    public boolean hasArmor() {
-        return armor != null;
+    public void pushNavigation(GUIType previousType, Map<String, Object> previousData) {
+        navigationHistory.push(new NavigationFrame(previousType, new HashMap<>(previousData)));
     }
 
     /**
-     * Get the build type (for build menu sessions).
+     * Pop previous GUI state from navigation history.
      */
-    public String getBuildType() {
-        return getString("buildType");
+    public NavigationFrame popNavigation() {
+        if (navigationHistory.isEmpty()) {
+            return null;
+        }
+        return navigationHistory.pop();
     }
 
     /**
-     * Get the build ID (for build menu sessions).
+     * Check if there's navigation history.
      */
-    public String getBuildId() {
-        return getString("buildId");
+    public boolean hasNavigationHistory() {
+        return !navigationHistory.isEmpty();
     }
 
     /**
-     * Get the trigger name (for trigger-related sessions).
+     * Clear navigation history.
      */
-    public String getTrigger() {
-        return getString("trigger");
+    public void clearNavigationHistory() {
+        navigationHistory.clear();
     }
 
     /**
-     * Get the effect name (for effect-related sessions).
+     * Represents a snapshot of a previous GUI state.
      */
-    public String getEffect() {
-        return getString("effect");
+    public static class NavigationFrame {
+        private final GUIType type;
+        private final Map<String, Object> data;
+
+        public NavigationFrame(GUIType type, Map<String, Object> data) {
+            this.type = type;
+            this.data = data;
+        }
+
+        public GUIType getType() {
+            return type;
+        }
+
+        public Map<String, Object> getData() {
+            return data;
+        }
     }
 
     /**
-     * Get the armor slot name (for slot-specific sessions).
+     * Helper class for validating required session data.
+     * Collects missing keys and provides a single error handling point.
      */
-    public String getArmorSlotName() {
-        return getString("armorSlot");
-    }
+    public static class Validator {
+        private final GUISession session;
+        private final Player player;
+        private final List<String> missingKeys = new ArrayList<>();
 
-    /**
-     * Get the current chance value (for trigger config sessions).
-     */
-    public double getChance() {
-        return getDouble("chance", 100.0);
-    }
+        public Validator(GUISession session, Player player) {
+            this.session = session;
+            this.player = player;
+        }
 
-    /**
-     * Get the current cooldown value (for trigger config sessions).
-     */
-    public double getCooldown() {
-        return getDouble("cooldown", 0.0);
-    }
+        /**
+         * Require a value from session. If null, records the key as missing.
+         * @return The value (may be null if missing - check with handleInvalid())
+         */
+        @SuppressWarnings("unchecked")
+        public <T> T require(String key, Class<T> type) {
+            Object value = session.data.get(key);
+            if (value == null) {
+                missingKeys.add(key);
+                return null;
+            }
+            try {
+                return (T) value;
+            } catch (ClassCastException e) {
+                missingKeys.add(key + " (wrong type)");
+                return null;
+            }
+        }
 
-    @Override
-    public String toString() {
-        return "GUISession{" +
-                "type=" + type +
-                ", armorSlot=" + armorSlot +
-                ", data=" + data +
-                '}';
+        /**
+         * Require an integer with a default if missing (does not mark as invalid).
+         */
+        public int requireInt(String key, int defaultValue) {
+            return session.getInt(key, defaultValue);
+        }
+
+        /**
+         * Check if validation failed and handle it.
+         * Sends error message and closes inventory if any required values were missing.
+         * @return true if invalid (caller should return), false if all valid
+         */
+        public boolean handleInvalid() {
+            if (missingKeys.isEmpty()) {
+                return false;
+            }
+
+            player.sendMessage("§cError: Missing session data: " + String.join(", ", missingKeys));
+            player.closeInventory();
+            return true;
+        }
+
+        /**
+         * Check if any required values were missing.
+         */
+        public boolean isValid() {
+            return missingKeys.isEmpty();
+        }
+
+        /**
+         * Get list of missing keys (for custom error handling).
+         */
+        public List<String> getMissingKeys() {
+            return Collections.unmodifiableList(missingKeys);
+        }
     }
 }

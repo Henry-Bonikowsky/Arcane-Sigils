@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Represents a saved condition preset that can be loaded and applied to triggers.
+ * Represents a saved condition preset that can be loaded and applied to signals.
  * Presets allow players to save and reuse custom condition groups.
  */
 public class ConditionPreset {

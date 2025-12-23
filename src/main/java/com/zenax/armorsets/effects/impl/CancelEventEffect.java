@@ -5,7 +5,7 @@ import com.zenax.armorsets.effects.EffectContext;
 public class CancelEventEffect extends AbstractEffect {
 
     public CancelEventEffect() {
-        super("CANCEL_EVENT", "Cancels the triggering event");
+        super("CANCEL_EVENT", "Cancels the signaling event");
     }
 
     @Override

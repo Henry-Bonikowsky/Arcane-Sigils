@@ -11,6 +11,8 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -48,7 +50,8 @@ public class TeleportEffect extends AbstractEffect {
     public EffectParams parseParams(String effectString) {
         EffectParams params = super.parseParams(effectString);
 
-        String cleanedString = effectString.replaceAll("\\s+@\\w+(?::\\d+)?$", "").trim();
+        // Remove ALL @ targets from end (there can be multiple like @Self @Target)
+        String cleanedString = effectString.replaceAll("(\\s+@\\w+(?::\\d+)?)+$", "").trim();
         String[] parts = cleanedString.split(":");
 
         // Default values
@@ -58,51 +61,70 @@ public class TeleportEffect extends AbstractEffect {
         String teleportee = "@Self";
         String target = "@Self";
 
-        if (parts.length >= 2) {
-            type = parts[1].toUpperCase();
-            // Set distance defaults based on type
+        // TELEPORT:type:distance:facing - supports both positional and key=value
+        int positionalIndex = 0;
+        for (int i = 1; i < parts.length; i++) {
+            String part = parts[i];
+            if (part.contains("=")) {
+                String[] kv = part.split("=", 2);
+                if (kv.length == 2) {
+                    String key = kv[0].toLowerCase();
+                    String value = kv[1];
+                    switch (key) {
+                        case "type" -> type = value.toUpperCase();
+                        case "distance", "value" -> distance = parseDouble(value, 8);
+                        case "facing" -> facing = value.toUpperCase();
+                        case "teleportee" -> teleportee = value;
+                        case "teleporttarget", "teleport_target" -> target = value;
+                    }
+                }
+            } else {
+                positionalIndex++;
+                switch (positionalIndex) {
+                    case 1 -> type = part.toUpperCase();
+                    case 2 -> distance = parseDouble(part, 8);
+                    case 3 -> facing = part.toUpperCase();
+                }
+            }
+        }
+
+        // Apply type-based defaults if not set
+        if (positionalIndex <= 1 && distance == 8) {
             distance = switch (type) {
                 case "AROUND" -> 5;
                 case "BEHIND" -> 2;
-                default -> 8; // RANDOM
+                default -> 8;
             };
-            // Set facing defaults based on type
+        }
+        if (positionalIndex <= 2 && facing.equals("KEEP")) {
             facing = switch (type) {
                 case "AROUND", "BEHIND" -> "ENTITY";
                 default -> "KEEP";
             };
         }
-        if (parts.length >= 3) {
-            try {
-                distance = Double.parseDouble(parts[2]);
-            } catch (NumberFormatException ignored) {}
-        }
-        if (parts.length >= 4) {
-            facing = parts[3].toUpperCase();
-        }
 
         // Extract teleportee and target from original effect string
+        List<String> atTargets = new ArrayList<>();
         String[] targetParts = effectString.split("\\s+");
-        for (int i = 0; i < targetParts.length; i++) {
-            if (targetParts[i].startsWith("@")) {
-                if (i == targetParts.length - 1) {
-                    // Only one target specified - it's the teleportee
-                    teleportee = targetParts[i];
-                } else if (i == targetParts.length - 2) {
-                    // Two targets specified - first is teleportee, second is target
-                    teleportee = targetParts[i];
-                    if (i + 1 < targetParts.length && targetParts[i + 1].startsWith("@")) {
-                        target = targetParts[i + 1];
-                    }
-                }
+        for (String targetPart : targetParts) {
+            if (targetPart.startsWith("@")) {
+                atTargets.add(targetPart);
             }
+        }
+
+        // Assign based on count
+        if (atTargets.size() == 1) {
+            teleportee = atTargets.get(0);
+        } else if (atTargets.size() >= 2) {
+            teleportee = atTargets.get(0);
+            target = atTargets.get(1);
         }
 
         params.set("type", type);
         params.setValue(distance);
         params.set("facing", facing);
         params.set("teleportee", teleportee);
-        params.set("target", target);
+        params.set("teleportTarget", target);
         return params;
     }
 
@@ -116,7 +138,7 @@ public class TeleportEffect extends AbstractEffect {
         String teleporteeStr = context.getParams() != null ?
             (String) context.getParams().get("teleportee", "@Self") : "@Self";
         String targetStr = context.getParams() != null ?
-            (String) context.getParams().get("target", "@Self") : "@Self";
+            (String) context.getParams().get("teleportTarget", "@Target") : "@Target";
 
         // Cap distance
         double configMax = getPlugin().getConfigManager().getMainConfig()
@@ -178,7 +200,13 @@ public class TeleportEffect extends AbstractEffect {
         if ("@Self".equalsIgnoreCase(teleporteeStr)) {
             return context.getPlayer();
         } else if ("@Victim".equalsIgnoreCase(teleporteeStr)) {
-            return context.getVictim();
+            LivingEntity victim = context.getVictim();
+            return victim != null ? victim : context.getPlayer();
+        } else if ("@Target".equalsIgnoreCase(teleporteeStr)) {
+            LivingEntity target = getGlowTarget(context);
+            // Fall back to victim, then self
+            if (target == null) target = context.getVictim();
+            return target != null ? target : context.getPlayer();
         }
         return context.getPlayer();
     }
@@ -188,8 +216,31 @@ public class TeleportEffect extends AbstractEffect {
             return context.getPlayer();
         } else if ("@Victim".equalsIgnoreCase(targetStr)) {
             return context.getVictim();
+        } else if ("@Target".equalsIgnoreCase(targetStr)) {
+            LivingEntity target = getGlowTarget(context);
+            // Fall back to victim if no glow target
+            if (target == null) target = context.getVictim();
+            return target;
         }
         return null;
+    }
+
+    /**
+     * Get the glowing target entity from the TargetGlowManager.
+     * Falls back to using TargetFinder if no glow target.
+     */
+    private LivingEntity getGlowTarget(EffectContext context) {
+        if (context.getPlayer() == null) return null;
+
+        // First try the glow manager target
+        var targetGlowManager = getPlugin().getTargetGlowManager();
+        if (targetGlowManager != null) {
+            LivingEntity target = targetGlowManager.getTarget(context.getPlayer());
+            if (target != null) return target;
+        }
+
+        // Fall back to TargetFinder (what player is looking at)
+        return com.zenax.armorsets.utils.TargetFinder.findLookTarget(context.getPlayer(), 15.0);
     }
 
     private Location executeTeleportRandom(LivingEntity teleportee, double distance, String facing) {
@@ -204,18 +255,24 @@ public class TeleportEffect extends AbstractEffect {
 
     private Location executeTeleportAround(LivingEntity teleportee, LivingEntity centerEntity, double distance, String facing) {
         Location centerLoc = centerEntity.getLocation();
+        Location teleporteeLoc = teleportee.getLocation();
 
         Location newLoc = findLocationAround(centerLoc, distance);
         if (newLoc == null) return null;
 
-        // Apply facing
-        applyFacingAround(newLoc, centerEntity, facing);
+        // Copy original yaw/pitch for KEEP mode
+        newLoc.setYaw(teleporteeLoc.getYaw());
+        newLoc.setPitch(teleporteeLoc.getPitch());
+
+        // Apply facing (may override yaw/pitch)
+        applyFacingAround(newLoc, centerEntity, facing, teleportee);
         return newLoc;
     }
 
     private Location executeTeleportBehind(LivingEntity teleportee, LivingEntity target, double distance, String facing) {
         // Calculate position behind target
         Location targetLoc = target.getLocation();
+        Location teleporteeLoc = teleportee.getLocation();
         Vector behindDir = targetLoc.getDirection().multiply(-1).normalize();
         Location behindLoc = targetLoc.clone().add(behindDir.multiply(distance));
 
@@ -237,8 +294,12 @@ public class TeleportEffect extends AbstractEffect {
             return null;
         }
 
-        // Apply facing
-        applyFacingBehind(safeLoc, target, facing);
+        // Copy original yaw/pitch for KEEP mode
+        safeLoc.setYaw(teleporteeLoc.getYaw());
+        safeLoc.setPitch(teleporteeLoc.getPitch());
+
+        // Apply facing (may override yaw/pitch)
+        applyFacingBehind(safeLoc, target, facing, teleportee);
         return safeLoc;
     }
 
@@ -307,41 +368,48 @@ public class TeleportEffect extends AbstractEffect {
         }
     }
 
-    private void applyFacingAround(Location loc, LivingEntity target, String facing) {
+    private void applyFacingAround(Location loc, LivingEntity target, String facing, LivingEntity teleportee) {
         switch (facing.toUpperCase()) {
             case "ENTITY" -> {
-                // Look at the entity
-                Vector direction = target.getLocation().toVector().subtract(loc.toVector());
+                // Look at the entity's eye level from teleportee's eye level
+                Location targetEye = target.getEyeLocation();
+                Location fromEye = loc.clone().add(0, teleportee.getEyeHeight(), 0);
+                Vector direction = targetEye.toVector().subtract(fromEye.toVector());
                 loc.setDirection(direction);
             }
             case "AWAY" -> {
-                // Look away from the entity
-                Vector direction = loc.toVector().subtract(target.getLocation().toVector());
+                // Look away from the entity (eye to eye)
+                Location targetEye = target.getEyeLocation();
+                Location fromEye = loc.clone().add(0, teleportee.getEyeHeight(), 0);
+                Vector direction = fromEye.toVector().subtract(targetEye.toVector());
                 loc.setDirection(direction);
             }
             case "RANDOM" -> {
-                // Random direction
+                // Random direction (only yaw, keep pitch level)
                 float yaw = ThreadLocalRandom.current().nextFloat() * 360 - 180;
-                float pitch = ThreadLocalRandom.current().nextFloat() * 180 - 90;
                 loc.setYaw(yaw);
-                loc.setPitch(pitch);
+                loc.setPitch(0);
             }
             case "KEEP" -> {
-                // Keep current facing (do nothing, already copied from player)
+                // Keep current facing (already set before this method is called)
             }
             default -> {
                 // Default to looking at entity
-                Vector direction = target.getLocation().toVector().subtract(loc.toVector());
+                Location targetEye = target.getEyeLocation();
+                Location fromEye = loc.clone().add(0, teleportee.getEyeHeight(), 0);
+                Vector direction = targetEye.toVector().subtract(fromEye.toVector());
                 loc.setDirection(direction);
             }
         }
     }
 
-    private void applyFacingBehind(Location loc, LivingEntity target, String facing) {
+    private void applyFacingBehind(Location loc, LivingEntity target, String facing, LivingEntity teleportee) {
         switch (facing.toUpperCase()) {
             case "ENTITY" -> {
-                // Look at the entity
-                Vector direction = target.getLocation().toVector().subtract(loc.toVector());
+                // Look at the entity's eye level from teleportee's eye level
+                Location targetEye = target.getEyeLocation();
+                Location fromEye = loc.clone().add(0, teleportee.getEyeHeight(), 0);
+                Vector direction = targetEye.toVector().subtract(fromEye.toVector());
                 loc.setDirection(direction);
             }
             case "SAME" -> {
@@ -350,11 +418,13 @@ public class TeleportEffect extends AbstractEffect {
                 loc.setPitch(target.getLocation().getPitch());
             }
             case "KEEP" -> {
-                // Keep current facing (do nothing)
+                // Keep current facing (already set before this method is called)
             }
             default -> {
                 // Default to looking at entity
-                Vector direction = target.getLocation().toVector().subtract(loc.toVector());
+                Location targetEye = target.getEyeLocation();
+                Location fromEye = loc.clone().add(0, teleportee.getEyeHeight(), 0);
+                Vector direction = targetEye.toVector().subtract(fromEye.toVector());
                 loc.setDirection(direction);
             }
         }
@@ -363,17 +433,46 @@ public class TeleportEffect extends AbstractEffect {
     private Location findSafeY(Location loc) {
         Location check = loc.clone();
 
-        for (int yOffset = 0; yOffset <= 10; yOffset++) {
-            check.setY(loc.getY() + yOffset);
-            if (isSafeLocation(check)) {
+        // First, find the actual ground level by going down until we hit solid ground
+        Location groundSearch = loc.clone();
+        for (int y = 0; y <= 20; y++) {
+            groundSearch.setY(loc.getY() - y);
+            if (groundSearch.getY() <= groundSearch.getWorld().getMinHeight()) break;
+
+            Block block = groundSearch.getBlock();
+            Block below = block.getRelative(0, -1, 0);
+
+            // Found ground: current block is passable, block below is solid
+            if (block.isPassable() && below.getType().isSolid() && below.getType() != Material.LAVA) {
+                // Check if this is a safe location (2 blocks of headroom)
+                if (isSafeLocation(groundSearch)) {
+                    // Try to spawn 1 block higher for crit attack opportunity
+                    // Need 3 blocks of headroom for this (feet, head, extra block above)
+                    Location elevated = groundSearch.clone().add(0, 1, 0);
+                    if (isSafeLocation(elevated)) {
+                        return elevated;
+                    }
+                    // Fall back to ground level if no headroom
+                    return groundSearch;
+                }
+            }
+        }
+
+        // Fallback: check at original Y level first, then small offsets
+        if (isSafeLocation(loc)) {
+            return loc.clone();
+        }
+
+        // Check slightly above and below (max 3 blocks)
+        for (int yOffset = 1; yOffset <= 3; yOffset++) {
+            check.setY(loc.getY() - yOffset);
+            if (check.getY() > check.getWorld().getMinHeight() && isSafeLocation(check)) {
                 return check;
             }
 
-            if (yOffset > 0) {
-                check.setY(loc.getY() - yOffset);
-                if (isSafeLocation(check) && check.getY() > check.getWorld().getMinHeight()) {
-                    return check;
-                }
+            check.setY(loc.getY() + yOffset);
+            if (isSafeLocation(check)) {
+                return check;
             }
         }
 

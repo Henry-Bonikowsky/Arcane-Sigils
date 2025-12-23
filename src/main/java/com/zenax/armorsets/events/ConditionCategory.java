@@ -10,6 +10,8 @@ public enum ConditionCategory {
     POTION(Material.POTION, "Potion effect conditions"),
     ENVIRONMENTAL(Material.GRASS_BLOCK, "Environmental conditions"),
     COMBAT(Material.DIAMOND_SWORD, "Combat-related conditions"),
+    PLAYER_STATE(Material.LEATHER_BOOTS, "Player state conditions"),
+    EQUIPMENT(Material.DIAMOND_CHESTPLATE, "Equipment conditions"),
     META(Material.NETHER_STAR, "Meta conditions");
 
     private final Material icon;

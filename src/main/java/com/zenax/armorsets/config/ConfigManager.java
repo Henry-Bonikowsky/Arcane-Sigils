@@ -18,14 +18,13 @@ public class ConfigManager {
     private final ArmorSetsPlugin plugin;
     private FileConfiguration mainConfig;
     private final Map<String, FileConfiguration> sigilConfigs = new HashMap<>();
-    private final Map<String, FileConfiguration> setConfigs = new HashMap<>();
     private final Map<String, FileConfiguration> weaponConfigs = new HashMap<>();
     private FileConfiguration messagesConfig;
 
     // Directories
     private File sigilsDir;
-    private File setsDir;
     private File weaponsDir;
+    private File behaviorsDir;
 
     public ConfigManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -36,7 +35,6 @@ public class ConfigManager {
         loadMainConfig();
         loadMessagesConfig();
         loadSigilConfigs();
-        loadSetConfigs();
         loadWeaponConfigs();
     }
 
@@ -46,7 +44,6 @@ public class ConfigManager {
         }
 
         sigilsDir = new File(plugin.getDataFolder(), "sigils");
-        setsDir = new File(plugin.getDataFolder(), "sets");
         weaponsDir = new File(plugin.getDataFolder(), "weapons");
 
         if (!sigilsDir.exists()) {
@@ -54,15 +51,16 @@ public class ConfigManager {
         }
         saveDefaultSigils();
 
-        if (!setsDir.exists()) {
-            setsDir.mkdirs();
-        }
-        saveDefaultSets();
-
         if (!weaponsDir.exists()) {
             weaponsDir.mkdirs();
         }
         saveDefaultWeapons();
+
+        behaviorsDir = new File(plugin.getDataFolder(), "behaviors");
+        if (!behaviorsDir.exists()) {
+            behaviorsDir.mkdirs();
+        }
+        saveDefaultBehaviors();
     }
 
     private void loadMainConfig() {
@@ -85,12 +83,6 @@ public class ConfigManager {
         plugin.getLogger().info("Loaded " + sigilConfigs.size() + " sigil config files");
     }
 
-    private void loadSetConfigs() {
-        setConfigs.clear();
-        loadConfigsFromDirectory(setsDir, setConfigs);
-        plugin.getLogger().info("Loaded " + setConfigs.size() + " set config files");
-    }
-
     private void loadWeaponConfigs() {
         weaponConfigs.clear();
         loadConfigsFromDirectory(weaponsDir, weaponConfigs);
@@ -103,7 +95,12 @@ public class ConfigManager {
 
         for (File file : files) {
             try {
-                FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                // Force fresh read from disk using InputStreamReader to bypass any caching
+                YamlConfiguration config = new YamlConfiguration();
+                try (java.io.InputStreamReader reader = new java.io.InputStreamReader(
+                        new java.io.FileInputStream(file), java.nio.charset.StandardCharsets.UTF_8)) {
+                    config.load(reader);
+                }
                 String name = file.getName().replace(".yml", "").replace(".yaml", "");
                 configMap.put(name, config);
             } catch (Exception e) {
@@ -113,23 +110,20 @@ public class ConfigManager {
     }
 
     private void saveDefaultSigils() {
-        saveResource("sigils/helmet-sigils.yml");
-        saveResource("sigils/chestplate-sigils.yml");
-        saveResource("sigils/leggings-sigils.yml");
-        saveResource("sigils/boots-sigils.yml");
-        saveResource("sigils/seasonal-sigils.yml");
-        saveResource("sigils/trigger-examples.yml");
-    }
-
-    private void saveDefaultSets() {
-        saveResource("sets/example-set.yml");
-        saveResource("sets/trigger-examples.yml");
-        saveResource("sets/conditional-examples.yml");
+        saveResource("sigils/default-sigils.yml");
+        saveResource("sigils/pharaoh-set.yml");
     }
 
     private void saveDefaultWeapons() {
         saveResource("weapons/example-weapon.yml");
-        saveResource("weapons/trigger-examples.yml");
+        saveResource("weapons/signal-examples.yml");
+    }
+
+    private void saveDefaultBehaviors() {
+        saveResource("behaviors/mummy_behavior.yml");
+        saveResource("behaviors/quicksand_behavior.yml");
+        saveResource("behaviors/wolf_companion.yml");
+        saveResource("behaviors/royal_guard_behavior.yml");
     }
 
     private void saveResource(String resourcePath) {
@@ -164,16 +158,12 @@ public class ConfigManager {
         return sigilConfigs;
     }
 
-    public Map<String, FileConfiguration> getSetConfigs() {
-        return setConfigs;
-    }
-
     public Map<String, FileConfiguration> getWeaponConfigs() {
         return weaponConfigs;
     }
 
     public String getMessage(String key) {
-        return messagesConfig.getString("messages." + key, "&cMissing message: " + key);
+        return messagesConfig.getString("messages." + key, "§cMissing message: " + key);
     }
 
     public String getMessage(String key, Map<String, String> placeholders) {

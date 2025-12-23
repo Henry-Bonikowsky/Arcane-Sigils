@@ -310,7 +310,7 @@ Contains all context about where effect is happening:
 ```java
 public class EffectContext {
     private Player player;              // The player triggering effect
-    private TriggerType triggerType;    // What triggered it
+    private TriggerType signalType;    // What triggered it
     private Event bukkitEvent;          // Original Bukkit event
     private LivingEntity victim;        // Target entity (if attack)
     private Location location;          // Where effect happens

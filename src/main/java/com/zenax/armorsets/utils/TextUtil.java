@@ -27,35 +27,50 @@ public final class TextUtil {
     private static final Pattern HEX_PATTERN = Pattern.compile("&#([A-Fa-f0-9]{6})");
     private static final Pattern HEX_TAG_PATTERN = Pattern.compile("<#([A-Fa-f0-9]{6})>");
 
+    // Pattern for & color codes: &0-9, &a-f, &k-o, &r (case insensitive)
+    private static final Pattern AMPERSAND_CODE_PATTERN = Pattern.compile("&([0-9a-fk-orA-FK-OR])");
+
     private TextUtil() {}
 
     /**
+     * Convert all & color codes to § (section symbol).
+     * This allows both & and § to work interchangeably.
+     */
+    public static String convertAmpersandToSection(String text) {
+        if (text == null) return null;
+        return AMPERSAND_CODE_PATTERN.matcher(text).replaceAll("§$1");
+    }
+
+    /**
      * Colorize a string with legacy color codes and hex colors.
+     * Handles both & and § color codes, plus &#RRGGBB hex format.
      */
     public static String colorize(String text) {
         if (text == null) return "";
 
-        // Handle gradient tags using MiniMessage
+        // Handle gradient/rainbow tags using MiniMessage first
         if (text.contains("<gradient:") || text.contains("<rainbow>")) {
             return colorizeWithMiniMessage(text);
         }
 
-        // Handle hex colors &#RRGGBB first, then legacy
+        // Handle hex colors &#RRGGBB format -> §x§R§R§G§G§B§B
         Matcher hexMatcher = HEX_PATTERN.matcher(text);
         StringBuilder sb = new StringBuilder();
         while (hexMatcher.find()) {
             String hex = hexMatcher.group(1);
-            StringBuilder replacement = new StringBuilder("\u00A7x");
+            StringBuilder replacement = new StringBuilder("§x");
             for (char c : hex.toCharArray()) {
-                replacement.append("\u00A7").append(c);
+                replacement.append("§").append(c);
             }
             hexMatcher.appendReplacement(sb, replacement.toString());
         }
         hexMatcher.appendTail(sb);
         text = sb.toString();
 
-        // Handle legacy color codes
-        return ChatColor.translateAlternateColorCodes('&', text);
+        // Convert any remaining & codes to § for unified handling
+        text = convertAmpersandToSection(text);
+
+        return text;
     }
 
     /**
@@ -104,34 +119,35 @@ public final class TextUtil {
      * Convert legacy color codes to MiniMessage format.
      */
     private static String convertLegacyToMiniMessage(String text) {
-        // If text already contains MiniMessage tags, just return it
-        if (text.contains("<gradient:") || text.contains("<color:") || text.contains("<rainbow>") || text.contains("<i:false>")) {
-            return text;
-        }
+        // First, convert all & color codes to § for unified handling
+        text = convertAmpersandToSection(text);
+
+        // Always convert legacy codes, even when MiniMessage tags are present
+        // (mixed format support: "§6⚖ <gradient:...>Name</gradient> §bI")
 
         // Map of legacy codes to MiniMessage tags, with italic disabled
-        text = text.replace("&0", "<black><i:false>");
-        text = text.replace("&1", "<dark_blue><i:false>");
-        text = text.replace("&2", "<dark_green><i:false>");
-        text = text.replace("&3", "<dark_aqua><i:false>");
-        text = text.replace("&4", "<dark_red><i:false>");
-        text = text.replace("&5", "<dark_purple><i:false>");
-        text = text.replace("&6", "<gold><i:false>");
-        text = text.replace("&7", "<gray><i:false>");
-        text = text.replace("&8", "<dark_gray><i:false>");
-        text = text.replace("&9", "<blue><i:false>");
-        text = text.replace("&a", "<green><i:false>").replace("&A", "<green><i:false>");
-        text = text.replace("&b", "<aqua><i:false>").replace("&B", "<aqua><i:false>");
-        text = text.replace("&c", "<red><i:false>").replace("&C", "<red><i:false>");
-        text = text.replace("&d", "<light_purple><i:false>").replace("&D", "<light_purple><i:false>");
-        text = text.replace("&e", "<yellow><i:false>").replace("&E", "<yellow><i:false>");
-        text = text.replace("&f", "<white><i:false>").replace("&F", "<white><i:false>");
-        text = text.replace("&l", "<bold>");
-        text = text.replace("&m", "<strikethrough>").replace("&M", "<strikethrough>");
-        text = text.replace("&n", "<underlined>").replace("&N", "<underlined>");
-        text = text.replace("&o", "<italic>").replace("&O", "<italic>");
-        text = text.replace("&r", "<reset><i:false>").replace("&R", "<reset><i:false>");
-        text = text.replace("&k", "<obfuscated>").replace("&K", "<obfuscated>");
+        text = text.replace("§0", "<black><i:false>");
+        text = text.replace("§1", "<dark_blue><i:false>");
+        text = text.replace("§2", "<dark_green><i:false>");
+        text = text.replace("§3", "<dark_aqua><i:false>");
+        text = text.replace("§4", "<dark_red><i:false>");
+        text = text.replace("§5", "<dark_purple><i:false>");
+        text = text.replace("§6", "<gold><i:false>");
+        text = text.replace("§7", "<gray><i:false>");
+        text = text.replace("§8", "<dark_gray><i:false>");
+        text = text.replace("§9", "<blue><i:false>");
+        text = text.replace("§a", "<green><i:false>").replace("§A", "<green><i:false>");
+        text = text.replace("§b", "<aqua><i:false>").replace("§B", "<aqua><i:false>");
+        text = text.replace("§c", "<red><i:false>").replace("§C", "<red><i:false>");
+        text = text.replace("§d", "<light_purple><i:false>").replace("§D", "<light_purple><i:false>");
+        text = text.replace("§e", "<yellow><i:false>").replace("§E", "<yellow><i:false>");
+        text = text.replace("§f", "<white><i:false>").replace("§F", "<white><i:false>");
+        text = text.replace("§l", "<bold>");
+        text = text.replace("§m", "<strikethrough>").replace("§M", "<strikethrough>");
+        text = text.replace("§n", "<underlined>").replace("§N", "<underlined>");
+        text = text.replace("§o", "<italic>").replace("§O", "<italic>");
+        text = text.replace("§r", "<reset><i:false>").replace("§R", "<reset><i:false>");
+        text = text.replace("§k", "<obfuscated>").replace("§K", "<obfuscated>");
 
         // Handle hex colors &#RRGGBB -> <color:#RRGGBB>
         Matcher hexMatcher = HEX_PATTERN.matcher(text);
@@ -239,25 +255,25 @@ public final class TextUtil {
     }
 
     /**
-     * Get human-readable description for a trigger name.
+     * Get human-readable description for a signal name.
      */
-    public static String getTriggerDescription(String trigger) {
-        return switch (trigger.toUpperCase().replace("_", " ").replace("ON ", "")) {
-            case "ATTACK" -> "Triggers when you attack an entity";
-            case "DEFENSE" -> "Triggers when you take damage";
-            case "KILL MOB" -> "Triggers when you kill a mob";
-            case "KILL PLAYER" -> "Triggers when you kill a player";
-            case "SHIFT" -> "Triggers when you sneak";
-            case "FALL DAMAGE" -> "Triggers when you take fall damage";
+    public static String getSignalDescription(String signal) {
+        return switch (signal.toUpperCase().replace("_", " ").replace("ON ", "")) {
+            case "ATTACK" -> "Signals when you attack an entity";
+            case "DEFENSE" -> "Signals when you take damage";
+            case "KILL MOB" -> "Signals when you kill a mob";
+            case "KILL PLAYER" -> "Signals when you kill a player";
+            case "SHIFT" -> "Signals when you sneak";
+            case "FALL DAMAGE" -> "Signals when you take fall damage";
             case "EFFECT STATIC" -> "Passive effect - always active";
-            case "BOW HIT" -> "Triggers when arrow hits target";
-            case "BOW SHOOT" -> "Triggers when you fire arrow";
-            case "BLOCK BREAK" -> "Triggers when you break a block";
-            case "BLOCK PLACE" -> "Triggers when you place a block";
-            case "INTERACT" -> "Triggers when you right-click";
-            case "TRIDENT THROW" -> "Triggers when you throw trident";
-            case "TICK" -> "Triggers every game tick";
-            default -> trigger;
+            case "BOW HIT" -> "Signals when arrow hits target";
+            case "BOW SHOOT" -> "Signals when you fire arrow";
+            case "BLOCK BREAK" -> "Signals when you break a block";
+            case "BLOCK PLACE" -> "Signals when you place a block";
+            case "INTERACT" -> "Signals when you right-click";
+            case "TRIDENT THROW" -> "Signals when you throw trident";
+            case "TICK" -> "Signals every game tick";
+            default -> signal;
         };
     }
 
@@ -292,7 +308,7 @@ public final class TextUtil {
             case "AEGIS" -> "Creates protective barrier (Level " + (parts.length > 1 ? parts[1] : "1") + ")";
             case "INCREASE_DAMAGE" -> "Increases damage by " + (parts.length > 1 ? parts[1] : "amount") + "%";
             case "MESSAGE" -> "Sends message to player";
-            case "CANCEL_EVENT" -> "Negates the triggering event";
+            case "CANCEL_EVENT" -> "Negates the signaling event";
             case "TELEPORT_RANDOM" -> "Teleports " + (parts.length > 1 ? parts[1] : "8") + " blocks away";
             case "TELEPORT_AROUND" -> "Teleports " + (parts.length > 1 ? parts[1] : "5") + " blocks around target" + (parts.length > 2 ? " (facing: " + parts[2] + ")" : "");
             case "TELEPORT_BEHIND" -> "Teleports " + (parts.length > 1 ? parts[1] : "2") + " blocks behind target" + (parts.length > 2 ? " (facing: " + parts[2] + ")" : "");

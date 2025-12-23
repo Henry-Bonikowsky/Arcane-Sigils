@@ -1,0 +1,29 @@
+# Spiral Shape Definition
+# A spiral that rises vertically while rotating
+
+spiral:
+  name: "Spiral"
+  description: "A rising spiral pattern"
+  type: BUILTIN
+
+  params:
+    radius:
+      default: 2.0
+      min: 0.1
+      max: 20.0
+      description: "Radius of the spiral"
+    height:
+      default: 3.0
+      min: 0.1
+      max: 20.0
+      description: "Total height of the spiral"
+    turns:
+      default: 2.0
+      min: 0.5
+      max: 10.0
+      description: "Number of complete rotations"
+    points:
+      default: 30
+      min: 5
+      max: 200
+      description: "Number of points along the spiral"

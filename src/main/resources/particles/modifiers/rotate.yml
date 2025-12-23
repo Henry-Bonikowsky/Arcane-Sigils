@@ -1,0 +1,15 @@
+# Rotate Modifier Definition
+# Rotates all points around an axis over time
+
+rotate:
+  name: "Rotate"
+  description: "Rotates points around center"
+  type: TRANSFORM
+  axis: Y
+
+  params:
+    speed:
+      default: 360
+      min: -720
+      max: 720
+      description: "Rotation speed in degrees per second"

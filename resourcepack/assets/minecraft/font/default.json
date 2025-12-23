@@ -1,0 +1,115 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        "\uF801": -1,
+        "\uF802": -2,
+        "\uF803": -4,
+        "\uF804": -8,
+        "\uF805": -16,
+        "\uF806": -32,
+        "\uF807": -64,
+        "\uF808": -128,
+        "\uF809": -256,
+        "\uF80A": -512,
+        "\uF80B": -1024,
+        "\uF821": 1,
+        "\uF822": 2,
+        "\uF823": 4,
+        "\uF824": 8,
+        "\uF825": 16,
+        "\uF826": 32,
+        "\uF827": 64,
+        "\uF828": 128,
+        "\uF829": 256,
+        "\uF82A": 512,
+        "\uF82B": 1024
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/notification_bg.png",
+      "ascent": 128,
+      "height": 16,
+      "chars": ["\uE000"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_0.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE010"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_10.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE011"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_20.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE012"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_30.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE013"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_40.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE014"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_50.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE015"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_60.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE016"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_70.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE017"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_80.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE018"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_90.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE019"]
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/bar_100.png",
+      "ascent": 128,
+      "height": 4,
+      "chars": ["\uE01A"]
+    }
+  ]
+}

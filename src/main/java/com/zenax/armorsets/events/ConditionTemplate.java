@@ -14,14 +14,14 @@ public enum ConditionTemplate {
     GLASS_CANNON(
         Material.GLASS,
         "Glass Cannon",
-        "Low HP offensive build - effects trigger when health is critical",
+        "Low HP offensive build - effects signal when health is critical",
         List.of("HEALTH_BELOW:20")
     ),
 
     TANK(
         Material.SHIELD,
         "Tank",
-        "High HP defensive build - effects trigger when health is high",
+        "High HP defensive build - effects signal when health is high",
         List.of("HEALTH_ABOVE:15")
     ),
 
@@ -49,7 +49,7 @@ public enum ConditionTemplate {
     SUPPORT(
         Material.GOLDEN_APPLE,
         "Support",
-        "Ally healer - effects trigger when helping other players",
+        "Ally healer - effects signal when helping other players",
         List.of("HAS_POTION:REGENERATION", "VICTIM_IS_PLAYER")
     ),
 
@@ -64,7 +64,7 @@ public enum ConditionTemplate {
         Material.TNT,
         "Berserker",
         "Risk/reward - powerful offensive effects when critically low on health",
-        List.of("HEALTH_BELOW:15", "TRIGGER:ATTACK")
+        List.of("HEALTH_BELOW:15", "SIGNAL:ATTACK")
     );
 
     private final Material icon;
@@ -119,11 +119,11 @@ public enum ConditionTemplate {
      */
     public List<String> getFormattedLore() {
         List<String> lore = new ArrayList<>();
-        lore.add("&7" + description);
+        lore.add("§7" + description);
         lore.add("");
-        lore.add("&eConditions:");
+        lore.add("§eConditions:");
         for (String condition : conditions) {
-            lore.add("&8  - &f" + condition);
+            lore.add("§8  - §f" + condition);
         }
         return lore;
     }

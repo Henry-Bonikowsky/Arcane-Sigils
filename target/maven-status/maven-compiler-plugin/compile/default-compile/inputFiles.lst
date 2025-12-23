@@ -1,88 +1,190 @@
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\ArmorSetsPlugin.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\commands\ArmorSetsCommand.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\config\ConfigManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\constants\GUIConstants.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\constants\SlotPositions.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\constants\TaskIntervals.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\core\Sigil.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\core\SigilManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\core\SocketManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\Effect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\EffectContext.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\EffectManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\EffectParams.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\AbstractEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\AegisEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\AllureEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\AngelicEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\AquaEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\BleedingEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\BlinkEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\CancelEventEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\DamageBoostEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\DealDamageEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\DevourEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\DisintegrateEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\DodgeEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\EnlightenedEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\FeatherweightEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\FreezingEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\GearsEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\GuardiansEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\HealEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\ImmortalEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\ImplantsEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\InquisitiveEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\JellylegsEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\LifestealEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\LucidEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\MessageEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\MomentumEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\NightowlEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\ParticleEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\PatchEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\PhoenixEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\PotionEffectEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\ReplenishEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\RestoreEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\RushEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\SmokebombEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\SoulboundEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\SoundEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\SpawnEntityEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\SpringsEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\TeleportEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\TeleportRandomEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\UnbreakableEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\WardEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\effects\impl\WingsEffect.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionBuilder.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionCategory.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\ConditionType.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\CooldownManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\TriggerHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\events\TriggerType.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\common\ItemBuilder.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\GUIManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\GUISession.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\GUIType.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\AbstractGUIHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\ConfigHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\GUIHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\GUIHandlerContext.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\SocketGUIHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\gui\handlers\UnsocketGUIHandler.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\menu\BuildMainMenuComponent.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\menu\MenuItem.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\menu\MenuState.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\sets\ArmorSet.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\sets\SetManager.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\sets\SetSynergy.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\sets\TriggerConfig.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\utils\ColorUtil.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\utils\LogHelper.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\utils\RomanNumerals.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\utils\TextUtil.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\weapons\CustomWeapon.java
-C:\Users\henry\Programs(self)\Custom ArmorWeapon Plugin\src\main\java\com\zenax\armorsets\weapons\WeaponManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\addon\AbstractAddon.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\addon\AddonClassLoader.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\addon\AddonDescriptor.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\addon\AddonManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\addon\ArcaneSigilsAddon.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\ArmorSetsPlugin.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\BindPreset.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\BindsBossBarManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\BindsListener.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\BindsManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\BindSystem.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\gui\BindsCommandHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\gui\BindsEditorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\gui\BindsGUIHelper.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\gui\BindsHotbarHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\HeldSlotHotkey.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\PlayerBindData.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\TargetGlowManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\binds\ToggleHotkey.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\commands\ActivateBindCommand.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\commands\ArmorSetsCommand.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\commands\BindsCommand.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\config\ConfigManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\constants\GUIConstants.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\constants\SlotPositions.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\constants\TaskIntervals.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\core\Sigil.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\core\SigilManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\core\SocketManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\AuraManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\BehaviorManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\CooldownNotifier.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\Effect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\EffectContext.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\EffectManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\EffectParams.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\AbsorbtionEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\AbstractEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\AllureEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\BleedingEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\CancelEventEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ClearNegativeEffectsEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\CleaveEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DamageArmorEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DamageBoostEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DamageReductionBuffEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DashEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DealDamageEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DecreaseSigilTierEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DisarmEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DodgeEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\DropHeadEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\EnlightenedEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ExecuteEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ExplosionEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\FreezingEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\GiveItemEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\GrappleEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\GroundSlamEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\HealEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\IgniteEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\InquisitiveEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\KnockbackEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\LaunchEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\LifestealEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\LightningEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\MarkEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\MaxHealthBoostEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\MessageEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ModifyAttributeEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ParticleEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\PhoenixEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\PotionEffectEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\PullEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ReduceDamageEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ReflectDamageEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\RemoveRandomEnchantEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\RepairArmorEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\RepairItemEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\ResistEffectsEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SaturateEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SmokebombEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SoulboundEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SoundEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SpawnAuraEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SpawnDisplayEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SpawnEntityEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\StealBuffsEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\StunEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SummonMummyEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\SwapEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\impl\TeleportEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\MarkManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\ProjectileManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\effects\StunManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionBuilder.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionCategory.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionPreset.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionTemplate.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConditionType.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\ConflictDetector.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\CooldownManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\SignalHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\events\SignalType.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowConfig.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowContext.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowExecutor.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowGraph.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowSerializer.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\FlowType.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\ConditionNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\DelayNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\EffectNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\EndNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\LoopNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\MathNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\RandomNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\SkipCooldownNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\StartNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\TargetNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\nodes\VariableNode.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\flow\NodeType.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\behavior\BehaviorBrowserHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\common\AbstractBrowserHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\common\AbstractHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\common\GUILayout.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\common\ItemBuilder.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\condition\ConditionConfigHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\condition\ConditionParamHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\condition\ConditionSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\condition\ConditionValueBrowserHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\condition\FlowConditionSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\AttributeSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\BlockParticleSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\ColorSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\EffectParamHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\ItemParticleSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\ParticleSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\effect\SoundSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\EffectNodeBrowserHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\ExpressionBuilderHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\ExpressionOperatorSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\ExpressionValueSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\FlowBuilderHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\FlowListHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\NodeConfigHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\flow\NodePaletteHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\GUIManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\GUISession.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\GUIType.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\input\BookInputHelper.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\input\InputValidation.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\input\SignInputHelper.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\sigil\ItemSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\sigil\SigilConfigHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\sigil\SigilEditorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\sigil\SigilsMenuHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\sigil\SocketableSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\signal\SignalSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\socket\SocketHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\socket\UnsocketHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\tier\TierConfigHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\tier\TierParamEditorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\tier\TierParamSelectorHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\tier\TierProgressViewerHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\gui\tier\TierXPConfigHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\menu\BuildMainMenuComponent.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\menu\MenuItem.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\menu\MenuState.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\notifications\NotificationBossBarManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\notifications\ResourcePackNotifier.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\LayerDefinition.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\ModifierDefinition.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\PresetDefinition.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\ShapeDefinition.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\ShapeEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\particles\ShapeEngine.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\ResourcePackHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\tier\TierParameterConfig.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\tier\TierProgressionManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\tier\TierScalingConfig.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\tier\TierXPConfig.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\ColorUtil.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\LogHelper.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\RomanNumerals.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\ScreenShakeUtil.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\TargetFinder.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\zenax\armorsets\utils\TextUtil.java

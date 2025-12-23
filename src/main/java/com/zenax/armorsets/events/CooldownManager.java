@@ -37,6 +37,9 @@ public class CooldownManager {
         // Check global cooldown first
         Long globalExpiry = globalCooldowns.get(uuid);
         if (globalExpiry != null && System.currentTimeMillis() < globalExpiry) {
+            long remaining = globalExpiry - System.currentTimeMillis();
+            com.zenax.armorsets.utils.LogHelper.debug("[Cooldown] Global cooldown active for %s: %.1fs remaining",
+                player.getName(), remaining / 1000.0);
             return true;
         }
 
@@ -52,6 +55,9 @@ public class CooldownManager {
             return false;
         }
 
+        long remaining = expiry - System.currentTimeMillis();
+        com.zenax.armorsets.utils.LogHelper.debug("[Cooldown] Ability %s on cooldown for %s: %.1fs remaining",
+            abilityId, player.getName(), remaining / 1000.0);
         return true;
     }
 
@@ -63,6 +69,18 @@ public class CooldownManager {
      * @param cooldownSeconds Cooldown duration in seconds
      */
     public void setCooldown(Player player, String abilityId, double cooldownSeconds) {
+        setCooldown(player, abilityId, abilityId, cooldownSeconds);
+    }
+
+    /**
+     * Set a cooldown for a player's ability with a display name.
+     *
+     * @param player          The player
+     * @param abilityId       The ability identifier
+     * @param abilityName     The display name for notifications
+     * @param cooldownSeconds Cooldown duration in seconds
+     */
+    public void setCooldown(Player player, String abilityId, String abilityName, double cooldownSeconds) {
         if (cooldownSeconds <= 0) return;
 
         UUID uuid = player.getUniqueId();
@@ -70,6 +88,16 @@ public class CooldownManager {
 
         cooldowns.computeIfAbsent(uuid, k -> new ConcurrentHashMap<>())
                 .put(abilityId, expiry);
+
+        // Format the ability name to be human-readable
+        String displayName = com.zenax.armorsets.notifications.ResourcePackNotifier.formatAbilityName(abilityName);
+
+        // Track for ready notification (plays sound + shows "Ready!" when cooldown expires)
+        var cooldownNotifier = plugin.getCooldownNotifier();
+        if (cooldownNotifier != null) {
+            cooldownNotifier.trackCooldown(player, abilityId, displayName,
+                System.currentTimeMillis() + (long)(cooldownSeconds * 1000));
+        }
 
         // Also set global cooldown
         int globalCooldownTicks = plugin.getConfigManager().getMainConfig()

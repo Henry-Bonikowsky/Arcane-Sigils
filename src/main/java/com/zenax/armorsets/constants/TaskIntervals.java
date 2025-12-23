@@ -34,11 +34,11 @@ public final class TaskIntervals {
     public static final int DEFAULT_STATIC_EFFECT_INTERVAL = 20;
 
     /**
-     * Default interval for TICK trigger processing (in ticks).
+     * Default interval for TICK signal processing (in ticks).
      * This is overridable via config: settings.tick-interval
      * Default: 1 tick
      */
-    public static final int DEFAULT_TICK_TRIGGER_INTERVAL = 1;
+    public static final int DEFAULT_TICK_SIGNAL_INTERVAL = 1;
 
     /**
      * Initial delay for effect tasks (in ticks).

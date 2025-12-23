@@ -1,9 +1,9 @@
-# ArmorSets Messages Configuration
+# ArcaneSigils Messages Configuration
 # Supports MiniMessage format and legacy color codes (&a, &b, etc.)
 
 messages:
   # General
-  prefix: "&8[&dArmorSets&8] "
+  prefix: "&8[&dArcaneSigils&8] "
   no-permission: "&cYou don't have permission to do that!"
   player-only: "&cThis command can only be used by players!"
   reload-success: "&aConfiguration reloaded successfully!"
@@ -40,13 +40,13 @@ messages:
   effect-lifesteal: "&cYou drain life from your enemy!"
 
   # Command Help
-  help-header: "&8&m----------&r &dArmorSets Help &8&m----------"
-  help-reload: "&e/armorsets reload &8- &7Reload the plugin"
-  help-give-sigil: "&e/armorsets give sigil <player> <id> &8- &7Give a sigil shard"
-  help-give-set: "&e/armorsets give set <player> <set> <tier> &8- &7Give an armor set"
-  help-list-sigils: "&e/armorsets list sigils &8- &7List all sigils"
-  help-list-sets: "&e/armorsets list sets &8- &7List all armor sets"
-  help-info: "&e/armorsets info &8- &7Show held item info"
+  help-header: "&8&m----------&r &dArcaneSigils Help &8&m----------"
+  help-reload: "&e/arcanesigils reload &8- &7Reload the plugin"
+  help-give-sigil: "&e/arcanesigils give sigil <player> <id> &8- &7Give a sigil shard"
+  help-give-set: "&e/arcanesigils give set <player> <set> <tier> &8- &7Give an armor set"
+  help-list-sigils: "&e/arcanesigils list sigils &8- &7List all sigils"
+  help-list-sets: "&e/arcanesigils list sets &8- &7List all armor sets"
+  help-info: "&e/arcanesigils info &8- &7Show held item info"
   help-footer: "&8&m-----------------------------------------"
 
   # Admin Messages
@@ -57,6 +57,6 @@ messages:
   admin-gave-set: "&aGave %set_name% (Tier %tier%) to %player%"
 
   # Error Messages
-  error-invalid-syntax: "&cInvalid syntax! Use &e/armorsets help &cfor commands."
+  error-invalid-syntax: "&cInvalid syntax! Use &e/arcanesigils help &cfor commands."
   error-invalid-tier: "&cInvalid tier! Must be a number."
   error-inventory-full: "&cYour inventory is full!"

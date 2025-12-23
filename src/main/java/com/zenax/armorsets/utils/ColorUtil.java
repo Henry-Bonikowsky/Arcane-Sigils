@@ -187,22 +187,22 @@ public final class ColorUtil {
      * Create a decorative header line.
      *
      * @param title The title to display
-     * @param color The color code for the line (e.g., "&d")
+     * @param color The color code for the line (e.g., "§d")
      * @return The formatted header
      */
     public static String createHeader(String title, String color) {
-        String line = color + "&m" + "          " + "&r " + color + "&l" + title + " " + color + "&m" + "          ";
+        String line = color + "§m" + "          " + "§r " + color + "§l" + title + " " + color + "§m" + "          ";
         return colorize(line);
     }
 
     /**
      * Create a simple divider line.
      *
-     * @param color The color code (e.g., "&8")
+     * @param color The color code (e.g., "§8")
      * @return The divider line
      */
     public static String createDivider(String color) {
-        return colorize(color + "&m" + "                                        ");
+        return colorize(color + "§m" + "                                        ");
     }
 
     /**
@@ -244,8 +244,8 @@ public final class ColorUtil {
      * @param length     Bar length in characters
      * @param filledChar Character for filled portion
      * @param emptyChar  Character for empty portion
-     * @param filledColor Color for filled portion (e.g., "&a")
-     * @param emptyColor  Color for empty portion (e.g., "&8")
+     * @param filledColor Color for filled portion (e.g., "§a")
+     * @param emptyColor  Color for empty portion (e.g., "§8")
      * @return The formatted progress bar
      */
     public static String createProgressBar(double current, double max, int length,
@@ -321,15 +321,15 @@ public final class ColorUtil {
     }
 
     // Common color presets
-    public static final String PRIMARY = "&d";      // Light purple - plugin branding
-    public static final String SECONDARY = "&b";    // Aqua - secondary elements
-    public static final String SUCCESS = "&a";      // Green - success messages
-    public static final String ERROR = "&c";        // Red - error messages
-    public static final String WARNING = "&e";      // Yellow - warning messages
-    public static final String INFO = "&7";         // Gray - informational text
-    public static final String MUTED = "&8";        // Dark gray - muted/disabled text
-    public static final String HIGHLIGHT = "&f";    // White - highlighted text
-    public static final String HEADER = "&6";       // Gold - headers
+    public static final String PRIMARY = "§d";      // Light purple - plugin branding
+    public static final String SECONDARY = "§b";    // Aqua - secondary elements
+    public static final String SUCCESS = "§a";      // Green - success messages
+    public static final String ERROR = "§c";        // Red - error messages
+    public static final String WARNING = "§e";      // Yellow - warning messages
+    public static final String INFO = "§7";         // Gray - informational text
+    public static final String MUTED = "§8";        // Dark gray - muted/disabled text
+    public static final String HIGHLIGHT = "§f";    // White - highlighted text
+    public static final String HEADER = "§6";       // Gold - headers
 
     // Hex color presets for the plugin theme
     public static final String HEX_PRIMARY = "#AA55FF";

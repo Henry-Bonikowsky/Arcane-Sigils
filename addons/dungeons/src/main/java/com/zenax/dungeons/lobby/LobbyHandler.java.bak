@@ -1,0 +1,437 @@
+package com.zenax.dungeons.lobby;
+
+import com.zenax.dungeons.DungeonsAddon;
+import com.zenax.dungeons.dungeon.Dungeon;
+import com.zenax.dungeons.dungeon.DungeonDifficulty;
+import com.zenax.dungeons.dungeon.DungeonManager;
+import com.zenax.dungeons.dungeon.ObjectiveMode;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Handles events related to dungeon lobbies.
+ * Detects player interactions, ready platform standing, leave portal, and disconnections.
+ */
+public class LobbyHandler implements Listener {
+    private final Plugin plugin;
+    private final LobbyManager lobbyManager;
+    private final DungeonManager dungeonManager;
+
+    private static final double READY_PLATFORM_RADIUS = 2.0;
+
+    /**
+     * Creates a new lobby handler.
+     *
+     * @param lobbyManager The lobby manager instance
+     * @param dungeonManager The dungeon manager instance
+     */
+    public LobbyHandler(LobbyManager lobbyManager, DungeonManager dungeonManager) {
+        this.plugin = DungeonsAddon.getInstance().getPlugin();
+        this.lobbyManager = lobbyManager;
+        this.dungeonManager = dungeonManager;
+    }
+
+    /**
+     * Handles player movement to detect standing on the ready platform or entering leave portal.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        DungeonLobby lobby = lobbyManager.getPlayerLobby(player);
+
+        if (lobby == null) {
+            return;
+        }
+
+        // Check if player moved to a different block
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        if (to == null || (from.getBlockX() == to.getBlockX() &&
+            from.getBlockY() == to.getBlockY() &&
+            from.getBlockZ() == to.getBlockZ())) {
+            return;
+        }
+
+        // Leave portal is now handled by PlayerPortalEvent in PortalHandler
+        // (waits for vanilla nether portal delay instead of instant teleport)
+
+        Location readyPlatform = lobby.getReadyPlatformCenter();
+        Location playerLoc = player.getLocation();
+
+        // Check if player is within ready platform radius
+        double distance = playerLoc.distance(readyPlatform);
+        boolean isOnPlatform = distance <= READY_PLATFORM_RADIUS &&
+                              Math.abs(playerLoc.getY() - readyPlatform.getY()) <= 1.0;
+
+        boolean wasReady = lobby.isReady(player);
+
+        if (isOnPlatform && !wasReady) {
+            // Player stepped onto ready platform
+            lobby.setReady(player, true);
+            player.sendMessage("§aYou are now ready!");
+            lobbyManager.broadcastToLobby(lobby, "§e" + player.getName() + " §ais ready! §7(" +
+                                         lobby.getReadyPlayerCount() + "/" + lobby.getPlayerCount() + ")");
+
+            // Check if all players are ready
+            lobbyManager.checkReadyStatus(lobby);
+
+        } else if (!isOnPlatform && wasReady) {
+            // Player stepped off ready platform
+            lobby.setReady(player, false);
+            player.sendMessage("§cYou are no longer ready!");
+            lobbyManager.broadcastToLobby(lobby, "§e" + player.getName() + " §cis no longer ready! §7(" +
+                                         lobby.getReadyPlayerCount() + "/" + lobby.getPlayerCount() + ")");
+
+            // Cancel countdown if it was active
+            lobbyManager.checkReadyStatus(lobby);
+        }
+    }
+
+    /**
+     * Handles a player entering the leave portal.
+     * Teleports them back to spawn and removes them from the lobby.
+     *
+     * @param player The player who entered the portal
+     * @param lobby The lobby they're leaving
+     */
+    private void handleLeavePortal(Player player, DungeonLobby lobby) {
+        // Play teleport effect
+        player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
+
+        // Notify the lobby
+        lobbyManager.broadcastToLobby(lobby, "§e" + player.getName() + " §7has left the dungeon lobby.");
+
+        // Remove player from lobby
+        lobbyManager.leaveLobby(player);
+
+        // Teleport to world spawn
+        Location spawnLoc = player.getWorld().getSpawnLocation();
+        player.teleport(spawnLoc);
+
+        // Send message
+        player.sendMessage("§aYou have left the dungeon lobby.");
+
+        // If lobby is now empty, it will be cleaned up by leaveLobby
+    }
+
+    /**
+     * Handles player interactions with signs and blocks in the lobby.
+     */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        DungeonLobby lobby = lobbyManager.getPlayerLobby(player);
+
+        if (lobby == null) {
+            return;
+        }
+
+        Block clickedBlock = event.getClickedBlock();
+        if (clickedBlock == null) {
+            return;
+        }
+
+        Location clickedLoc = clickedBlock.getLocation();
+
+        // Check objective selector
+        if (isLocationMatch(clickedLoc, lobby.getObjectiveSelectorLocation())) {
+            event.setCancelled(true);
+            openObjectiveSelectorGUI(player, lobby);
+            return;
+        }
+
+        // Check difficulty selector
+        if (isLocationMatch(clickedLoc, lobby.getDifficultySelectorLocation())) {
+            event.setCancelled(true);
+            openDifficultySelectorGUI(player, lobby);
+            return;
+        }
+
+        // Check info board
+        if (isLocationMatch(clickedLoc, lobby.getInfoBoardLocation())) {
+            event.setCancelled(true);
+            showDungeonInfo(player, lobby);
+            return;
+        }
+
+        // Check loot preview
+        if (isLocationMatch(clickedLoc, lobby.getLootPreviewLocation())) {
+            event.setCancelled(true);
+            openLootPreviewGUI(player, lobby);
+            return;
+        }
+
+        // Check for sign interactions
+        if (clickedBlock.getState() instanceof Sign) {
+            Sign sign = (Sign) clickedBlock.getState();
+            String firstLine = ChatColor.stripColor(sign.getLine(0));
+
+            if (firstLine.equalsIgnoreCase("[Objective]")) {
+                event.setCancelled(true);
+                openObjectiveSelectorGUI(player, lobby);
+            } else if (firstLine.equalsIgnoreCase("[Difficulty]")) {
+                event.setCancelled(true);
+                openDifficultySelectorGUI(player, lobby);
+            } else if (firstLine.equalsIgnoreCase("[Info]")) {
+                event.setCancelled(true);
+                showDungeonInfo(player, lobby);
+            } else if (firstLine.equalsIgnoreCase("[Loot]")) {
+                event.setCancelled(true);
+                openLootPreviewGUI(player, lobby);
+            }
+        }
+    }
+
+    /**
+     * Handles player disconnections in the lobby.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        DungeonLobby lobby = lobbyManager.getPlayerLobby(player);
+
+        if (lobby != null) {
+            lobbyManager.leaveLobby(player);
+        }
+    }
+
+    /**
+     * Opens the objective mode selector GUI for a player.
+     *
+     * @param player The player to open the GUI for
+     * @param lobby The lobby the player is in
+     */
+    private void openObjectiveSelectorGUI(Player player, DungeonLobby lobby) {
+        Dungeon dungeon = lobby.getDungeonTemplate();
+        List<ObjectiveMode> availableModes = dungeon.getAvailableObjectiveModes();
+
+        if (availableModes.isEmpty()) {
+            player.sendMessage("§cNo objective modes available for this dungeon!");
+            return;
+        }
+
+        if (availableModes.size() == 1) {
+            player.sendMessage("§eThis dungeon only has one objective mode: §f" + availableModes.get(0).getDisplayName());
+            return;
+        }
+
+        Inventory gui = plugin.getServer().createInventory(null, 27, "Select Objective Mode");
+
+        int slot = 10;
+        for (ObjectiveMode mode : availableModes) {
+            ItemStack item = new ItemStack(getModeIcon(mode));
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName("§e§l" + mode.getDisplayName());
+                List<String> lore = new ArrayList<>();
+                lore.add("§7" + mode.getDescription());
+                lore.add("");
+                if (lobby.getSelectedObjectiveMode() == mode) {
+                    lore.add("§a§lCURRENTLY SELECTED");
+                } else {
+                    lore.add("§eClick to select");
+                }
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+            }
+            gui.setItem(slot, item);
+            slot += 2;
+        }
+
+        player.openInventory(gui);
+    }
+
+    /**
+     * Opens the difficulty selector GUI for a player.
+     *
+     * @param player The player to open the GUI for
+     * @param lobby The lobby the player is in
+     */
+    private void openDifficultySelectorGUI(Player player, DungeonLobby lobby) {
+        Inventory gui = plugin.getServer().createInventory(null, 27, "Select Difficulty");
+
+        DungeonDifficulty[] difficulties = DungeonDifficulty.values();
+        int[] slots = {10, 12, 14, 16};
+
+        for (int i = 0; i < difficulties.length && i < slots.length; i++) {
+            DungeonDifficulty difficulty = difficulties[i];
+            ItemStack item = new ItemStack(getDifficultyIcon(difficulty));
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(difficulty.getColor() + "§l" + difficulty.getDisplayName());
+                List<String> lore = new ArrayList<>();
+                lore.add("§7Mob Multiplier: §f" + difficulty.getMobMultiplier() + "x");
+                lore.add("§7Loot Multiplier: §f" + difficulty.getLootMultiplier() + "x");
+                lore.add("");
+                if (difficulty.hasUniqueDrops()) {
+                    lore.add("§d§lHas Unique Drops!");
+                    lore.add("");
+                }
+                if (lobby.getSelectedDifficulty() == difficulty) {
+                    lore.add("§a§lCURRENTLY SELECTED");
+                } else {
+                    lore.add("§eClick to select");
+                }
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+            }
+            gui.setItem(slots[i], item);
+        }
+
+        player.openInventory(gui);
+    }
+
+    /**
+     * Opens the loot preview GUI for a player.
+     *
+     * @param player The player to open the GUI for
+     * @param lobby The lobby the player is in
+     */
+    private void openLootPreviewGUI(Player player, DungeonLobby lobby) {
+        Inventory gui = plugin.getServer().createInventory(null, 54, "Dungeon Loot Preview");
+
+        // TODO: Implement actual loot preview from loot tables
+        // For now, show placeholder items
+
+        ItemStack placeholder = new ItemStack(Material.CHEST);
+        ItemMeta meta = placeholder.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§e§lLoot Preview");
+            meta.setLore(Arrays.asList(
+                "§7Defeat enemies and bosses to",
+                "§7receive valuable loot!",
+                "",
+                "§7Loot quality increases with",
+                "§7difficulty level."
+            ));
+            placeholder.setItemMeta(meta);
+        }
+
+        gui.setItem(22, placeholder);
+        player.openInventory(gui);
+    }
+
+    /**
+     * Shows dungeon information to a player.
+     *
+     * @param player The player to show info to
+     * @param lobby The lobby the player is in
+     */
+    private void showDungeonInfo(Player player, DungeonLobby lobby) {
+        Dungeon dungeon = lobby.getDungeonTemplate();
+
+        player.sendMessage("§8§m                                                    ");
+        player.sendMessage("§6§l" + dungeon.getDisplayName());
+        player.sendMessage("");
+        player.sendMessage("§7" + dungeon.getDescription());
+        player.sendMessage("");
+        player.sendMessage("§ePlayers: §f" + dungeon.getMinPlayers() + "-" + dungeon.getMaxPlayers());
+        player.sendMessage("§eTime Limit: §f" + (dungeon.hasTimeLimit() ? dungeon.getTimeLimit() + "s" : "None"));
+        player.sendMessage("§eDefault Difficulty: " + dungeon.getDefaultDifficulty().getColoredDisplayName());
+        player.sendMessage("");
+        player.sendMessage("§eAvailable Objective Modes:");
+        for (ObjectiveMode mode : dungeon.getAvailableObjectiveModes()) {
+            player.sendMessage("  §7- §f" + mode.getDisplayName());
+        }
+        player.sendMessage("");
+        player.sendMessage("§eCurrent Settings:");
+        player.sendMessage("  §7Objective: §f" + lobby.getSelectedObjectiveMode().getDisplayName());
+        player.sendMessage("  §7Difficulty: " + lobby.getSelectedDifficulty().getColoredDisplayName());
+        player.sendMessage("§8§m                                                    ");
+    }
+
+    /**
+     * Gets the icon material for an objective mode.
+     *
+     * @param mode The objective mode
+     * @return The Material to use as an icon
+     */
+    private Material getModeIcon(ObjectiveMode mode) {
+        switch (mode) {
+            case BOSS_KILL:
+                return Material.DIAMOND_SWORD;
+            case OBJECTIVES:
+                return Material.WRITABLE_BOOK;
+            default:
+                return Material.PAPER;
+        }
+    }
+
+    /**
+     * Gets the icon material for a difficulty.
+     *
+     * @param difficulty The difficulty
+     * @return The Material to use as an icon
+     */
+    private Material getDifficultyIcon(DungeonDifficulty difficulty) {
+        switch (difficulty) {
+            case EASY:
+                return Material.WOODEN_SWORD;
+            case NORMAL:
+                return Material.IRON_SWORD;
+            case HARD:
+                return Material.DIAMOND_SWORD;
+            case NIGHTMARE:
+                return Material.NETHERITE_SWORD;
+            default:
+                return Material.STICK;
+        }
+    }
+
+    /**
+     * Checks if two locations match (same block position).
+     *
+     * @param loc1 First location
+     * @param loc2 Second location
+     * @return true if the locations match
+     */
+    private boolean isLocationMatch(Location loc1, Location loc2) {
+        if (loc1 == null || loc2 == null) {
+            return false;
+        }
+        return loc1.getWorld() == loc2.getWorld() &&
+               loc1.getBlockX() == loc2.getBlockX() &&
+               loc1.getBlockY() == loc2.getBlockY() &&
+               loc1.getBlockZ() == loc2.getBlockZ();
+    }
+
+    /**
+     * Registers this event handler.
+     */
+    public void register() {
+        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+    }
+
+    /**
+     * Unregisters this event handler.
+     */
+    public void unregister() {
+        PlayerInteractEvent.getHandlerList().unregister(this);
+        PlayerMoveEvent.getHandlerList().unregister(this);
+        PlayerQuitEvent.getHandlerList().unregister(this);
+    }
+}

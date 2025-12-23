@@ -14,7 +14,7 @@ public class DamageBoostEffect extends AbstractEffect {
         double percentage = context.getParams() != null ? context.getParams().getValue() : 0;
         if (percentage <= 0) return false;
 
-        // Get the event if available (attack triggers)
+        // Get the event if available (attack signals)
         Object eventObj = context.getBukkitEvent();
         if (eventObj instanceof EntityDamageByEntityEvent event) {
             double currentDamage = event.getDamage();

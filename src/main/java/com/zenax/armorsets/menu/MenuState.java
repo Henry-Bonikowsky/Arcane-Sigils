@@ -208,14 +208,12 @@ public class MenuState {
      */
     public enum MenuType {
         MAIN_MENU("Main Menu"),
-        BROWSE_FUNCTIONS("Browse Functions"),
-        BROWSE_SETS("Browse Armor Sets"),
-        SOCKET_FUNCTION("Socket Function"),
-        UNSOCKET_FUNCTION("Unsocket Function"),
+        BROWSE_SIGILS("Browse Sigils"),
+        SOCKET_SIGIL("Socket Sigil"),
+        UNSOCKET_SIGIL("Unsocket Sigil"),
         ARMOR_INFO("Armor Info"),
         HELP_COMMANDS("Help & Commands"),
-        FUNCTION_DETAIL("Function Details"),
-        SET_DETAIL("Set Details"),
+        SIGIL_DETAIL("Sigil Details"),
         BUILD_MENU("Build Menu");
 
         private final String displayName;

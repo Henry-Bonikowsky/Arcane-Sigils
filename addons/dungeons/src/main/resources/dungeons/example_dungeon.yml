@@ -1,0 +1,103 @@
+# ========================================
+# Dungeon Configurations
+# ========================================
+
+dungeons:
+  crypt_of_shadows:
+    display-name: "&8&lCrypt of Shadows"
+    description: "A dark and foreboding crypt filled with undead horrors and ancient treasures."
+
+    # Default difficulty
+    default-difficulty: NORMAL
+
+    # Player limits
+    min-players: 1
+    max-players: 5
+
+    # Time limit in seconds (0 = unlimited)
+    time-limit: 2700  # 45 minutes
+
+    # Boss ID (from mobs/bosses.yml)
+    boss-id: "lich_king"
+
+    # Required key item ID (null for no key)
+    required-key-item: null
+
+    # Available objective modes
+    objective-modes:
+      - BOSS_KILL
+      - OBJECTIVES
+
+    # Generation settings
+    generation:
+      min-room-count: 8
+      max-room-count: 15
+      min-cave-count: 2
+      max-cave-count: 5
+      theme-materials:
+        wall: STONE_BRICKS
+        floor: STONE
+        ceiling: STONE_BRICKS
+        accent: CRACKED_STONE_BRICKS
+
+    # Loot tables for this dungeon
+    loot-tables:
+      - basic
+      - rare
+
+  volcanic_depths:
+    display-name: "&6&lVolcanic Depths"
+    description: "A fiery cavern deep beneath the earth, home to the Molten Guardian."
+
+    default-difficulty: HARD
+    min-players: 1
+    max-players: 4
+    time-limit: 3600  # 60 minutes
+    boss-id: "molten_guardian"
+    required-key-item: null
+
+    objective-modes:
+      - BOSS_KILL
+
+    generation:
+      min-room-count: 6
+      max-room-count: 10
+      min-cave-count: 3
+      max-cave-count: 6
+      theme-materials:
+        wall: BLACKSTONE
+        floor: BASALT
+        ceiling: BLACKSTONE
+        accent: MAGMA_BLOCK
+
+    loot-tables:
+      - rare
+
+  spider_nest:
+    display-name: "&8&lSpider Nest"
+    description: "A web-covered cavern crawling with spiders. Defeat the Spider Queen!"
+
+    default-difficulty: NORMAL
+    min-players: 1
+    max-players: 5
+    time-limit: 1800  # 30 minutes
+    boss-id: "spider_queen"
+    required-key-item: null
+
+    objective-modes:
+      - BOSS_KILL
+      - OBJECTIVES
+
+    generation:
+      min-room-count: 5
+      max-room-count: 8
+      min-cave-count: 4
+      max-cave-count: 7
+      theme-materials:
+        wall: COBBLESTONE
+        floor: STONE
+        ceiling: COBBLESTONE
+        accent: COBWEB
+
+    loot-tables:
+      - basic

@@ -1,24 +1,30 @@
 package com.zenax.armorsets.core;
 
 import com.zenax.armorsets.ArmorSetsPlugin;
-import com.zenax.armorsets.sets.TriggerConfig;
+import com.zenax.armorsets.flow.FlowConfig;
+import com.zenax.armorsets.flow.FlowSerializer;
+import com.zenax.armorsets.tier.TierScalingConfig;
 import com.zenax.armorsets.utils.TextUtil;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import com.zenax.armorsets.utils.LogHelper;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Manages all Sigils in the plugin.
@@ -27,6 +33,7 @@ public class SigilManager {
 
     private final ArmorSetsPlugin plugin;
     private final Map<String, Sigil> sigils = new HashMap<>();
+    private final Map<String, Sigil> behaviors = new HashMap<>();
 
     // PDC keys for sigil data on sigil shard items
     private final NamespacedKey SIGIL_ID_KEY;
@@ -44,6 +51,7 @@ public class SigilManager {
      */
     public void loadSigils() {
         sigils.clear();
+        int migratedCount = 0;
 
         for (Map.Entry<String, FileConfiguration> entry : plugin.getConfigManager().getSigilConfigs().entrySet()) {
             String fileNameWithoutExt = entry.getKey();
@@ -57,16 +65,129 @@ public class SigilManager {
                 Sigil sigil = Sigil.fromConfig(key, section);
                 if (sigil != null) {
                     sigil.setSourceFile(fileName);
+
+                    // Auto-migrate deprecated node-level tierValues to sigil TierScalingConfig
+                    if (migrateNodeTierValues(sigil)) {
+                        migratedCount++;
+                    }
+
                     sigils.put(key.toLowerCase(), sigil);
                 }
             }
         }
 
         plugin.getLogger().info("Loaded " + sigils.size() + " base sigils");
+        if (migratedCount > 0) {
+            plugin.getLogger().info("Migrated " + migratedCount + " sigils from node-level tierValues to TierScalingConfig");
+        }
+    }
+
+    /**
+     * Migrate deprecated node-level tierValues to sigil-level TierScalingConfig.
+     * This handles old sigil configs that stored tier scaling on individual nodes.
+     *
+     * @param sigil The sigil to migrate
+     * @return true if migration occurred
+     */
+    private boolean migrateNodeTierValues(Sigil sigil) {
+        boolean migrated = false;
+
+        for (FlowConfig flow : sigil.getFlows()) {
+            if (flow.getGraph() == null) continue;
+
+            for (com.zenax.armorsets.flow.FlowNode node : flow.getGraph().getNodes()) {
+                @SuppressWarnings("deprecation")
+                Map<String, List<Double>> tierValues = node.getTierValues();
+
+                if (tierValues == null || tierValues.isEmpty()) continue;
+
+                // Ensure sigil has a TierScalingConfig
+                if (sigil.getTierScalingConfig() == null) {
+                    sigil.setTierScalingConfig(new TierScalingConfig());
+                }
+
+                // Migrate each parameter
+                for (Map.Entry<String, List<Double>> entry : tierValues.entrySet()) {
+                    String paramName = entry.getKey();
+                    List<Double> values = entry.getValue();
+
+                    if (values == null || values.isEmpty()) continue;
+
+                    // Store in sigil-level config with node-qualified name
+                    // Format: nodeId.paramName to avoid collisions
+                    String qualifiedName = node.getId() + "." + paramName;
+                    sigil.getTierScalingConfig().getParams().setValues(qualifiedName, values);
+
+                    LogHelper.debug("[TierMigration] %s: Migrated %s.%s -> tier.params.%s",
+                            sigil.getId(), node.getId(), paramName, qualifiedName);
+                    migrated = true;
+                }
+
+                // Clear node-level tierValues after migration
+                tierValues.clear();
+            }
+        }
+
+        // Save the migrated sigil to persist the changes
+        if (migrated) {
+            LogHelper.info("[TierMigration] Sigil '%s' had deprecated node-level tierValues - migrated to TierScalingConfig",
+                    sigil.getId());
+        }
+
+        return migrated;
+    }
+
+    /**
+     * Load all behaviors from the behaviors folder.
+     * Behaviors are sigils with type=BEHAVIOR, used for entity/display/block behaviors.
+     */
+    public void loadBehaviors() {
+        behaviors.clear();
+
+        File behaviorsDir = new File(plugin.getDataFolder(), "behaviors");
+        if (!behaviorsDir.exists()) {
+            behaviorsDir.mkdirs();
+            plugin.getLogger().info("Created behaviors folder");
+            return;
+        }
+
+        File[] files = behaviorsDir.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files == null || files.length == 0) {
+            plugin.getLogger().info("No behavior files found");
+            return;
+        }
+
+        for (File file : files) {
+            try {
+                FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+                for (String key : config.getKeys(false)) {
+                    ConfigurationSection section = config.getConfigurationSection(key);
+                    if (section == null) continue;
+
+                    Sigil behavior = Sigil.fromConfig(key, section);
+                    if (behavior != null) {
+                        // Force type to BEHAVIOR
+                        behavior.setSigilType(Sigil.SigilType.BEHAVIOR);
+                        behavior.setSourceFile(file.getName());
+                        behaviors.put(key.toLowerCase(), behavior);
+
+                        // Debug: log flow count for behaviors
+                        int flowCount = behavior.hasFlows() ? behavior.getFlows().size() : 0;
+                        plugin.getLogger().info("  - " + key + ": " + flowCount + " flows");
+                    }
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to load behavior file " + file.getName() + ": " + e.getMessage());
+            }
+        }
+
+        plugin.getLogger().info("Loaded " + behaviors.size() + " behaviors");
     }
 
     /**
      * Get a sigil by ID, optionally with a specific tier applied.
+     * The tier is set on the sigil instance; {param} placeholders are
+     * resolved at effect execution time using the TierScalingConfig.
      */
     public Sigil getSigilWithTier(String id, int tier) {
         Sigil base = sigils.get(id.toLowerCase());
@@ -76,7 +197,6 @@ public class SigilManager {
         Sigil tiered = cloneSigil(base);
         tier = Math.max(1, Math.min(tier, tiered.getMaxTier()));
         tiered.setTier(tier);
-        scaleEffects(tiered, tier, tiered.getMaxTier());
         return tiered;
     }
 
@@ -92,97 +212,31 @@ public class SigilManager {
         clone.setMaxTier(original.getMaxTier());
         clone.setRarity(original.getRarity());
         clone.setExclusive(original.isExclusive());
+        clone.setExclusiveType(original.getExclusiveType());
+        clone.setActivation(original.getActivation());
         clone.setCrate(original.getCrate());
         clone.setItemForm(original.getItemForm());
         clone.setSourceFile(original.getSourceFile());
 
-        // Deep copy effects
-        Map<String, TriggerConfig> clonedEffects = new java.util.HashMap<>();
-        for (Map.Entry<String, TriggerConfig> e : original.getEffects().entrySet()) {
-            clonedEffects.put(e.getKey(), cloneTriggerConfig(e.getValue()));
+        // Copy socketables (CRITICAL - without this, clones allow all item types!)
+        if (original.getSocketables() != null) {
+            clone.setSocketables(new java.util.HashSet<>(original.getSocketables()));
         }
-        clone.setEffects(clonedEffects);
+
+        // Copy tier configs (make copies to avoid shared state)
+        if (original.getTierScalingConfig() != null) {
+            clone.setTierScalingConfig(original.getTierScalingConfig().copy());
+        }
+        if (original.getTierXPConfig() != null) {
+            clone.setTierXPConfig(original.getTierXPConfig().copy());
+        }
+
+        // Copy flows (new unified system)
+        for (FlowConfig flow : original.getFlows()) {
+            clone.addFlow(flow); // Flow graphs are not modified at runtime
+        }
 
         return clone;
-    }
-
-    /**
-     * Clone a trigger config.
-     */
-    private TriggerConfig cloneTriggerConfig(TriggerConfig original) {
-        TriggerConfig clone = new TriggerConfig();
-        clone.setChance(original.getChance());
-        clone.setBaseChance(original.getBaseChance());
-        clone.setCooldown(original.getCooldown());
-        clone.setBaseCooldown(original.getBaseCooldown());
-        clone.setTriggerMode(original.getTriggerMode());
-        clone.setEffects(new java.util.ArrayList<>(original.getEffects()));
-        clone.setConditions(new java.util.ArrayList<>(original.getConditions()));
-        return clone;
-    }
-
-    private void scaleEffects(Sigil sigil, int tier, int maxTier) {
-        // Scale so tier 1 = 60% and max tier = 150%
-        double effectMultiplier = 0.5 + (tier * (1.0 / maxTier));
-
-        for (TriggerConfig config : sigil.getEffects().values()) {
-            // Scale effect values
-            List<String> scaled = config.getEffects().stream()
-                .map(e -> scaleEffectString(e, effectMultiplier))
-                .toList();
-            config.setEffects(new java.util.ArrayList<>(scaled));
-
-            // Scale chance OR cooldown based on trigger mode (not both)
-            if (config.getTriggerMode() == TriggerConfig.TriggerMode.CHANCE) {
-                // CHANCE mode: each tier adds the base_chance percentage
-                // e.g., 20% base -> T1:20%, T2:40%, T3:60%, T4:80%, T5:100%
-                double baseChance = config.getBaseChance();
-                double scaledChance = baseChance * tier;
-                config.setChance(Math.min(100, scaledChance));
-                config.setCooldown(0); // No cooldown for chance-based
-            } else {
-                // COOLDOWN mode: scale from baseCooldown at tier 1 to 20% of base at maxTier
-                double baseCooldown = config.getBaseCooldown();
-                double minCooldown = baseCooldown * 0.2; // Min is 20% of base
-                double scaledCooldown = baseCooldown - ((baseCooldown - minCooldown) * (tier - 1) / Math.max(1, maxTier - 1));
-                if (maxTier == 1) scaledCooldown = baseCooldown;
-                config.setCooldown(Math.max(minCooldown, scaledCooldown));
-                config.setChance(100); // Always 100% chance for cooldown-based
-            }
-        }
-    }
-
-    private String scaleEffectString(String effect, double multiplier) {
-        // Scale numeric values in effects like "DAMAGE:10" -> "DAMAGE:16"
-        String[] parts = effect.split(":");
-        if (parts.length < 2) return effect;
-
-        StringBuilder result = new StringBuilder(parts[0]);
-        for (int i = 1; i < parts.length; i++) {
-            result.append(":");
-            String part = parts[i];
-            // Check if contains target specifier
-            if (part.contains("@")) {
-                String[] subParts = part.split(" ");
-                try {
-                    double val = Double.parseDouble(subParts[0]);
-                    result.append((int) Math.round(val * multiplier));
-                    for (int j = 1; j < subParts.length; j++) {
-                        result.append(" ").append(subParts[j]);
-                    }
-                } catch (NumberFormatException e) {
-                    result.append(part);
-                }
-            } else {
-                try {
-                    double val = Double.parseDouble(part);
-                    result.append((int) Math.round(val * multiplier));
-                } catch (NumberFormatException e) {
-                    result.append(part);
-                }
-            }
-        }
-        return result.toString();
     }
 
     /**
@@ -193,10 +247,24 @@ public class SigilManager {
     }
 
     /**
-     * Get all sigils.
+     * Get all sigils (socketable sigils only, not behaviors).
      */
     public Collection<Sigil> getAllSigils() {
         return sigils.values();
+    }
+
+    /**
+     * Get all behaviors.
+     */
+    public Collection<Sigil> getAllBehaviors() {
+        return behaviors.values();
+    }
+
+    /**
+     * Get a behavior by ID.
+     */
+    public Sigil getBehavior(String id) {
+        return behaviors.get(id.toLowerCase());
     }
 
     /**
@@ -204,6 +272,13 @@ public class SigilManager {
      */
     public int getSigilCount() {
         return sigils.size();
+    }
+
+    /**
+     * Get the number of loaded behaviors.
+     */
+    public int getBehaviorCount() {
+        return behaviors.size();
     }
 
     /**
@@ -226,45 +301,47 @@ public class SigilManager {
         String romanNumeral = toRomanNumeral(sigil.getTier());
         String rarity = sigil.getRarity();
         String rarityColor = getRarityColor(rarity);
-        meta.displayName(TextUtil.parseComponent(rarityColor + baseName + " " + romanNumeral));
+        // Only prepend rarity color if name doesn't already have formatting (gradient or color code)
+        boolean hasFormatting = baseName.startsWith("<") || baseName.startsWith("&") || baseName.startsWith("§");
+        String displayName = hasFormatting ? baseName + " " + romanNumeral : rarityColor + baseName + " " + romanNumeral;
+        meta.displayName(TextUtil.parseComponent(displayName));
 
         // Build lore following enchantment format
         List<net.kyori.adventure.text.Component> lore = new ArrayList<>();
 
         // Line 1: Rarity
-        lore.add(TextUtil.parseComponent(rarityColor + "&l" + rarity));
+        lore.add(TextUtil.parseComponent(rarityColor + "§l" + rarity));
 
         // Line 2: Empty
         lore.add(net.kyori.adventure.text.Component.empty());
 
+        // Build socketable types display from socketables set
+        String socketableDisplay = formatSocketableItems(sigil.getSocketables());
+
         // Track longest line for bottom border
-        int maxLength = TextUtil.toProperCase(sigil.getSlot()).length() + 2; // "─ " + slot name
+        int maxLength = socketableDisplay.length() + 2; // "─ " + display
 
-        // Line 3: What armor it can be applied to
-        lore.add(TextUtil.parseComponent("&8┌─ &a" + TextUtil.toProperCase(sigil.getSlot())));
+        // Line 3: What items it can be applied to
+        lore.add(TextUtil.parseComponent("§8┌─ §a" + socketableDisplay));
 
-        // Line 4+: Description (from sigil description or generated from effects)
+        // Line 4+: Description (from sigil description or flow effects)
         if (!sigil.getDescription().isEmpty()) {
             for (String desc : sigil.getDescription()) {
-                lore.add(TextUtil.parseComponent("&8│ &f" + desc));
+                lore.add(TextUtil.parseComponent("§8│ §f" + desc));
                 maxLength = Math.max(maxLength, desc.length() + 2); // "│ " prefix
             }
-        } else if (!sigil.getEffects().isEmpty()) {
-            // Generate description from effects
-            for (String triggerKey : sigil.getEffects().keySet()) {
-                var triggerConfig = sigil.getEffects().get(triggerKey);
-                for (String effect : triggerConfig.getEffects()) {
-                    String effectDesc = TextUtil.getEffectDescription(effect);
-                    lore.add(TextUtil.parseComponent("&8│ &f" + effectDesc));
-                    maxLength = Math.max(maxLength, effectDesc.length() + 2);
-                }
-            }
+        } else if (sigil.hasFlow()) {
+            // Generate description from flow
+            FlowConfig flow = sigil.getFlow();
+            String triggerDesc = flow.getTrigger() != null ? flow.getTrigger() : "Unknown";
+            lore.add(TextUtil.parseComponent("§8│ §7Trigger: §f" + triggerDesc));
+            maxLength = Math.max(maxLength, triggerDesc.length() + 12);
         }
 
         // Build bottom border to match longest line
         // The ─ character is narrower than text, so divide by ~2 for visual match
         int borderLength = (int) Math.ceil(maxLength / 1.8);
-        StringBuilder border = new StringBuilder("&8└");
+        StringBuilder border = new StringBuilder("§8└");
         for (int i = 0; i < borderLength - 1; i++) {
             border.append("─");
         }
@@ -272,7 +349,7 @@ public class SigilManager {
 
         lore.add(net.kyori.adventure.text.Component.empty());
 
-        lore.add(TextUtil.parseComponent("&8Drag and drop to socket sigil"));
+        lore.add(TextUtil.parseComponent("§8Drag and drop to socket sigil"));
 
         meta.lore(lore);
 
@@ -370,17 +447,367 @@ public class SigilManager {
     }
 
     /**
+     * Format socketable items set into a display string.
+     * Groups armor types together and handles special cases.
+     */
+    private String formatSocketableItems(Set<String> items) {
+        if (items == null || items.isEmpty()) {
+            return "None";
+        }
+
+        // Check if all armor types are selected
+        boolean hasAllArmor = items.contains("helmet") && items.contains("chestplate")
+                && items.contains("leggings") && items.contains("boots");
+
+        List<String> displayParts = new ArrayList<>();
+
+        if (hasAllArmor) {
+            displayParts.add("Armor");
+        } else {
+            // Add individual armor pieces
+            if (items.contains("helmet")) displayParts.add("Helmet");
+            if (items.contains("chestplate")) displayParts.add("Chestplate");
+            if (items.contains("leggings")) displayParts.add("Leggings");
+            if (items.contains("boots")) displayParts.add("Boots");
+        }
+
+        // Add tool/weapon types (general categories)
+        if (items.contains("tool")) displayParts.add("Tools");
+        if (items.contains("weapon")) displayParts.add("Weapons");
+        if (items.contains("bow")) displayParts.add("Bows");
+        if (items.contains("axe")) displayParts.add("Axes");
+        if (items.contains("offhand")) displayParts.add("Offhand");
+
+        // Add specific item types
+        if (items.contains("sword")) displayParts.add("Swords");
+        if (items.contains("pickaxe")) displayParts.add("Pickaxes");
+        if (items.contains("shovel")) displayParts.add("Shovels");
+        if (items.contains("hoe")) displayParts.add("Hoes");
+        if (items.contains("fishing_rod")) displayParts.add("Fishing Rods");
+        if (items.contains("crossbow")) displayParts.add("Crossbows");
+        if (items.contains("trident")) displayParts.add("Tridents");
+
+        if (displayParts.isEmpty()) {
+            return "None";
+        }
+
+        return String.join(", ", displayParts);
+    }
+
+    /**
      * Get rarity color code based on rarity name.
      */
     private String getRarityColor(String rarity) {
         return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "&7";      // Gray
-            case "UNCOMMON" -> "&a";    // Green
-            case "RARE" -> "&9";        // Blue
-            case "EPIC" -> "&5";        // Purple
-            case "LEGENDARY" -> "&6";   // Gold
-            case "MYTHIC" -> "&d";      // Pink
-            default -> "&7";
+            case "COMMON" -> "§7";      // Gray
+            case "UNCOMMON" -> "§a";    // Green
+            case "RARE" -> "§9";        // Blue
+            case "EPIC" -> "§5";        // Purple
+            case "LEGENDARY" -> "§6";   // Gold
+            case "MYTHIC" -> "§d";      // Pink
+            default -> "§7";
         };
+    }
+
+    /**
+     * Save a sigil back to its configuration file.
+     * This method saves changes made to a sigil through the GUI.
+     */
+    public void saveSigil(Sigil sigil) {
+        saveSigil(sigil, null);
+    }
+
+    /**
+     * Save a sigil to its YAML file.
+     * @param sigil The sigil to save
+     * @param oldSourceFile If the filename changed, provide the old filename to remove from
+     */
+    public void saveSigil(Sigil sigil, String oldSourceFile) {
+        // Update in-memory map
+        sigils.put(sigil.getId().toLowerCase(), sigil);
+
+        // Save to file
+        String sourceFile = sigil.getSourceFile();
+        if (sourceFile == null) {
+            sourceFile = "sigils.yml"; // Default filename
+            sigil.setSourceFile(sourceFile);
+        }
+
+        // Get the file path
+        File sigilsDir = new File(plugin.getDataFolder(), "sigils");
+
+        // Ensure directory exists
+        if (!sigilsDir.exists()) {
+            sigilsDir.mkdirs();
+        }
+
+        File file = new File(sigilsDir, sourceFile);
+
+        // If filename changed, remove from old file first
+        if (oldSourceFile != null && !oldSourceFile.equals(sourceFile)) {
+            removeFromFile(sigil.getId(), oldSourceFile);
+        }
+
+        try {
+            // Ensure file exists
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            // Load the config file
+            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            // Update the sigil's section
+            String sigilId = sigil.getId();
+
+            // Create or update the sigil section
+            config.set(sigilId + ".name", sigil.getName());
+            config.set(sigilId + ".description", sigil.getDescription());
+            config.set(sigilId + ".slot", sigil.getSlot());
+            config.set(sigilId + ".max_tier", sigil.getMaxTier());
+            config.set(sigilId + ".rarity", sigil.getRarity());
+            config.set(sigilId + ".exclusive", sigil.isExclusive());
+
+            if (sigil.getCrate() != null) {
+                config.set(sigilId + ".crate", sigil.getCrate());
+            }
+
+            if (sigil.getLorePrefix() != null) {
+                config.set(sigilId + ".lore_prefix", sigil.getLorePrefix());
+            }
+
+            // Save exclusive type if exclusive
+            if (sigil.isExclusive()) {
+                config.set(sigilId + ".exclusive_type", sigil.getExclusiveType().name());
+            }
+
+            // Save socketables (new key name)
+            if (sigil.getSocketables() != null && !sigil.getSocketables().isEmpty()) {
+                config.set(sigilId + ".socketables", new java.util.ArrayList<>(sigil.getSocketables()));
+            }
+
+            // Save item form if present (use "item" key, custom_model_data for consistency)
+            if (sigil.getItemForm() != null) {
+                Sigil.ItemForm itemForm = sigil.getItemForm();
+                config.set(sigilId + ".item.material", itemForm.getMaterial().name());
+                config.set(sigilId + ".item.custom_model_data", itemForm.getModelData());
+                config.set(sigilId + ".item.name", itemForm.getName());
+                config.set(sigilId + ".item.lore", itemForm.getLore());
+                config.set(sigilId + ".item.glow", itemForm.isGlow());
+            }
+
+            // Save tier scaling config if present
+            if (sigil.getTierScalingConfig() != null) {
+                TierScalingConfig tierConfig = sigil.getTierScalingConfig();
+                config.set(sigilId + ".tier.mode", tierConfig.getMode().name());
+
+                // Save parameter arrays
+                if (tierConfig.hasParams()) {
+                    java.util.Map<String, Object> paramsMap = tierConfig.getParams().toMap();
+                    for (java.util.Map.Entry<String, Object> param : paramsMap.entrySet()) {
+                        config.set(sigilId + ".tier.params." + param.getKey(), param.getValue());
+                        LogHelper.debug("[TierSave] %s.tier.params.%s = %s", sigilId, param.getKey(), param.getValue());
+                    }
+                }
+            }
+
+            // Save tier XP config if present
+            if (sigil.getTierXPConfig() != null) {
+                var xpConfig = sigil.getTierXPConfig();
+                config.set(sigilId + ".tier.xp_enabled", xpConfig.isEnabled());
+                if (xpConfig.isEnabled()) {
+                    config.set(sigilId + ".tier.xp.gain_per_activation", xpConfig.getGainPerActivation());
+                    config.set(sigilId + ".tier.xp.curve_type", xpConfig.getCurveType().name());
+                    config.set(sigilId + ".tier.xp.base_xp", xpConfig.getBaseXP());
+                    config.set(sigilId + ".tier.xp.growth_rate", xpConfig.getGrowthRate());
+                }
+            }
+
+            // Save unified flows (replaces old signals and activation)
+            // Uses the new list format: flows: [{type, trigger, nodes...}, ...]
+            LogHelper.debug("[SigilSave] %s hasFlows=%s, flowCount=%d",
+                sigilId, sigil.hasFlows(), sigil.getFlows().size());
+
+            if (sigil.hasFlows()) {
+                // Clear old single flow format if present
+                config.set(sigilId + ".flow", null);
+
+                // Save as flows list
+                java.util.List<java.util.Map<String, Object>> flowsList =
+                    FlowSerializer.flowConfigsToMapList(sigil.getFlows());
+                LogHelper.debug("[SigilSave] Serialized %d flows for %s", flowsList.size(), sigilId);
+                config.set(sigilId + ".flows", flowsList);
+            } else {
+                LogHelper.warning("[SigilSave] Sigil %s has NO flows to save! Flows list: %s",
+                    sigilId, sigil.getFlows());
+            }
+
+            // Save to file
+            config.save(file);
+
+            plugin.getLogger().info("Saved sigil: " + sigil.getId() + " to " + sourceFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save sigil " + sigil.getId() + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Remove a sigil from a specific YAML file.
+     * Used when the sigil's filename changes to clean up the old file.
+     */
+    private void removeFromFile(String sigilId, String fileName) {
+        File sigilsDir = new File(plugin.getDataFolder(), "sigils");
+        File file = new File(sigilsDir, fileName);
+
+        if (!file.exists()) {
+            return; // File doesn't exist, nothing to remove
+        }
+
+        try {
+            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            // Remove the sigil section
+            if (config.contains(sigilId)) {
+                config.set(sigilId, null);
+                config.save(file);
+                plugin.getLogger().info("Removed sigil " + sigilId + " from old file: " + fileName);
+            }
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to remove sigil " + sigilId + " from " + fileName + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Register a new sigil (for GUI-created sigils).
+     */
+    public void registerSigil(Sigil sigil) {
+        sigils.put(sigil.getId().toLowerCase(), sigil);
+    }
+
+    /**
+     * Delete a sigil completely (remove from memory and file).
+     */
+    public void deleteSigil(String sigilId) {
+        Sigil sigil = sigils.remove(sigilId.toLowerCase());
+        if (sigil != null && sigil.getSourceFile() != null) {
+            removeFromFile(sigilId, sigil.getSourceFile());
+        }
+    }
+
+    /**
+     * Save a behavior to the behaviors folder.
+     * @param behavior The behavior sigil to save
+     */
+    public void saveBehavior(Sigil behavior) {
+        saveBehavior(behavior, null);
+    }
+
+    /**
+     * Save a behavior to the behaviors folder.
+     * @param behavior The behavior sigil to save
+     * @param oldSourceFile If filename changed, the old filename to remove from
+     */
+    public void saveBehavior(Sigil behavior, String oldSourceFile) {
+        // Ensure it's marked as a behavior
+        behavior.setSigilType(Sigil.SigilType.BEHAVIOR);
+
+        // Update in-memory map
+        behaviors.put(behavior.getId().toLowerCase(), behavior);
+
+        // Save to file
+        String sourceFile = behavior.getSourceFile();
+        if (sourceFile == null) {
+            sourceFile = behavior.getId().toLowerCase() + ".yml";
+            behavior.setSourceFile(sourceFile);
+        }
+
+        // Get the file path - behaviors go in behaviors/ folder
+        File behaviorsDir = new File(plugin.getDataFolder(), "behaviors");
+
+        // Ensure directory exists
+        if (!behaviorsDir.exists()) {
+            behaviorsDir.mkdirs();
+        }
+
+        File file = new File(behaviorsDir, sourceFile);
+
+        // If filename changed, remove from old file first
+        if (oldSourceFile != null && !oldSourceFile.equals(sourceFile)) {
+            removeFromBehaviorFile(behavior.getId(), oldSourceFile);
+        }
+
+        try {
+            // Ensure file exists
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+
+            // Load the config file
+            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            // Update the behavior's section
+            String behaviorId = behavior.getId();
+
+            // Create or update the behavior section
+            config.set(behaviorId + ".name", behavior.getName());
+            config.set(behaviorId + ".type", "BEHAVIOR");
+            config.set(behaviorId + ".description", behavior.getDescription());
+
+            // Save unified flows
+            if (behavior.hasFlows()) {
+                java.util.List<java.util.Map<String, Object>> flowsList =
+                    FlowSerializer.flowConfigsToMapList(behavior.getFlows());
+                config.set(behaviorId + ".flows", flowsList);
+            }
+
+            // Save to file
+            config.save(file);
+
+            plugin.getLogger().info("Saved behavior: " + behavior.getId() + " to behaviors/" + sourceFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Failed to save behavior " + behavior.getId() + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Remove a behavior from a specific YAML file in behaviors folder.
+     */
+    private void removeFromBehaviorFile(String behaviorId, String fileName) {
+        File behaviorsDir = new File(plugin.getDataFolder(), "behaviors");
+        File file = new File(behaviorsDir, fileName);
+
+        if (!file.exists()) {
+            return;
+        }
+
+        try {
+            FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            if (config.contains(behaviorId)) {
+                config.set(behaviorId, null);
+                config.save(file);
+                plugin.getLogger().info("Removed behavior " + behaviorId + " from old file: " + fileName);
+            }
+        } catch (IOException e) {
+            plugin.getLogger().warning("Failed to remove behavior " + behaviorId + " from " + fileName + ": " + e.getMessage());
+        }
+    }
+
+    /**
+     * Register a new behavior (for GUI-created behaviors).
+     */
+    public void registerBehavior(Sigil behavior) {
+        behavior.setSigilType(Sigil.SigilType.BEHAVIOR);
+        behaviors.put(behavior.getId().toLowerCase(), behavior);
+    }
+
+    /**
+     * Delete a behavior completely (remove from memory and file).
+     */
+    public void deleteBehavior(String behaviorId) {
+        Sigil behavior = behaviors.remove(behaviorId.toLowerCase());
+        if (behavior != null && behavior.getSourceFile() != null) {
+            removeFromBehaviorFile(behaviorId, behavior.getSourceFile());
+        }
     }
 }

@@ -1,0 +1,41 @@
+# Sand Summon Preset
+# Rising sand spiral effect for summoning desert entities (mummies, etc.)
+
+sand_summon:
+  name: "&6Sand Summon"
+  description:
+    - "&7Rising sand spiral"
+    - "&7for summoning effects"
+  icon: SAND
+
+  shape: spiral
+  shape_params:
+    radius: 1.5
+    height: 2.5
+    turns: 2
+    points: 30
+
+  modifiers:
+    - type: rise
+      speed: 2.0
+    - type: expand
+      speed: 1.5
+
+  duration: 1.5
+
+  layers:
+    - type: particle
+      particle: FALLING_DUST
+      count: 2
+      material: SAND
+    - type: particle
+      particle: DUST
+      count: 1
+      color: "194,178,128"
+      size: 1.2
+
+  sounds:
+    - sound: BLOCK_SAND_BREAK
+      volume: 1.0
+      pitch: 0.6
+      at: start

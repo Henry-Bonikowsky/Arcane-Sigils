@@ -1,0 +1,137 @@
+# Wolf Companion Behavior Sigil
+# Used by SPAWN_ENTITY effect for summoned wolves
+# Signals: ATTACK, DEFENSE, ENTITY_DEATH, TICK
+
+wolf_companion:
+  name: "Spirit Wolf"
+  type: BEHAVIOR
+  description:
+    - "Loyal wolf companion"
+    - "Heals owner on attack"
+
+  flows:
+    # When wolf attacks
+    - type: SIGNAL
+      trigger: ATTACK
+      chance: 100
+      cooldown: 0
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: wither
+        # 30% chance to apply bleeding/wither to target
+        - id: wither
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: WITHER
+            duration: 3
+            amplifier: 0
+            chance: 30
+            target: '@Victim'
+          next: crit_particle
+        - id: crit_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 2
+          params:
+            particle_type: CRIT
+            count: 5
+            target: '@Victim'
+          next: heal_owner
+        # 25% chance to heal owner
+        - id: heal_owner
+          type: EFFECT
+          effect: HEAL
+          x: 0
+          y: 3
+          params:
+            amount: 2
+            chance: 25
+            target: '@Owner'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4
+
+    # When wolf takes damage
+    - type: SIGNAL
+      trigger: DEFENSE
+      chance: 100
+      cooldown: 3
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: howl_particle
+        # Howl effect
+        - id: howl_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 1
+          params:
+            particle_type: NOTE
+            count: 10
+            target: '@Self'
+          next: howl_sound
+        - id: howl_sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: ENTITY_WOLF_HOWL
+            volume: 1.0
+            pitch: 1.0
+            target: '@Self'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3
+
+    # When wolf dies
+    - type: SIGNAL
+      trigger: ENTITY_DEATH
+      chance: 100
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: death_soul
+        - id: death_soul
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 1
+          params:
+            particle_type: SOUL
+            count: 20
+            target: '@Self'
+          next: death_msg
+        - id: death_msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 2
+          params:
+            type: ACTIONBAR
+            message: '&b&lYour Spirit Wolf has fallen!'
+            target: '@Owner'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3

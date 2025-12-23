@@ -1,6 +1,6 @@
 package com.zenax.armorsets.effects;
 
-import com.zenax.armorsets.events.TriggerType;
+import com.zenax.armorsets.events.SignalType;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -16,33 +16,41 @@ import java.util.Map;
 public class EffectContext {
 
     private final Player player;
-    private final TriggerType triggerType;
+    private final SignalType signalType;
     private final Event bukkitEvent;
     private LivingEntity victim;
+    private LivingEntity attacker;
     private Location location;
     private double damage;
     private final EffectParams params;
     private final Map<String, Object> metadata;
+    private final Map<String, Object> variables;
     private boolean cancelled;
+    private final String sigilId;
+    private final String signalKey;
 
     private EffectContext(Builder builder) {
         this.player = builder.player;
-        this.triggerType = builder.triggerType;
+        this.signalType = builder.signalType;
         this.bukkitEvent = builder.bukkitEvent;
         this.victim = builder.victim;
+        this.attacker = builder.attacker;
         this.location = builder.location;
         this.damage = builder.damage;
         this.params = builder.params;
         this.metadata = builder.metadata;
+        this.variables = builder.variables;
         this.cancelled = false;
+        this.sigilId = builder.sigilId;
+        this.signalKey = builder.signalKey;
     }
 
     public Player getPlayer() {
         return player;
     }
 
-    public TriggerType getTriggerType() {
-        return triggerType;
+    public SignalType getSignalType() {
+        return signalType;
     }
 
     public Event getBukkitEvent() {
@@ -55,6 +63,14 @@ public class EffectContext {
 
     public void setVictim(LivingEntity victim) {
         this.victim = victim;
+    }
+
+    public LivingEntity getAttacker() {
+        return attacker;
+    }
+
+    public void setAttacker(LivingEntity attacker) {
+        this.attacker = attacker;
     }
 
     public Location getLocation() {
@@ -91,6 +107,53 @@ public class EffectContext {
         metadata.put(key, value);
     }
 
+    /**
+     * Get a stored variable value.
+     * Variables can be set by effects (e.g., storing position before teleport).
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getVariable(String name) {
+        return variables != null ? (T) variables.get(name) : null;
+    }
+
+    /**
+     * Get a stored variable with default value.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getVariable(String name, T defaultValue) {
+        if (variables == null) return defaultValue;
+        Object value = variables.get(name);
+        return value != null ? (T) value : defaultValue;
+    }
+
+    /**
+     * Store a variable for use by subsequent effects.
+     */
+    public void setVariable(String name, Object value) {
+        if (variables != null) {
+            variables.put(name, value);
+        }
+    }
+
+    /**
+     * Check if a variable exists.
+     */
+    public boolean hasVariable(String name) {
+        return variables != null && variables.containsKey(name);
+    }
+
+    public Map<String, Object> getVariables() {
+        return variables;
+    }
+
+    public String getSigilId() {
+        return sigilId;
+    }
+
+    public String getSignalKey() {
+        return signalKey;
+    }
+
     public boolean isCancelled() {
         return cancelled;
     }
@@ -120,6 +183,8 @@ public class EffectContext {
             return player.getLocation();
         } else if (targetSelector.equalsIgnoreCase("@Victim") && victim != null) {
             return victim.getLocation();
+        } else if (targetSelector.equalsIgnoreCase("@Attacker") && attacker != null) {
+            return attacker.getLocation();
         } else if (targetSelector.startsWith("@Nearby")) {
             // For @Nearby, return player location (effects will handle radius)
             return player.getLocation();
@@ -138,27 +203,33 @@ public class EffectContext {
             return player;
         } else if (targetSelector.equalsIgnoreCase("@Victim")) {
             return victim;
+        } else if (targetSelector.equalsIgnoreCase("@Attacker")) {
+            return attacker;
         }
         return player;
     }
 
-    public static Builder builder(Player player, TriggerType triggerType) {
-        return new Builder(player, triggerType);
+    public static Builder builder(Player player, SignalType signalType) {
+        return new Builder(player, signalType);
     }
 
     public static class Builder {
         private final Player player;
-        private final TriggerType triggerType;
+        private final SignalType signalType;
         private Event bukkitEvent;
         private LivingEntity victim;
+        private LivingEntity attacker;
         private Location location;
         private double damage;
         private EffectParams params;
         private final Map<String, Object> metadata = new HashMap<>();
+        private final Map<String, Object> variables = new HashMap<>();
+        private String sigilId;
+        private String signalKey;
 
-        public Builder(Player player, TriggerType triggerType) {
+        public Builder(Player player, SignalType signalType) {
             this.player = player;
-            this.triggerType = triggerType;
+            this.signalType = signalType;
         }
 
         public Builder event(Event event) {
@@ -168,6 +239,11 @@ public class EffectContext {
 
         public Builder victim(LivingEntity victim) {
             this.victim = victim;
+            return this;
+        }
+
+        public Builder attacker(LivingEntity attacker) {
+            this.attacker = attacker;
             return this;
         }
 
@@ -188,6 +264,21 @@ public class EffectContext {
 
         public Builder metadata(String key, Object value) {
             this.metadata.put(key, value);
+            return this;
+        }
+
+        public Builder variable(String name, Object value) {
+            this.variables.put(name, value);
+            return this;
+        }
+
+        public Builder sigilId(String sigilId) {
+            this.sigilId = sigilId;
+            return this;
+        }
+
+        public Builder signalKey(String signalKey) {
+            this.signalKey = signalKey;
             return this;
         }
 

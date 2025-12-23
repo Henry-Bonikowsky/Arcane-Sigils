@@ -26,14 +26,15 @@ public class DealDamageEffect extends AbstractEffect {
             }
         }
 
-        // Default: damage the victim
-        LivingEntity victim = context.getVictim();
-        if (victim != null) {
-            victim.damage(damage, context.getPlayer());
-            debug("Dealt " + damage + " damage to " + victim.getName());
+        // Get target - uses TargetFinder if no victim (ability-style)
+        LivingEntity target = getTarget(context, 15.0);
+        if (target != null && target != context.getPlayer()) {
+            target.damage(damage, context.getPlayer());
+            debug("Dealt " + damage + " damage to " + target.getName());
             return true;
         }
 
+        debug("Deal damage failed - no valid target found");
         return false;
     }
 

@@ -218,12 +218,12 @@ public final class LogHelper {
     }
 
     /**
-     * Log a trigger activation (debug level).
+     * Log a signal activation (debug level).
      *
-     * @param triggerType The trigger type
+     * @param signalType The signal type
      * @param playerId    The player identifier
      */
-    public static void debugTrigger(String triggerType, String playerId) {
-        debug("[Triggers] %s activated for %s", triggerType, playerId);
+    public static void debugSignal(String signalType, String playerId) {
+        debug("[Signals] %s activated for %s", signalType, playerId);
     }
 }

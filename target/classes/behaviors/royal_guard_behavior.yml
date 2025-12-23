@@ -1,0 +1,280 @@
+# Royal Guard Behavior Sigil
+# Used by Pharaoh Axe ability to define mummy minion AI
+# Summons 2 mummified zombies that inflict Pharaoh's Mark and Pharaoh's Curse
+# Signals: ATTACK (on hit), DEFENSE (when hit), ENTITY_DEATH (when dies), TICK (passive)
+
+royal_guard_behavior:
+  name: "Royal Guard Mummy AI"
+  type: BEHAVIOR
+  description:
+    - "Pharaoh's mummified guards"
+    - "Inflict Pharaoh's Mark and Curse on hit"
+
+  flows:
+    # When mummy attacks a target
+    - type: SIGNAL
+      trigger: ATTACK
+      chance: 100
+      cooldown: 0
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: mark
+        # 25% chance to inflict Pharaoh's Mark
+        - id: mark
+          type: EFFECT
+          effect: MARK
+          x: 0
+          y: 1
+          params:
+            mark_name: PHARAOH_MARK
+            duration: 5
+            chance: 25
+            target: '@Victim'
+          next: slowness
+        - id: slowness
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: SLOWNESS
+            duration: 5
+            amplifier: 0
+            chance: 25
+            target: '@Victim'
+          next: glowing
+        - id: glowing
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 3
+          params:
+            potion_type: GLOWING
+            duration: 5
+            amplifier: 0
+            chance: 25
+            target: '@Victim'
+          next: mark_particle
+        - id: mark_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 4
+          params:
+            particle_type: DUST
+            red: 255
+            green: 215
+            blue: 0
+            count: 8
+            chance: 25
+            target: '@Victim'
+          next: mark_sound
+        - id: mark_sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 5
+          params:
+            sound: ENTITY_HUSK_HURT
+            volume: 0.8
+            pitch: 1.2
+            chance: 25
+            target: '@Victim'
+          next: stun
+        # 5% chance to inflict Pharaoh's Curse (stun)
+        - id: stun
+          type: EFFECT
+          effect: STUN
+          x: 0
+          y: 6
+          params:
+            duration: 3
+            chance: 5
+            target: '@Victim'
+          next: stun_particle
+        - id: stun_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 7
+          params:
+            particle_type: FALLING_DUST
+            material: SAND
+            count: 30
+            chance: 5
+            target: '@Victim'
+          next: stun_sound
+        - id: stun_sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 8
+          params:
+            sound: ENTITY_VEX_CHARGE
+            volume: 1.0
+            pitch: 0.5
+            chance: 5
+            target: '@Victim'
+          next: stun_msg
+        - id: stun_msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 9
+          params:
+            type: ACTIONBAR
+            message: '&6&lPharaoh''s Curse! &7You are stunned!'
+            chance: 5
+            target: '@Victim'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 10
+
+    # When mummy takes damage - slight recoil effect
+    - type: SIGNAL
+      trigger: DEFENSE
+      chance: 50
+      cooldown: 1
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: defense_particle
+        - id: defense_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 1
+          params:
+            particle_type: DUST
+            red: 194
+            green: 178
+            blue: 128
+            count: 5
+            target: '@Self'
+          next: defense_sound
+        - id: defense_sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: ENTITY_HUSK_HURT
+            volume: 0.6
+            pitch: 1.0
+            target: '@Self'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3
+
+    # Passive sand particle aura
+    - type: SIGNAL
+      trigger: TICK
+      chance: 100
+      cooldown: 2
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: tick_particle
+        - id: tick_particle
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 1
+          params:
+            particle_type: DUST
+            red: 194
+            green: 178
+            blue: 128
+            count: 3
+            target: '@Self'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 2
+
+    # When mummy dies - sandy disintegration
+    - type: SIGNAL
+      trigger: ENTITY_DEATH
+      chance: 100
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: death_sand
+        - id: death_sand
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 1
+          params:
+            particle_type: FALLING_DUST
+            material: SAND
+            count: 50
+            target: '@Self'
+          next: death_dust
+        - id: death_dust
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 2
+          params:
+            particle_type: DUST
+            red: 194
+            green: 178
+            blue: 128
+            count: 30
+            target: '@Self'
+          next: death_soul
+        - id: death_soul
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 3
+          params:
+            particle_type: SOUL
+            count: 15
+            target: '@Self'
+          next: death_sound1
+        - id: death_sound1
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 4
+          params:
+            sound: ENTITY_HUSK_DEATH
+            volume: 1.0
+            pitch: 0.8
+            target: '@Self'
+          next: death_sound2
+        - id: death_sound2
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 5
+          params:
+            sound: BLOCK_SAND_BREAK
+            volume: 1.0
+            pitch: 0.8
+            target: '@Self'
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 6

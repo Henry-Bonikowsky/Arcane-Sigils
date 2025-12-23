@@ -1,0 +1,19 @@
+# Circle Shape Definition
+# A flat ring of points at a fixed height
+
+circle:
+  name: "Circle"
+  description: "A flat ring of points"
+  type: BUILTIN
+
+  params:
+    radius:
+      default: 2.0
+      min: 0.1
+      max: 20.0
+      description: "Radius of the circle"
+    points:
+      default: 20
+      min: 3
+      max: 100
+      description: "Number of points around the circle"

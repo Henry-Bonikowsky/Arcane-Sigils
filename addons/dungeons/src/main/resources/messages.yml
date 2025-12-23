@@ -1,0 +1,202 @@
+# ========================================
+# Dungeons Addon - Messages
+# ========================================
+
+# Message prefix
+prefix: "&8[&6Dungeons&8]&r"
+
+# General messages
+general:
+  no-permission: "{prefix} &cYou do not have permission to do that."
+  player-only: "{prefix} &cOnly players can use this command."
+  invalid-dungeon: "{prefix} &cDungeon not found: &f{dungeon}"
+  dungeon-not-found: "{prefix} &cThat dungeon does not exist."
+
+# Dungeon messages
+dungeon:
+  enter:
+    success: "{prefix} &aYou have entered &f{dungeon}&a!"
+    already-in-dungeon: "{prefix} &cYou are already in a dungeon."
+    party-required: "{prefix} &cYou need a party to enter this dungeon."
+    party-too-small: "{prefix} &cYour party is too small. Required: &f{min} &cplayers."
+    party-too-large: "{prefix} &cYour party is too large. Maximum: &f{max} &cplayers."
+    instance-full: "{prefix} &cThis dungeon instance is full."
+
+  leave:
+    success: "{prefix} &aYou have left the dungeon."
+    not-in-dungeon: "{prefix} &cYou are not in a dungeon."
+
+  complete:
+    title: "&6&lDUNGEON COMPLETE!"
+    subtitle: "&aObjective completed"
+    message: "{prefix} &aCongratulations! You have completed &f{dungeon}&a!"
+    time: "{prefix} &7Time taken: &f{time}"
+    rewards: "{prefix} &7Rewards have been distributed."
+
+  failed:
+    title: "&c&lDUNGEON FAILED"
+    subtitle: "&cBetter luck next time"
+    message: "{prefix} &cYour party has failed the dungeon."
+    reason-death: "{prefix} &cReason: All party members died"
+    reason-time: "{prefix} &cReason: Time limit exceeded"
+    reason-disconnect: "{prefix} &cReason: Too many players disconnected"
+
+  start:
+    countdown: "{prefix} &aDungeon starting in &f{seconds} &aseconds..."
+    started: "{prefix} &aThe dungeon has begun!"
+
+  time:
+    warning: "{prefix} &c&l{minutes} minutes remaining!"
+    expired: "{prefix} &c&lTime's up!"
+
+# Party messages
+party:
+  create:
+    success: "{prefix} &aParty created! You are the leader."
+    already-in-party: "{prefix} &cYou are already in a party."
+
+  disband:
+    leader-left: "{prefix} &cThe party has been disbanded."
+
+  invite:
+    sent: "{prefix} &aInvitation sent to &f{player}&a."
+    received: "{prefix} &6{player} &ahas invited you to their party!"
+    received-hint: "{prefix} &7Use &f/dungeon party accept &7to join."
+    already-invited: "{prefix} &c{player} already has a pending invitation."
+    already-in-party: "{prefix} &c{player} is already in a party."
+    party-full: "{prefix} &cYour party is full."
+    cannot-invite-self: "{prefix} &cYou cannot invite yourself."
+    not-leader: "{prefix} &cOnly the party leader can invite players."
+
+  accept:
+    success: "{prefix} &aYou have joined the party!"
+    broadcast: "{prefix} &a{player} has joined the party!"
+    no-invitation: "{prefix} &cYou have no pending party invitations."
+    party-full: "{prefix} &cThat party is now full."
+
+  decline:
+    success: "{prefix} &7You have declined the party invitation."
+    broadcast: "{prefix} &7{player} has declined the party invitation."
+    no-invitation: "{prefix} &cYou have no pending party invitations."
+
+  leave:
+    success: "{prefix} &7You have left the party."
+    broadcast: "{prefix} &7{player} has left the party."
+    not-in-party: "{prefix} &cYou are not in a party."
+
+  kick:
+    success: "{prefix} &7You have kicked &f{player} &7from the party."
+    kicked: "{prefix} &cYou have been kicked from the party."
+    broadcast: "{prefix} &7{player} has been kicked from the party."
+    not-in-party: "{prefix} &c{player} is not in your party."
+    not-leader: "{prefix} &cOnly the party leader can kick players."
+    cannot-kick-self: "{prefix} &cYou cannot kick yourself. Use /dungeon party leave."
+
+  list:
+    header: "{prefix} &6&lParty Members &7({size}/{max})"
+    leader: "&6[Leader] &f{player}"
+    member: "&7- &f{player}"
+    not-in-party: "{prefix} &cYou are not in a party."
+
+# Portal messages
+portal:
+  enter:
+    success: "{prefix} &aEntering dungeon..."
+
+  no-key:
+    required: "{prefix} &cThis portal requires a key: &f{key}"
+    hint: "{prefix} &7Obtain the key to unlock this dungeon."
+
+  cooldown:
+    active: "{prefix} &cPlease wait &f{seconds} &cseconds before using another portal."
+
+  created:
+    success: "{prefix} &aPortal created for dungeon: &f{dungeon}"
+
+  removed:
+    success: "{prefix} &aPortal removed."
+    not-found: "{prefix} &cNo portal found at your location."
+
+# Objective messages
+objective:
+  updated: "{prefix} &7Objective: &f{objective} &7(&f{current}&7/&f{required}&7)"
+  complete: "{prefix} &a&lObjective Complete!"
+  new: "{prefix} &e&lNew Objective: &f{objective}"
+
+  types:
+    boss-kill: "Defeat the boss"
+    clear-all: "Clear all enemies ({current}/{required})"
+    survival: "Survive for {time}"
+    find-exit: "Find the exit"
+    collect-items: "Collect items ({current}/{required})"
+    protect-npc: "Protect the NPC"
+
+# Boss messages
+boss:
+  spawn:
+    title: "&c&l{name}"
+    subtitle: "&7{title}"
+    message: "{prefix} &c&lA boss has appeared!"
+
+  phase:
+    change: "{prefix} &c{name} &7has entered &c{phase}&7!"
+
+  defeated:
+    title: "&6&lBOSS DEFEATED"
+    subtitle: "&a{name}"
+    message: "{prefix} &a&lYou have defeated &f{name}&a&l!"
+
+  enrage:
+    warning: "{prefix} &c&l{name} is enraged!"
+
+# Death messages
+death:
+  respawn:
+    countdown: "{prefix} &7Respawning in &f{seconds} &7seconds..."
+    success: "{prefix} &aYou have respawned."
+    no-respawns: "{prefix} &c&lNo respawns remaining!"
+
+  penalty:
+    item-loss: "{prefix} &cYou lost some items due to death."
+    durability: "{prefix} &cYour equipment has been damaged."
+    experience: "{prefix} &cYou lost &f{amount} &cexperience."
+
+# Loot messages
+loot:
+  chest:
+    opened: "{prefix} &aYou opened a loot chest!"
+    protected: "{prefix} &cThis chest is protected for &f{seconds} &cmore seconds."
+
+  rare-drop:
+    message: "{prefix} &6&l{player} &6found a rare item: &f{item}&6!"
+
+# Stats messages
+stats:
+  gui-title: "Your Dungeon Stats"
+  dungeons-completed: "&aDungeons Completed: &f{count}"
+  bosses-defeated: "&cBosses Defeated: &f{count}"
+  deaths: "&7Deaths: &f{count}"
+  playtime: "&bPlaytime: &f{time}"
+
+# Admin messages
+admin:
+  reload:
+    start: "{prefix} &7Reloading configuration..."
+    success: "{prefix} &aConfiguration reloaded successfully!"
+    failed: "{prefix} &cFailed to reload configuration. Check console for errors."
+
+  forceend:
+    success: "{prefix} &aDungeon instance force ended."
+    not-in-dungeon: "{prefix} &cYou are not in a dungeon."
+
+  give-key:
+    success: "{prefix} &aGave &f{key} &ato &f{player}&a."
+    failed: "{prefix} &cFailed to give key."
+
+# Error messages
+error:
+  internal: "{prefix} &cAn internal error occurred. Please contact an administrator."
+  world-not-found: "{prefix} &cDungeon world not found. Please contact an administrator."
+  generation-failed: "{prefix} &cFailed to generate dungeon. Please try again."
+  instance-not-found: "{prefix} &cDungeon instance not found."
+  command-failed: "{prefix} &cCommand failed. Please try again."

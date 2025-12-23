@@ -16,22 +16,43 @@ public class PotionEffectEffect extends AbstractEffect {
     public EffectParams parseParams(String effectString) {
         EffectParams params = super.parseParams(effectString);
 
-        // Parse POTION:TYPE:DURATION:AMPLIFIER format
+        // Parse POTION:TYPE:DURATION:AMPLIFIER format (supports both positional and key=value)
         String cleanedString = effectString.replaceAll("\\s+@\\w+(?::\\d+)?$", "").trim();
         String[] parts = cleanedString.split(":");
 
-        if (parts.length >= 2) {
-            params.set("potion_type", parts[1].toUpperCase());
-        }
-        if (parts.length >= 3) {
-            try {
-                params.setDuration(Integer.parseInt(parts[2]));
-            } catch (NumberFormatException ignored) {}
-        }
-        if (parts.length >= 4) {
-            try {
-                params.setAmplifier(Integer.parseInt(parts[3]));
-            } catch (NumberFormatException ignored) {}
+        int positionalIndex = 0;
+        for (int i = 1; i < parts.length; i++) {
+            String part = parts[i];
+
+            if (part.contains("=")) {
+                // Key=value format
+                String[] kv = part.split("=", 2);
+                if (kv.length == 2) {
+                    String key = kv[0].toLowerCase();
+                    String value = kv[1];
+                    switch (key) {
+                        case "potion_type", "type" -> params.set("potion_type", value.toUpperCase());
+                        case "duration" -> params.setDuration((int) parseDouble(value, 10));
+                        case "amplifier", "amp" -> params.setAmplifier((int) parseDouble(value, 0));
+                    }
+                }
+            } else {
+                // Positional format
+                positionalIndex++;
+                switch (positionalIndex) {
+                    case 1 -> params.set("potion_type", part.toUpperCase());
+                    case 2 -> {
+                        try {
+                            params.setDuration((int) Double.parseDouble(part));
+                        } catch (NumberFormatException ignored) {}
+                    }
+                    case 3 -> {
+                        try {
+                            params.setAmplifier((int) Double.parseDouble(part));
+                        } catch (NumberFormatException ignored) {}
+                    }
+                }
+            }
         }
 
         return params;
@@ -46,6 +67,17 @@ public class PotionEffectEffect extends AbstractEffect {
         int duration = params.getDuration() > 0 ? params.getDuration() * 20 : 200; // Convert to ticks
         int amplifier = params.getAmplifier();
 
+        // For EFFECT_STATIC (passive) signals targeting SELF, ensure minimum duration of 5 seconds
+        // to guarantee overlap with cooldown and prevent flickering
+        String targetStr = params.getTarget();
+        boolean isSelfTarget = targetStr == null || targetStr.equals("@Self") || targetStr.isEmpty();
+        if (context.getSignalType() != null &&
+            context.getSignalType().name().equals("EFFECT_STATIC") &&
+            isSelfTarget &&
+            duration < 100) {
+            duration = 100; // 5 seconds minimum for passive self-buffs
+        }
+
         PotionEffectType potionType = getPotionType(potionTypeName);
         if (potionType == null) {
             debug("Unknown potion type: " + potionTypeName);
@@ -56,62 +88,73 @@ public class PotionEffectEffect extends AbstractEffect {
         if (target == null) return false;
 
         // Handle @Nearby targets
-        String targetStr = params.getTarget();
         if (targetStr != null && targetStr.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetStr, 5);
             for (LivingEntity entity : getNearbyEntities(context, radius)) {
-                entity.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true));
+                // Use force=true to ensure effect is always applied/refreshed
+                entity.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true), true);
             }
             return true;
         }
 
-        target.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true));
+        // Use force=true to ensure effect is always applied/refreshed (critical for static effects)
+        target.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true), true);
 
         // Track effect for removal when armor is unequipped
-        if (target == context.getPlayer() && getPlugin().getTriggerHandler() != null) {
-            getPlugin().getTriggerHandler().trackAppliedEffect(context.getPlayer(), potionType);
+        if (target == context.getPlayer() && getPlugin().getSignalHandler() != null) {
+            getPlugin().getSignalHandler().trackAppliedEffect(context.getPlayer(), potionType);
         }
 
-        debug("Applied " + potionTypeName + " to " + target.getName() + " for " + (duration / 20) + "s");
         return true;
     }
 
     private PotionEffectType getPotionType(String name) {
-        return switch (name.toUpperCase()) {
-            case "SPEED" -> PotionEffectType.SPEED;
+        // Trim and uppercase for consistent matching
+        String normalized = name.trim().toUpperCase();
+
+        return switch (normalized) {
+            case "SPEED", "SWIFTNESS" -> PotionEffectType.SPEED;
             case "SLOW", "SLOWNESS" -> PotionEffectType.SLOWNESS;
             case "HASTE" -> PotionEffectType.HASTE;
-            case "MINING_FATIGUE" -> PotionEffectType.MINING_FATIGUE;
+            case "MINING_FATIGUE", "FATIGUE" -> PotionEffectType.MINING_FATIGUE;
             case "STRENGTH" -> PotionEffectType.STRENGTH;
-            case "INSTANT_HEALTH", "HEAL" -> PotionEffectType.INSTANT_HEALTH;
-            case "INSTANT_DAMAGE", "HARM" -> PotionEffectType.INSTANT_DAMAGE;
+            case "INSTANT_HEALTH", "HEAL", "HEALTH" -> PotionEffectType.INSTANT_HEALTH;
+            case "INSTANT_DAMAGE", "HARM", "DAMAGE" -> PotionEffectType.INSTANT_DAMAGE;
             case "JUMP", "JUMP_BOOST" -> PotionEffectType.JUMP_BOOST;
             case "NAUSEA", "CONFUSION" -> PotionEffectType.NAUSEA;
-            case "REGENERATION" -> PotionEffectType.REGENERATION;
-            case "DAMAGE_RESISTANCE", "RESISTANCE" -> PotionEffectType.RESISTANCE;
-            case "FIRE_RESISTANCE" -> PotionEffectType.FIRE_RESISTANCE;
-            case "WATER_BREATHING" -> PotionEffectType.WATER_BREATHING;
-            case "INVISIBILITY" -> PotionEffectType.INVISIBILITY;
-            case "BLINDNESS" -> PotionEffectType.BLINDNESS;
-            case "NIGHT_VISION" -> PotionEffectType.NIGHT_VISION;
+            case "REGENERATION", "REGEN" -> PotionEffectType.REGENERATION;
+            // RESISTANCE must come before FIRE_RESISTANCE check - exact match only
+            case "RESISTANCE", "DAMAGE_RESISTANCE", "DMG_RESISTANCE" -> PotionEffectType.RESISTANCE;
+            case "FIRE_RESISTANCE", "FIRERESISTANCE", "FIRE_RES" -> PotionEffectType.FIRE_RESISTANCE;
+            case "WATER_BREATHING", "WATERBREATHING" -> PotionEffectType.WATER_BREATHING;
+            case "INVISIBILITY", "INVIS" -> PotionEffectType.INVISIBILITY;
+            case "BLINDNESS", "BLIND" -> PotionEffectType.BLINDNESS;
+            case "NIGHT_VISION", "NIGHTVISION" -> PotionEffectType.NIGHT_VISION;
             case "HUNGER" -> PotionEffectType.HUNGER;
-            case "WEAKNESS" -> PotionEffectType.WEAKNESS;
+            case "WEAKNESS", "WEAK" -> PotionEffectType.WEAKNESS;
             case "POISON" -> PotionEffectType.POISON;
             case "WITHER" -> PotionEffectType.WITHER;
-            case "HEALTH_BOOST" -> PotionEffectType.HEALTH_BOOST;
-            case "ABSORPTION" -> PotionEffectType.ABSORPTION;
+            case "HEALTH_BOOST", "HEALTHBOOST" -> PotionEffectType.HEALTH_BOOST;
+            case "ABSORPTION", "ABSORB" -> PotionEffectType.ABSORPTION;
             case "SATURATION" -> PotionEffectType.SATURATION;
-            case "GLOWING" -> PotionEffectType.GLOWING;
-            case "LEVITATION" -> PotionEffectType.LEVITATION;
+            case "GLOWING", "GLOW" -> PotionEffectType.GLOWING;
+            case "LEVITATION", "LEVITATE" -> PotionEffectType.LEVITATION;
             case "LUCK" -> PotionEffectType.LUCK;
-            case "UNLUCK", "BAD_LUCK" -> PotionEffectType.UNLUCK;
-            case "SLOW_FALLING" -> PotionEffectType.SLOW_FALLING;
-            case "CONDUIT_POWER" -> PotionEffectType.CONDUIT_POWER;
-            case "DOLPHINS_GRACE" -> PotionEffectType.DOLPHINS_GRACE;
-            case "BAD_OMEN" -> PotionEffectType.BAD_OMEN;
-            case "HERO_OF_THE_VILLAGE" -> PotionEffectType.HERO_OF_THE_VILLAGE;
-            case "DARKNESS" -> PotionEffectType.DARKNESS;
-            default -> null;
+            case "UNLUCK", "BAD_LUCK", "BADLUCK" -> PotionEffectType.UNLUCK;
+            case "SLOW_FALLING", "SLOWFALLING" -> PotionEffectType.SLOW_FALLING;
+            case "CONDUIT_POWER", "CONDUITPOWER", "CONDUIT" -> PotionEffectType.CONDUIT_POWER;
+            case "DOLPHINS_GRACE", "DOLPHINSGRACE" -> PotionEffectType.DOLPHINS_GRACE;
+            case "BAD_OMEN", "BADOMEN" -> PotionEffectType.BAD_OMEN;
+            case "HERO_OF_THE_VILLAGE", "HERO" -> PotionEffectType.HERO_OF_THE_VILLAGE;
+            case "DARKNESS", "DARK" -> PotionEffectType.DARKNESS;
+            default -> {
+                // Try to match by Bukkit name as fallback
+                try {
+                    yield PotionEffectType.getByName(normalized);
+                } catch (Exception e) {
+                    yield null;
+                }
+            }
         };
     }
 }

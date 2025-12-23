@@ -1,10 +1,10 @@
-# ArmorSets Configuration
+# ArcaneSigils Configuration
 # Version: 1.0.0
 
 # General Settings
 settings:
   # Enable debug messages in console
-  debug: false
+  debug: true
 
   # Performance settings
   effect-check-interval: 20  # Ticks between static effect reapplication (20 = 1 second)
@@ -71,6 +71,43 @@ cooldowns:
 
   # Cooldown message format
   cooldown-message: "&c%ability% is on cooldown! (%remaining%s remaining)"
+
+  # Cooldown ready notifications
+  notify-ready: true
+  ready-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+  ready-sound-pitch: 1.5
+  ready-message: "&a%ability% &7is ready!"
+
+# BossBar Notification Settings
+# Shows animated progress bars for cooldowns and buff durations
+notifications:
+  # Enable bossbar notifications
+  enabled: true
+
+  # Maximum simultaneous bars per player (oldest removed if exceeded)
+  max-bars: 5
+
+  # Update frequency in ticks (2 = 100ms smooth, 4 = 200ms lighter)
+  update-interval: 2
+
+  # Time threshold (seconds) when bar changes to "low" warning color
+  low-time-threshold: 2.0
+
+  # Bar style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  bar-style: SOLID
+
+  # Title format (placeholders: %name%, %time%)
+  title-format: "%name% - %time%s"
+
+  # Cooldown bar settings (time until ability ready)
+  cooldowns:
+    color: RED
+    low-color: YELLOW
+
+  # Duration bar settings (time until buff/effect expires)
+  durations:
+    color: BLUE
+    low-color: YELLOW
 
 # Effect Settings
 effects:

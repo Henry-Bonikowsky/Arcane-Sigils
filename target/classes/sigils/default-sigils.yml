@@ -1,0 +1,659 @@
+# ============================================
+# DEFAULT SIGILS - Arcane Sigils Plugin
+# ============================================
+# All sigils converted to Flow format
+# ============================================
+
+# ============================================
+# MYTHIC SIGILS (Purple/Pink - Highest Tier)
+# ============================================
+
+iron_forged:
+  name: "&5Iron Forged"
+  description:
+    - "&7Grants permanent Fire Resistance"
+    - "&7while equipped."
+  rarity: MYTHIC
+  item:
+    material: BLAZE_POWDER
+  max_tier: 1
+  socketable_items:
+    - chestplate
+    - leggings
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "potion"
+      - id: "potion"
+        type: EFFECT
+        effect: "POTION"
+        x: 0
+        y: 1
+        params:
+          potion_type: "FIRE_RESISTANCE"
+          duration: 10
+          amplifier: 0
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+lifeforce:
+  name: "&5Lifeforce"
+  description:
+    - "&7Restores 3 hearts and food"
+    - "&7every 5 seconds."
+  rarity: MYTHIC
+  item:
+    material: GHAST_TEAR
+  max_tier: 3
+  socketable_items:
+    - chestplate
+  tier:
+    mode: PARAMETER
+    params:
+      heal: [3, 4, 5]
+      food: [3, 4, 6]
+  flow:
+    type: SIGNAL
+    trigger: TICK
+    cooldown: 5
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "heal"
+      - id: "heal"
+        type: EFFECT
+        effect: "HEAL"
+        x: 0
+        y: 1
+        params:
+          amount: "{heal}"
+        tierValues:
+          amount: [3, 4, 5]
+        next: "saturate"
+      - id: "saturate"
+        type: EFFECT
+        effect: "SATURATE"
+        x: 0
+        y: 2
+        params:
+          amount: "{food}"
+        tierValues:
+          amount: [3, 4, 6]
+        next: "particle"
+      - id: "particle"
+        type: EFFECT
+        effect: "PARTICLE"
+        x: 0
+        y: 3
+        params:
+          particle: "HEART"
+          count: 3
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 4
+
+refurbish:
+  name: "&5Refurbish"
+  description:
+    - "&7When the item breaks, it loses"
+    - "&7one level of this enchant,"
+    - "&7removes one random enchantment,"
+    - "&7then restores to full durability."
+  rarity: MYTHIC
+  item:
+    material: ANVIL
+  max_tier: 10
+  socketable_items:
+    - helmet
+    - chestplate
+    - leggings
+    - boots
+    - sword
+    - axe
+    - pickaxe
+    - shovel
+    - hoe
+  flow:
+    type: SIGNAL
+    trigger: ITEM_BREAK
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "repair"
+      - id: "repair"
+        type: EFFECT
+        effect: "REPAIR_ITEM"
+        x: 0
+        y: 1
+        params:
+          percent: 100
+        next: "decrease_tier"
+      - id: "decrease_tier"
+        type: EFFECT
+        effect: "DECREASE_SIGIL_TIER"
+        x: 0
+        y: 2
+        params:
+          amount: 1
+        next: "remove_enchant"
+      - id: "remove_enchant"
+        type: EFFECT
+        effect: "REMOVE_RANDOM_ENCHANT"
+        x: 0
+        y: 3
+        params:
+          count: 1
+        next: "message"
+      - id: "message"
+        type: EFFECT
+        effect: "MESSAGE"
+        x: 0
+        y: 4
+        params:
+          message: "&aYour item has been refurbished!"
+        next: "sound"
+      - id: "sound"
+        type: EFFECT
+        effect: "SOUND"
+        x: 0
+        y: 5
+        params:
+          sound: "BLOCK_ANVIL_USE"
+          volume: 1
+          pitch: 1
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 6
+
+extra_padding:
+  name: "&5Extra Padding"
+  description:
+    - "&7Gain an additional 2.5 hearts"
+    - "&7while equipped. Does not stack."
+  rarity: MYTHIC
+  item:
+    material: LEATHER
+  max_tier: 5
+  socketable_items:
+    - helmet
+    - chestplate
+    - leggings
+    - boots
+  tier:
+    mode: PARAMETER
+    params:
+      health: [5, 7, 9, 11, 14]  # Health points (2 per heart)
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "health_boost"
+      - id: "health_boost"
+        type: EFFECT
+        effect: "MODIFY_ATTRIBUTE"
+        x: 0
+        y: 1
+        params:
+          attribute: GENERIC_MAX_HEALTH
+          operation: ADD_NUMBER
+          value: "{health}"
+          persistent: true
+        tierValues:
+          health: [5, 7, 9, 11, 14]
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+iron_fist:
+  name: "&5Iron Fist"
+  description:
+    - "&7Grants permanent Strength II"
+    - "&7while equipped."
+  rarity: MYTHIC
+  item:
+    material: IRON_INGOT
+  max_tier: 1
+  socketable_items:
+    - chestplate
+    - leggings
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "potion"
+      - id: "potion"
+        type: EFFECT
+        effect: "POTION"
+        x: 0
+        y: 1
+        params:
+          potion_type: "STRENGTH"
+          duration: 10
+          amplifier: 1
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+# ============================================
+# LEGENDARY SIGILS (Gold)
+# ============================================
+
+rocket_boots:
+  name: "&6Rocket Boots"
+  description:
+    - "&7Grants Speed II while equipped."
+  rarity: LEGENDARY
+  item:
+    material: FEATHER
+  max_tier: 2
+  socketable_items:
+    - boots
+  tier:
+    mode: PARAMETER
+    params:
+      speed_amp: [1, 2]
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "potion"
+      - id: "potion"
+        type: EFFECT
+        effect: "POTION"
+        x: 0
+        y: 1
+        params:
+          potion_type: "SPEED"
+          duration: 10
+          amplifier: "{speed_amp}"
+        tierValues:
+          amplifier: [1, 2]
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+meal_planning:
+  name: "&6Meal Planning"
+  description:
+    - "&7Automatically feeds you if"
+    - "&7hunger is below 20 food."
+  rarity: LEGENDARY
+  item:
+    material: GOLDEN_APPLE
+  max_tier: 5
+  socketable_items:
+    - helmet
+  tier:
+    mode: PARAMETER
+    params:
+      food: [2, 4, 6, 8, 10]
+  flow:
+    type: SIGNAL
+    trigger: TICK
+    cooldown: 2
+    conditions:
+      logic: AND
+      list:
+        - "HUNGER:<20"
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "saturate"
+      - id: "saturate"
+        type: EFFECT
+        effect: "SATURATE"
+        x: 0
+        y: 1
+        params:
+          amount: "{food}"
+        tierValues:
+          amount: [2, 4, 6, 8, 10]
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+# ============================================
+# RARE SIGILS (Cyan)
+# ============================================
+
+spring_shoes:
+  name: "&bSpring Shoes"
+  description:
+    - "&7Gain a jump boost while equipped."
+  rarity: RARE
+  item:
+    material: SLIME_BALL
+  max_tier: 3
+  socketable_items:
+    - boots
+  tier:
+    mode: PARAMETER
+    params:
+      jump_amp: [0, 1, 2]
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "potion"
+      - id: "potion"
+        type: EFFECT
+        effect: "POTION"
+        x: 0
+        y: 1
+        params:
+          potion_type: "JUMP_BOOST"
+          duration: 10
+          amplifier: "{jump_amp}"
+        tierValues:
+          amplifier: [0, 1, 2]
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 2
+
+dasher:
+  name: "&bDasher"
+  description:
+    - "&7Be shot across the landscape"
+    - "&7when you sneak while jumping."
+    - "&76s cooldown."
+  rarity: RARE
+  item:
+    material: SUGAR
+  max_tier: 4
+  socketable_items:
+    - boots
+  tier:
+    mode: PARAMETER
+    params:
+      distance: [3, 5, 7, 10]
+  flow:
+    type: SIGNAL
+    trigger: SHIFT
+    cooldown: 6
+    conditions:
+      logic: AND
+      list:
+        - "IN_AIR"
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "dash"
+      - id: "dash"
+        type: EFFECT
+        effect: "DASH"
+        x: 0
+        y: 1
+        params:
+          distance: "{distance}"
+        tierValues:
+          distance: [3, 5, 7, 10]
+        next: "particle"
+      - id: "particle"
+        type: EFFECT
+        effect: "PARTICLE"
+        x: 0
+        y: 2
+        params:
+          particle: "CLOUD"
+          count: 20
+        next: "sound"
+      - id: "sound"
+        type: EFFECT
+        effect: "SOUND"
+        x: 0
+        y: 3
+        params:
+          sound: "ENTITY_ENDER_DRAGON_FLAP"
+          volume: 0.5
+          pitch: 1.5
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 4
+
+# ============================================
+# COMMON SIGILS (White)
+# ============================================
+
+sky_stepper:
+  name: "&fSky Stepper"
+  description:
+    - "&7Double jump every 9 seconds"
+    - "&7by pressing sneak in the air."
+  rarity: COMMON
+  item:
+    material: FEATHER
+  max_tier: 4
+  socketables:
+    - boots
+  tier:
+    mode: PARAMETER
+    params:
+      height:
+        - 3
+        - 4
+        - 5
+        - 6
+  flow:
+    type: SIGNAL
+    trigger: SHIFT
+    cooldown: 9
+    startNodeId: start
+    nodes:
+      - id: start
+        type: START
+        x: 0
+        y: 0
+        next: dash
+      - id: dash
+        type: EFFECT
+        effect: DASH
+        x: 0
+        y: 1
+        params:
+          direction: UP
+          value: '{height}'
+        next: particle
+      - id: particle
+        type: EFFECT
+        effect: PARTICLE
+        x: 0
+        y: 2
+        params:
+          particle_type: CLOUD
+          count: 10
+        next: sound
+      - id: sound
+        type: EFFECT
+        effect: SOUND
+        x: 0
+        y: 3
+        params:
+          sound: ENTITY_BAT_TAKEOFF
+          volume: 0.5
+          pitch: 1
+        next: end
+      - id: end
+        type: END
+        x: 0
+        y: 4
+
+well_fed:
+  name: "&fWell Fed"
+  description:
+    - "&75% chance of feeding yourself"
+    - "&7when attacking players."
+  rarity: COMMON
+  item:
+    material: COOKED_BEEF
+  max_tier: 5
+  socketable_items:
+    - sword
+    - axe
+  tier:
+    mode: PARAMETER
+    params:
+      chance: [5, 8, 12, 16, 20]
+      food: [2, 3, 4, 5, 6]
+  flow:
+    type: SIGNAL
+    trigger: ATTACK
+    chance: "{chance}"
+    conditions:
+      logic: AND
+      list:
+        - "VICTIM_IS_PLAYER"
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "saturate"
+      - id: "saturate"
+        type: EFFECT
+        effect: "SATURATE"
+        x: 0
+        y: 1
+        params:
+          amount: "{food}"
+        tierValues:
+          amount: [2, 3, 4, 5, 6]
+        next: "particle"
+      - id: "particle"
+        type: EFFECT
+        effect: "PARTICLE"
+        x: 0
+        y: 2
+        params:
+          particle: "HEART"
+          count: 2
+        next: "sound"
+      - id: "sound"
+        type: EFFECT
+        effect: "SOUND"
+        x: 0
+        y: 3
+        params:
+          sound: "ENTITY_GENERIC_EAT"
+          volume: 0.5
+          pitch: 1
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 4
+
+decapitation:
+  name: "&fDecapitation"
+  description:
+    - "&720% chance of dropping the head"
+    - "&7of players you kill."
+  rarity: COMMON
+  item:
+    material: SKELETON_SKULL
+  max_tier: 3
+  socketable_items:
+    - sword
+    - axe
+  tier:
+    mode: PARAMETER
+    params:
+      chance: [5, 10, 20]
+  flow:
+    type: SIGNAL
+    trigger: KILL_PLAYER
+    chance: "{chance}"
+    startNodeId: "start"
+    nodes:
+      - id: "start"
+        type: START
+        x: 0
+        y: 0
+        next: "drop_head"
+      - id: "drop_head"
+        type: EFFECT
+        effect: "DROP_HEAD"
+        x: 0
+        y: 1
+        params:
+          target: "@Victim"
+        next: "message"
+      - id: "message"
+        type: EFFECT
+        effect: "MESSAGE"
+        x: 0
+        y: 2
+        params:
+          message: "&cYou claimed their head!"
+        next: "sound"
+      - id: "sound"
+        type: EFFECT
+        effect: "SOUND"
+        x: 0
+        y: 3
+        params:
+          sound: "ENTITY_WITHER_SPAWN"
+          volume: 0.5
+          pitch: 1.5
+        next: "end"
+      - id: "end"
+        type: END
+        x: 0
+        y: 4

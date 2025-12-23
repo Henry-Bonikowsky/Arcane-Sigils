@@ -2,7 +2,8 @@ package com.zenax.armorsets.effects;
 
 import com.zenax.armorsets.ArmorSetsPlugin;
 import com.zenax.armorsets.effects.impl.*;
-import com.zenax.armorsets.events.TriggerType;
+import com.zenax.armorsets.particles.ShapeEffect;
+import com.zenax.armorsets.tier.TierScalingConfig;
 
 import java.util.*;
 import java.util.logging.Level;
@@ -22,6 +23,9 @@ public class EffectManager {
             "^([A-Z_]+)(?::(.+?))?(?:\\s+(@\\w+(?::\\d+)?))?$"
     );
 
+    // Pattern to find {param} placeholders
+    private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}");
+
     public EffectManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         registerDefaultEffects();
@@ -31,61 +35,80 @@ public class EffectManager {
         // Damage/Combat Effects
         registerEffect(new DealDamageEffect());
         registerEffect(new DamageBoostEffect());
-        registerEffect(new DisintegrateEffect());
-        registerEffect(new AegisEffect());
-        registerEffect(new WardEffect());
+        registerEffect(new ReduceDamageEffect());
         registerEffect(new CancelEventEffect());
         registerEffect(new LifestealEffect());
+        registerEffect(new DamageArmorEffect());
+        registerEffect(new BleedingEffect());
+        registerEffect(new CleaveEffect());
+        registerEffect(new ExecuteEffect());
+        registerEffect(new ReflectDamageEffect());
 
         // Movement Effects
         registerEffect(new TeleportEffect());
         registerEffect(new SmokebombEffect());
         registerEffect(new DodgeEffect());
-        registerEffect(new MomentumEffect());
-        registerEffect(new WingsEffect());
-        registerEffect(new SpringsEffect());
-        registerEffect(new GearsEffect());
-        registerEffect(new FeatherweightEffect());
-        registerEffect(new JellylegsEffect());
+        registerEffect(new DashEffect());
+        registerEffect(new KnockbackEffect());
+        registerEffect(new PullEffect());
+        registerEffect(new LaunchEffect());
+        registerEffect(new GrappleEffect());
+        registerEffect(new SwapEffect());
+        registerEffect(new GroundSlamEffect());
+        registerEffect(new ModifyAttributeEffect());
 
         // Healing/Sustain Effects
         registerEffect(new HealEffect());
-        registerEffect(new DevourEffect());
-        registerEffect(new ReplenishEffect());
-        registerEffect(new PatchEffect());
-        registerEffect(new RestoreEffect());
+        registerEffect(new AbsorbtionEffect());
+        registerEffect(new SaturateEffect());
         registerEffect(new PhoenixEffect());
-        registerEffect(new AngelicEffect());
-        registerEffect(new ImmortalEffect());
+        registerEffect(new MaxHealthBoostEffect());
+        registerEffect(new ResistEffectsEffect());
+        registerEffect(new ClearNegativeEffectsEffect());
 
         // Potion Effect
         registerEffect(new PotionEffectEffect());
 
         // Utility Effects
         registerEffect(new SoulboundEffect());
-        registerEffect(new UnbreakableEffect());
-        registerEffect(new AquaEffect());
-        registerEffect(new NightowlEffect());
-        registerEffect(new LucidEffect());
         registerEffect(new InquisitiveEffect());
         registerEffect(new EnlightenedEffect());
-        registerEffect(new ImplantsEffect());
-        registerEffect(new GuardiansEffect());
         registerEffect(new AllureEffect());
-        registerEffect(new RushEffect());
+        registerEffect(new RepairArmorEffect());
+        registerEffect(new RepairItemEffect());
+        registerEffect(new DecreaseSigilTierEffect());
+        registerEffect(new DisarmEffect());
+        registerEffect(new StealBuffsEffect());
 
         // Visual/Audio Effects
         registerEffect(new ParticleEffect());
         registerEffect(new SoundEffect());
         registerEffect(new MessageEffect());
+        registerEffect(new ShapeEffect());
 
-        // Spawning Effects
+        // Spawning/Environmental Effects
         registerEffect(new SpawnEntityEffect());
-
-        // Special Effects
-        registerEffect(new BleedingEffect());
+        registerEffect(new SpawnDisplayEffect());
+        registerEffect(new SpawnAuraEffect());
         registerEffect(new FreezingEffect());
-        registerEffect(new BlinkEffect());
+        registerEffect(new IgniteEffect());
+        registerEffect(new LightningEffect());
+        registerEffect(new ExplosionEffect());
+
+        // Loot/Item Effects
+        registerEffect(new DropHeadEffect());
+        registerEffect(new RemoveRandomEnchantEffect());
+        registerEffect(new GiveItemEffect());
+
+        // Pharaoh Set Effects
+        registerEffect(new StunEffect());
+        registerEffect(new SummonMummyEffect());
+
+        // Mark System
+        registerEffect(new MarkEffect());
+
+        // Buff System
+        registerEffect(new DamageReductionBuffEffect());
 
         plugin.getLogger().info("Registered " + effects.size() + " effect types");
     }
@@ -98,9 +121,22 @@ public class EffectManager {
         String upperid = id.toUpperCase();
 
         // Handle common aliases
-        if ("DAMAGE".equals(upperid)) {
-            upperid = "DEAL_DAMAGE";
-        }
+        upperid = switch (upperid) {
+            case "DAMAGE" -> "DEAL_DAMAGE";
+            case "INCREASE_DAMAGE", "BOOST_DAMAGE", "DMG_BOOST" -> "DAMAGE_BOOST";
+            case "AEGIS", "DEFENSE" -> "REDUCE_DAMAGE";
+            case "BUFF", "POTION_EFFECT" -> "POTION"; // Alias to POTION (the registered name)
+            case "MSG" -> "MESSAGE";
+            case "TP" -> "TELEPORT";
+            case "FX", "EFFECT" -> "PARTICLE";
+            case "ANGELIC", "MAX_HP" -> "MAX_HEALTH_BOOST";
+            case "DEVOUR" -> "ABSORBTION";
+            case "DISINTEGRATE" -> "DAMAGE_ARMOR";
+            case "LUCID", "CLEANSE" -> "CLEAR_NEGATIVE_EFFECTS";
+            case "REPLENISH", "HUNGER" -> "SATURATE";
+            case "WARD", "RESIST_MAGIC" -> "RESIST_EFFECTS";
+            default -> upperid;
+        };
 
         return effects.get(upperid);
     }
@@ -119,9 +155,16 @@ public class EffectManager {
     public int executeEffects(List<String> effectStrings, EffectContext context) {
         int executed = 0;
 
+        // Get tier info from context for placeholder replacement
+        TierScalingConfig tierConfig = context.getMetadata("tierScalingConfig", null);
+        Integer tier = context.getMetadata("sourceSigilTier", null);
+
         for (String effectString : effectStrings) {
             try {
-                if (executeEffect(effectString, context)) {
+                // Replace {param} placeholders with tier-appropriate values
+                String resolvedEffect = resolvePlaceholders(effectString, tierConfig, tier);
+
+                if (executeEffect(resolvedEffect, context)) {
                     executed++;
                 }
             } catch (Exception e) {
@@ -131,6 +174,46 @@ public class EffectManager {
         }
 
         return executed;
+    }
+
+    /**
+     * Replace {param} placeholders in an effect string with tier-appropriate values.
+     *
+     * @param effectString The effect string with placeholders
+     * @param tierConfig   The tier scaling config (may be null)
+     * @param tier         The current tier (may be null)
+     * @return The effect string with placeholders replaced
+     */
+    public String resolvePlaceholders(String effectString, TierScalingConfig tierConfig, Integer tier) {
+        if (effectString == null || tierConfig == null || tier == null) {
+            return effectString;
+        }
+
+        // Check if there are any placeholders to replace
+        if (!effectString.contains("{")) {
+            return effectString;
+        }
+
+        Matcher matcher = PLACEHOLDER_PATTERN.matcher(effectString);
+        StringBuilder result = new StringBuilder();
+
+        while (matcher.find()) {
+            String paramName = matcher.group(1);
+
+            // Get the value for this parameter at the current tier
+            String replacement;
+            if (tierConfig.hasParam(paramName)) {
+                replacement = tierConfig.getParamValueAsString(paramName, tier);
+            } else {
+                // Parameter not found, leave as-is (or use 0)
+                replacement = matcher.group(0); // Keep original {param}
+            }
+
+            matcher.appendReplacement(result, Matcher.quoteReplacement(replacement));
+        }
+        matcher.appendTail(result);
+
+        return result.toString();
     }
 
     /**
@@ -165,7 +248,7 @@ public class EffectManager {
         }
 
         // Create new context with params
-        EffectContext execContext = EffectContext.builder(context.getPlayer(), context.getTriggerType())
+        EffectContext execContext = EffectContext.builder(context.getPlayer(), context.getSignalType())
                 .event(context.getBukkitEvent())
                 .victim(context.getVictim())
                 .location(context.getLocation())

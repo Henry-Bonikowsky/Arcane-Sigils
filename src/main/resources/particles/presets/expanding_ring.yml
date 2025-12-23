@@ -1,0 +1,39 @@
+# Expanding Ring Preset
+# A ring of particles that expands outward from the center
+
+expanding_ring:
+  name: "&bExpanding Ring"
+  description:
+    - "&7A ring of particles that"
+    - "&7expands outward"
+  icon: END_CRYSTAL
+
+  shape: circle
+  shape_params:
+    radius: 1.0
+    points: 30
+
+  modifiers:
+    - type: expand
+      speed: 3.0
+
+  duration: 1.5
+
+  layers:
+    - type: particle
+      particle: END_ROD
+      count: 1
+      spread: 0.02
+      speed: 0.0
+    - type: particle
+      particle: DUST
+      count: 1
+      color: "100,200,255"
+      size: 1.2
+      spread: 0.01
+
+  sounds:
+    - sound: ENTITY_ENDER_DRAGON_FLAP
+      volume: 0.4
+      pitch: 1.5
+      at: start

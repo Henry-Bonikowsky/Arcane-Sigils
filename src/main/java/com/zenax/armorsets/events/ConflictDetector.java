@@ -15,10 +15,10 @@ public class ConflictDetector {
      * Severity levels for conflicts.
      */
     public enum ConflictSeverity {
-        IMPOSSIBLE(Material.BARRIER, "&c", "IMPOSSIBLE - These conditions cannot both be true"),
-        CONFLICTING(Material.YELLOW_WOOL, "&e", "CONFLICTING - These conditions contradict each other"),
-        REDUNDANT(Material.ORANGE_WOOL, "&6", "REDUNDANT - One condition implies the other"),
-        WARNING(Material.GRAY_WOOL, "&7", "WARNING - These conditions may not work as expected");
+        IMPOSSIBLE(Material.BARRIER, "§c", "IMPOSSIBLE - These conditions cannot both be true"),
+        CONFLICTING(Material.YELLOW_WOOL, "§e", "CONFLICTING - These conditions contradict each other"),
+        REDUNDANT(Material.ORANGE_WOOL, "§6", "REDUNDANT - One condition implies the other"),
+        WARNING(Material.GRAY_WOOL, "§7", "WARNING - These conditions may not work as expected");
 
         private final Material icon;
         private final String colorCode;
@@ -76,7 +76,7 @@ public class ConflictDetector {
         }
 
         public String getFormattedMessage() {
-            return severity.getColorCode() + severity.name() + ": &7" + reason;
+            return severity.getColorCode() + severity.name() + ": §7" + reason;
         }
     }
 
@@ -327,7 +327,7 @@ public class ConflictDetector {
      */
     public static String getConflictSummary(List<Conflict> conflicts) {
         if (conflicts.isEmpty()) {
-            return "&aNo conflicts detected";
+            return "§aNo conflicts detected";
         }
 
         StringBuilder summary = new StringBuilder();
@@ -336,10 +336,10 @@ public class ConflictDetector {
         long redundant = conflicts.stream().filter(c -> c.getSeverity() == ConflictSeverity.REDUNDANT).count();
         long warnings = conflicts.stream().filter(c -> c.getSeverity() == ConflictSeverity.WARNING).count();
 
-        if (impossible > 0) summary.append("&c").append(impossible).append(" Impossible ");
-        if (conflicting > 0) summary.append("&e").append(conflicting).append(" Conflicting ");
-        if (redundant > 0) summary.append("&6").append(redundant).append(" Redundant ");
-        if (warnings > 0) summary.append("&7").append(warnings).append(" Warning");
+        if (impossible > 0) summary.append("§c").append(impossible).append(" Impossible ");
+        if (conflicting > 0) summary.append("§e").append(conflicting).append(" Conflicting ");
+        if (redundant > 0) summary.append("§6").append(redundant).append(" Redundant ");
+        if (warnings > 0) summary.append("§7").append(warnings).append(" Warning");
 
         return summary.toString().trim();
     }

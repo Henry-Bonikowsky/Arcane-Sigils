@@ -1,37 +1,68 @@
-name: ArmorSets
-version: 1.0.0
+name: ArcaneSigils
+version: 1.0.367
 main: com.zenax.armorsets.ArmorSetsPlugin
 api-version: '1.21'
 author: Zenax
 description: Custom Armor Sets with Hot-Swappable Sigils
+depend:
+  - ProtocolLib
 softdepend:
   - ItemsAdder
   - PlaceholderAPI
   - WorldGuard
 
 commands:
-  armorsets:
-    description: Main ArmorSets command
-    aliases: [as, asets]
+  arcanesigils:
+    description: Main ArcaneSigils command
+    aliases: [as, arcane, sigils]
+    usage: /<command> <subcommand>
+  binds:
+    description: Open the ability binds GUI
+    aliases: [bind, keybinds]
+    usage: /<command> [hotbar|command]
+  activatebind:
+    description: Activate a specific bind by ID (for command system)
+    aliases: [ab]
+    usage: /<command> <id>
+  dungeon:
+    description: Dungeons addon command
+    aliases: [dg, dungeons]
     usage: /<command> <subcommand>
 
 permissions:
-  armorsets.admin:
-    description: Full admin access to ArmorSets
+  arcanesigils.admin:
+    description: Full admin access to ArcaneSigils
     default: op
     children:
-      armorsets.reload: true
-      armorsets.give: true
-      armorsets.socket: true
-  armorsets.reload:
+      arcanesigils.reload: true
+      arcanesigils.give: true
+      arcanesigils.socket: true
+  arcanesigils.reload:
     description: Permission to reload the plugin
     default: op
-  armorsets.give:
+  arcanesigils.give:
     description: Permission to give items
     default: op
-  armorsets.socket:
+  arcanesigils.socket:
     description: Permission to socket/unsocket sigils
     default: true
-  armorsets.use:
+  arcanesigils.use:
     description: Permission to use armor set effects
     default: true
+  arcanesigils.binds:
+    description: Permission to use the binds system
+    default: true
+  arcanesigils.activatebind:
+    description: Permission to activate binds via command
+    default: true
+  dungeons.use:
+    description: Basic dungeon access
+    default: true
+  dungeons.admin:
+    description: Full admin access to dungeons
+    default: op
+    children:
+      dungeons.admin.reload: true
+      dungeons.admin.portal: true
+      dungeons.admin.forceend: true
+      dungeons.admin.give: true

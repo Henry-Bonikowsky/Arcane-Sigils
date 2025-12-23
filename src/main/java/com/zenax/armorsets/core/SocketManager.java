@@ -1,11 +1,15 @@
 package com.zenax.armorsets.core;
 
-import com.zenax.armorsets.ArmorSetsPlugin;
-import com.zenax.armorsets.utils.TextUtil;
-import net.kyori.adventure.text.Component;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,14 +17,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import com.zenax.armorsets.ArmorSetsPlugin;
+import com.zenax.armorsets.utils.TextUtil;
+
+import net.kyori.adventure.text.Component;
 
 public class SocketManager implements Listener {
 
@@ -49,26 +54,65 @@ public class SocketManager implements Listener {
         Sigil sigil = plugin.getSigilManager().getSigilFromItem(mainHand);
         if (sigil == null) return;
 
-        // Find matching worn armor piece for this sigil's slot
-        ItemStack targetArmor = getWornArmorBySlot(player, sigil.getSlot());
-        if (targetArmor == null || targetArmor.getType().isAir()) {
-            player.sendMessage(TextUtil.colorize("&cYou must be wearing " + sigil.getSlot().toLowerCase() + " armor to socket this sigil!"));
+        ItemStack targetItem = null;
+        boolean isOffHandTarget = false;
+
+        // Check if sigil can be socketed into tools/weapons/swords/axes (check off-hand first)
+        Set<String> socketable = sigil.getSocketableItems();
+        if (socketable.contains("tool") || socketable.contains("weapon") ||
+            socketable.contains("axe") || socketable.contains("sword") || socketable.contains("bow")) {
+            ItemStack offHand = player.getInventory().getItemInOffHand();
+            if (offHand != null && !offHand.getType().isAir() && isSocketable(offHand.getType())) {
+                // Use the unified canSigilSocketInto method for consistency
+                if (canSigilSocketInto(sigil, offHand.getType())) {
+                    targetItem = offHand;
+                    isOffHandTarget = true;
+                }
+            }
+        }
+
+        // If no valid off-hand target, check for worn armor
+        if (targetItem == null) {
+            // Try to find matching worn armor piece for this sigil's slot
+            for (String socketableType : sigil.getSocketableItems()) {
+                ItemStack armorPiece = getWornArmorBySlot(player, socketableType.toUpperCase());
+                if (armorPiece != null && !armorPiece.getType().isAir()) {
+                    targetItem = armorPiece;
+                    break;
+                }
+            }
+        }
+
+        if (targetItem == null) {
+            String itemTypes = String.join(", ", sigil.getSocketableItems());
+            player.sendMessage(TextUtil.colorize("§cYou must be holding or wearing a valid item (" + itemTypes + ") to socket this sigil!"));
             return;
         }
 
         event.setCancelled(true);
 
         // Try to socket
-        SocketResult result = socketSigil(player, targetArmor, sigil);
+        SocketResult result = socketSigil(player, targetItem, sigil);
         handleSocketResult(player, result, sigil);
 
         if (result == SocketResult.SUCCESS) {
             mainHand.setAmount(mainHand.getAmount() - 1);
             player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 0.3f, 1f);
-            // Update the armor in the slot
-            setWornArmorBySlot(player, sigil.getSlot(), targetArmor);
-            // Force inventory update to client
-            player.getInventory().setArmorContents(player.getInventory().getArmorContents());
+
+            // Update the item in its slot
+            if (isOffHandTarget) {
+                player.getInventory().setItemInOffHand(targetItem);
+            } else {
+                // Update armor slot
+                for (String socketableType : sigil.getSocketableItems()) {
+                    if (getWornArmorBySlot(player, socketableType.toUpperCase()) != null) {
+                        setWornArmorBySlot(player, socketableType.toUpperCase(), targetItem);
+                        // Force inventory update to client
+                        player.getInventory().setArmorContents(player.getInventory().getArmorContents());
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -80,9 +124,9 @@ public class SocketManager implements Listener {
         ItemStack cursor = event.getCursor();
         ItemStack clicked = event.getCurrentItem();
 
-        // Check if cursor has sigil and clicked is armor
+        // Check if cursor has sigil and clicked is socketable item
         if (cursor != null && !cursor.getType().isAir() && plugin.getSigilManager().isSigilItem(cursor)) {
-            if (clicked != null && !clicked.getType().isAir() && isArmor(clicked.getType())) {
+            if (clicked != null && !clicked.getType().isAir() && isSocketable(clicked.getType())) {
                 Sigil sigil = plugin.getSigilManager().getSigilFromItem(cursor);
                 if (sigil == null) return;
 
@@ -118,16 +162,19 @@ public class SocketManager implements Listener {
         }
     }
 
-    public SocketResult socketSigil(Player player, ItemStack armor, Sigil sigil) {
-        if (armor == null || armor.getType().isAir()) return SocketResult.INVALID_ARMOR;
-        if (!isArmor(armor.getType())) return SocketResult.INVALID_ARMOR;
+    public SocketResult socketSigil(Player player, ItemStack item, Sigil sigil) {
+        if (item == null || item.getType().isAir()) return SocketResult.INVALID_ITEM;
+        if (!isSocketable(item.getType())) return SocketResult.INVALID_ITEM;
 
-        String armorSlot = getArmorSlot(armor.getType());
-        if (!sigil.canSocketInto(armorSlot)) return SocketResult.WRONG_SLOT;
-        if (!player.hasPermission("armorsets.socket")) return SocketResult.NO_PERMISSION;
+        // Check if sigil can be socketed into this item type
+        if (!canSigilSocketInto(sigil, item.getType())) {
+            return SocketResult.WRONG_SLOT;
+        }
+
+        if (!player.hasPermission("arcanesigils.socket")) return SocketResult.NO_PERMISSION;
 
         // Check if this sigil type is already socketed (ignore tier)
-        List<String> currentSigils = getSocketedSigilData(armor);
+        List<String> currentSigils = getSocketedSigilData(item);
         String baseId = sigil.getId().toLowerCase();
         for (String entry : currentSigils) {
             String existingBase = entry.split(":")[0];
@@ -136,16 +183,17 @@ public class SocketManager implements Listener {
             }
         }
 
-        ItemMeta meta = armor.getItemMeta();
-        if (meta == null) return SocketResult.INVALID_ARMOR;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return SocketResult.INVALID_ITEM;
 
         // Add sigil to list with format "sigilId:tier"
         currentSigils.add(baseId + ":" + sigil.getTier());
         String sigilData = String.join(",", currentSigils);
         meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, sigilData);
 
-        updateArmorLore(meta, currentSigils);
-        armor.setItemMeta(meta);
+        updateItemLore(meta, currentSigils);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
         return SocketResult.SUCCESS;
     }
 
@@ -184,7 +232,8 @@ public class SocketManager implements Listener {
         } else {
             meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, String.join(",", sigilData));
         }
-        updateArmorLore(meta, sigilData);
+        updateItemLore(meta, sigilData);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         armor.setItemMeta(meta);
         return sigilToRemove;
     }
@@ -222,7 +271,8 @@ public class SocketManager implements Listener {
         } else {
             meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, String.join(",", sigilData));
         }
-        updateArmorLore(meta, sigilData);
+        updateItemLore(meta, sigilData);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         armor.setItemMeta(meta);
         return sigilToRemove;
     }
@@ -266,25 +316,33 @@ public class SocketManager implements Listener {
         return !getSocketedSigilData(armor).isEmpty();
     }
 
-    private void updateArmorLore(ItemMeta meta, List<String> sigilIds) {
-        List<Component> newLore = new ArrayList<>();
+    private void updateItemLore(ItemMeta meta, List<String> sigilIds) {
+        List<Component> sigilLore = new ArrayList<>();
+        List<Component> enchantLore = new ArrayList<>();
+        List<Component> otherLore = new ArrayList<>();
+        Map<String, String> crateInfo = new java.util.LinkedHashMap<>(); // crateName -> lorePrefix
 
-        // Get existing lore and filter out old sigil entries
+        // Get existing lore and filter out old sigil/enchant entries
         if (meta.hasLore()) {
             List<Component> existingLore = meta.lore();
             if (existingLore != null) {
                 for (Component line : existingLore) {
                     String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
 
-                    // Skip old sigil lines (➤/▶/☆ prefix or old formats)
-                    if (plain.contains("➤") || plain.startsWith("▶") || plain.contains("☆") ||
+                    // Skip old sigil lines (will be rebuilt)
+                    if (plain.contains("➤") || plain.startsWith("▶") || plain.contains("☆") || plain.contains("⚖") ||
                         plain.contains("Sigils:") || plain.contains("[Sigil]") ||
                         plain.contains("Socketed:") || plain.contains("Exclusive") ||
                         plain.contains("Right-click with sigil shard")) {
                         continue;
                     }
 
-                    newLore.add(line);
+                    // Skip old enchantment lines (will be rebuilt from meta)
+                    if (plain.contains("⚔") || plain.contains("🛡") || plain.contains("✦")) {
+                        continue;
+                    }
+
+                    otherLore.add(line);
                 }
             }
         }
@@ -292,7 +350,6 @@ public class SocketManager implements Listener {
         // Collect sigils and separate exclusive from regular
         List<Sigil> exclusiveSigils = new ArrayList<>();
         List<Sigil> regularSigils = new ArrayList<>();
-        Set<String> crateNames = new java.util.LinkedHashSet<>();
 
         for (String entry : sigilIds) {
             // Parse format "sigilId:tier"
@@ -304,7 +361,8 @@ public class SocketManager implements Listener {
                 if (sigil.isExclusive()) {
                     exclusiveSigils.add(sigil);
                     if (sigil.getCrate() != null) {
-                        crateNames.add(sigil.getCrate());
+                        String prefix = sigil.getLorePrefix() != null ? sigil.getLorePrefix() : "<gradient:#FFD700:#CD853F>⚖</gradient>";
+                        crateInfo.put(sigil.getCrate(), prefix);
                     }
                 } else {
                     regularSigils.add(sigil);
@@ -316,33 +374,131 @@ public class SocketManager implements Listener {
         exclusiveSigils.sort((a, b) -> getRarityOrder(b.getRarity()) - getRarityOrder(a.getRarity()));
         regularSigils.sort((a, b) -> getRarityOrder(b.getRarity()) - getRarityOrder(a.getRarity()));
 
-        // Add exclusive sigils first with ☆ prefix
+        // Build sigil lore - exclusive sigils first with custom prefix (from YAML lore_prefix)
         for (Sigil sigil : exclusiveSigils) {
             String baseName = sigil.getName().replaceAll("\\s*&8\\[T\\d+\\]", "").trim();
             String roman = toRomanNumeral(sigil.getTier());
-            String rarityColor = getRarityColor(sigil.getRarity());
-            // Format: "<rarity>☆ &f<name> &b<tier>"
-            newLore.add(TextUtil.parseComponent(rarityColor + "☆ &f" + baseName + " &b" + roman));
+            // Use prefix from YAML with its own formatting (no rarity color override)
+            String prefix = sigil.getLorePrefix() != null ? sigil.getLorePrefix() : "<gradient:#FFD700:#CD853F>⚖</gradient>";
+
+            // Extract gradient end color for tier display
+            String tierColor = "<color:#CD853F>"; // Default
+            if (prefix.contains("<gradient:#")) {
+                java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile("<gradient:#[A-Fa-f0-9]{6}:(#[A-Fa-f0-9]{6})>")
+                    .matcher(prefix);
+                if (matcher.find()) {
+                    tierColor = "<color:" + matcher.group(1) + ">";
+                }
+            }
+
+            // Make tier bold if at max tier
+            boolean isMaxTier = sigil.getTier() >= sigil.getMaxTier();
+            String tierFormat = isMaxTier ? tierColor + "<bold>" + roman + "</bold>" : tierColor + roman;
+
+            sigilLore.add(TextUtil.parseComponent(prefix + " " + baseName + " " + tierFormat));
         }
 
-        // Add regular sigils with ➤ prefix
+        // Regular sigils with ➤ prefix (rarity color)
         for (Sigil sigil : regularSigils) {
             String baseName = sigil.getName().replaceAll("\\s*&8\\[T\\d+\\]", "").trim();
             String roman = toRomanNumeral(sigil.getTier());
             String rarityColor = getRarityColor(sigil.getRarity());
-            // Format: "<rarity>➤ &f<name> &b<tier>"
-            newLore.add(TextUtil.parseComponent(rarityColor + "➤ &f" + baseName + " &b" + roman));
+
+            // Make tier white and bold if at max tier, otherwise aqua
+            boolean isMaxTier = sigil.getTier() >= sigil.getMaxTier();
+            String tierFormat = isMaxTier ? "§f§l" + roman : "§b" + roman;
+
+            sigilLore.add(TextUtil.parseComponent(rarityColor + "➤ " + baseName + " " + tierFormat));
         }
 
-        // Add crate exclusive line at the bottom if there are exclusive sigils
-        if (!crateNames.isEmpty()) {
-            newLore.add(Component.empty());
-            for (String crateName : crateNames) {
-                newLore.add(TextUtil.parseComponent("&6☆ &e" + crateName + " Exclusive &6☆"));
+        // Build enchantment lore from item's actual enchantments
+        if (meta.hasEnchants()) {
+            for (var entry : meta.getEnchants().entrySet()) {
+                Enchantment enchant = entry.getKey();
+                int level = entry.getValue();
+                String enchantName = formatEnchantmentName(enchant);
+                String roman = toRomanNumeral(level);
+                // Format: §8➤ §7<name> §b<tier> (dark gray prefix, light gray name, blue level)
+                enchantLore.add(TextUtil.parseComponent("§8➤ §7" + enchantName + " §b" + roman));
+            }
+            // Hide vanilla enchantment display
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+        }
+
+        // Build final lore order:
+        // 1. Exclusive sigils (⚖)
+        // 2. Regular sigils (➤)
+        // 3. Enchantments (✦)
+        // 4. Crate exclusive badge
+        // 5. Other lore
+        List<Component> finalLore = new ArrayList<>();
+
+        // Add sigils at the top
+        finalLore.addAll(sigilLore);
+
+        // Add enchantments right after sigils
+        finalLore.addAll(enchantLore);
+
+        // Add crate exclusive badge after enchantments
+        if (!crateInfo.isEmpty()) {
+            for (Map.Entry<String, String> entry : crateInfo.entrySet()) {
+                String crateName = entry.getKey();
+                String prefix = entry.getValue();
+                // Build crate line - extract color from prefix for trailing symbol
+                // For gradients, use the SECOND color (end of gradient) for trailing symbol
+                String trailingColor = "<color:#FFD700>"; // Default gold
+                if (prefix != null) {
+                    // Check for gradient: <gradient:#COLOR1:#COLOR2>
+                    if (prefix.contains("<gradient:#")) {
+                        // Extract the second color from gradient
+                        java.util.regex.Matcher matcher = java.util.regex.Pattern
+                            .compile("<gradient:#[A-Fa-f0-9]{6}:(#[A-Fa-f0-9]{6})>")
+                            .matcher(prefix);
+                        if (matcher.find()) {
+                            trailingColor = "<color:" + matcher.group(1) + ">";
+                        }
+                    }
+                    // Check for MiniMessage color tag: <color:#RRGGBB>
+                    else if (prefix.contains("<color:#")) {
+                        int start = prefix.indexOf("<color:#");
+                        int end = prefix.indexOf(">", start);
+                        if (end > start) {
+                            trailingColor = prefix.substring(start, end + 1);
+                        }
+                    } else if (prefix.length() >= 2) {
+                        // Legacy color codes
+                        char firstChar = prefix.charAt(0);
+                        if (firstChar == '&' || firstChar == '§') {
+                            trailingColor = "&" + prefix.charAt(1);
+                        }
+                    }
+                }
+                finalLore.add(TextUtil.parseComponent(prefix + " " + crateName + " " + trailingColor + "⚖"));
             }
         }
 
-        meta.lore(newLore);
+        // Add separator and other lore if content exists
+        if ((!sigilLore.isEmpty() || !enchantLore.isEmpty() || !crateInfo.isEmpty()) && !otherLore.isEmpty()) {
+            finalLore.add(Component.empty());
+        }
+
+        // Add other lore (set info, descriptions, etc.)
+        finalLore.addAll(otherLore);
+
+        meta.lore(finalLore);
+    }
+
+    private String formatEnchantmentName(Enchantment enchant) {
+        // Convert enchantment key to readable name
+        String key = enchant.getKey().getKey();
+        String[] words = key.split("_");
+        StringBuilder name = new StringBuilder();
+        for (String word : words) {
+            if (!name.isEmpty()) name.append(" ");
+            name.append(word.substring(0, 1).toUpperCase()).append(word.substring(1).toLowerCase());
+        }
+        return name.toString();
     }
 
     private String toRomanNumeral(int num) {
@@ -354,13 +510,13 @@ public class SocketManager implements Listener {
 
     private String getRarityColor(String rarity) {
         return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "&7";
-            case "UNCOMMON" -> "&a";
-            case "RARE" -> "&9";
-            case "EPIC" -> "&5";
-            case "LEGENDARY" -> "&6";
-            case "MYTHIC" -> "&d";
-            default -> "&7";
+            case "COMMON" -> "§7";
+            case "UNCOMMON" -> "§a";
+            case "RARE" -> "§9";
+            case "EPIC" -> "§5";
+            case "LEGENDARY" -> "§6";
+            case "MYTHIC" -> "§d";
+            default -> "§7";
         };
     }
 
@@ -390,18 +546,263 @@ public class SocketManager implements Listener {
         return name.contains("HELMET") || name.contains("CHESTPLATE") || name.contains("LEGGINGS") || name.contains("BOOTS") || name.contains("CAP") || name.contains("TUNIC");
     }
 
-    private void handleSocketResult(Player player, SocketResult result, Sigil sigil) {
-        String message = switch (result) {
-            case SUCCESS -> "&a&lSocketed! &f" + sigil.getName() + " &aadded to your armor!";
-            case WRONG_SLOT -> "&cThis sigil can only go in " + sigil.getSlot().toLowerCase() + "!";
-            case ALREADY_HAS_SIGIL -> "&cThis armor already has this sigil!";
-            case NO_PERMISSION -> "&cYou don't have permission to socket sigils!";
-            case INVALID_ARMOR -> "&cInvalid armor piece!";
-            case TIER_TOO_LOW -> "&cYour armor tier is too low for this sigil!";
-        };
-        player.sendMessage(TextUtil.colorize(message));
+    public boolean isTool(Material material) {
+        String name = material.name();
+        return name.contains("PICKAXE") || name.contains("SHOVEL") ||
+               name.contains("HOE") || name.contains("SHEARS") || name.contains("FISHING_ROD") ||
+               name.contains("FLINT_AND_STEEL") || name.contains("BRUSH") || isAxe(material);
     }
 
-    public enum SocketResult { SUCCESS, WRONG_SLOT, ALREADY_HAS_SIGIL, TIER_TOO_LOW, NO_PERMISSION, INVALID_ARMOR }
+    public boolean isAxe(Material material) {
+        String name = material.name();
+        // Check for AXE but exclude PICKAXE
+        return name.endsWith("_AXE");
+    }
+
+    public boolean isBow(Material material) {
+        String name = material.name();
+        // BOW and CROSSBOW are separate from melee weapons
+        return name.equals("BOW") || name.equals("CROSSBOW");
+    }
+
+    public boolean isSword(Material material) {
+        return material.name().contains("SWORD");
+    }
+
+    public boolean isWeapon(Material material) {
+        String name = material.name();
+        // Weapons exclude bows (bows are a separate category)
+        // Includes swords, tridents, maces, and axes
+        return name.contains("SWORD") || name.contains("TRIDENT") ||
+               name.contains("MACE") || isAxe(material);
+    }
+
+    public boolean isOffhand(Material material) {
+        String name = material.name();
+        return name.equals("SHIELD") || name.contains("TOTEM") || name.contains("MAP") ||
+               name.equals("COMPASS") || name.equals("CLOCK") || name.equals("SPYGLASS");
+    }
+
+    public boolean isSocketable(Material material) {
+        return isArmor(material) || isTool(material) || isWeapon(material) || isBow(material) || isOffhand(material);
+    }
+
+    public String getItemType(Material material) {
+        if (isArmor(material)) return getArmorSlot(material).toLowerCase();
+
+        String name = material.name();
+
+        // Specific tool types first
+        if (name.contains("PICKAXE")) return "pickaxe";
+        if (name.contains("SHOVEL")) return "shovel";
+        if (name.contains("HOE")) return "hoe";
+        if (name.equals("FISHING_ROD")) return "fishing_rod";
+        if (isAxe(material)) return "axe";
+        if (isSword(material)) return "sword";
+
+        // Ranged weapons - specific first
+        if (name.equals("CROSSBOW")) return "crossbow";
+        if (name.equals("BOW")) return "bow";
+        if (name.equals("TRIDENT")) return "trident";
+
+        // General categories
+        if (isTool(material)) return "tool";
+        if (isWeapon(material)) return "weapon";
+        if (isOffhand(material)) return "offhand";
+        return "unknown";
+    }
+
+    /**
+     * Check if a sigil can be socketed into an item of the given material.
+     * Handles special cases like axes counting as both tools and weapons,
+     * and specific tool types (pickaxe, shovel) also counting as "tool".
+     */
+    public boolean canSigilSocketInto(Sigil sigil, Material material) {
+        if (sigil == null || material == null) return false;
+
+        String itemType = getItemType(material);
+        Set<String> socketable = sigil.getSocketableItems();
+
+        // Direct match
+        if (socketable.contains(itemType)) return true;
+
+        // Axes count as both "tool" and "weapon"
+        if (isAxe(material)) {
+            return socketable.contains("tool") || socketable.contains("weapon") || socketable.contains("axe");
+        }
+
+        // Swords also count as "weapon"
+        if (isSword(material)) {
+            return socketable.contains("weapon");
+        }
+
+        // Specific tools also count as "tool"
+        if (itemType.equals("pickaxe") || itemType.equals("shovel") ||
+            itemType.equals("hoe") || itemType.equals("fishing_rod")) {
+            return socketable.contains("tool");
+        }
+
+        // Crossbow also counts as "bow"
+        if (itemType.equals("crossbow")) {
+            return socketable.contains("bow");
+        }
+
+        // Trident also counts as "weapon"
+        if (itemType.equals("trident")) {
+            return socketable.contains("weapon");
+        }
+
+        return false;
+    }
+
+    private void handleSocketResult(Player player, SocketResult result, Sigil sigil) {
+        String message = switch (result) {
+            case SUCCESS -> "&a&lSocketed! &f" + sigil.getName() + " &aadded to your item!";
+            case WRONG_SLOT -> "&cThis sigil can only be socketed into: " + String.join(", ", sigil.getSocketableItems()) + "!";
+            case ALREADY_HAS_SIGIL -> "&cThis item already has this sigil!";
+            case NO_PERMISSION -> "&cYou don't have permission to socket sigils!";
+            case INVALID_ITEM -> "&cInvalid item!";
+            case TIER_TOO_LOW -> "&cYour item tier is too low for this sigil!";
+        };
+        // Use parseComponent to handle gradients and hex colors properly
+        player.sendMessage(TextUtil.parseComponent(message));
+    }
+
+    public enum SocketResult { SUCCESS, WRONG_SLOT, ALREADY_HAS_SIGIL, TIER_TOO_LOW, NO_PERMISSION, INVALID_ITEM }
     public NamespacedKey getSocketedSigilKey() { return SOCKETED_SIGILS_KEY; }
+
+    /**
+     * Public wrapper to update item lore with sigil entries.
+     * Used by effects like DECREASE_SIGIL_TIER that modify sigil data directly.
+     */
+    public void updateItemLorePublic(ItemMeta meta, List<String> sigilIds) {
+        updateItemLore(meta, sigilIds);
+    }
+
+    /**
+     * Update the tier of a specific socketed sigil on armor.
+     * Used by TierProgressionManager when a sigil levels up.
+     */
+    public void updateSocketedSigilTier(ItemStack armor, String sigilId, int newTier) {
+        if (armor == null || !armor.hasItemMeta()) return;
+
+        List<String> sigilData = getSocketedSigilData(armor);
+        boolean updated = false;
+
+        for (int i = 0; i < sigilData.size(); i++) {
+            String entry = sigilData.get(i);
+            String[] parts = entry.split(":");
+            if (parts[0].equalsIgnoreCase(sigilId)) {
+                sigilData.set(i, sigilId + ":" + newTier);
+                updated = true;
+                break;
+            }
+        }
+
+        if (updated) {
+            ItemMeta meta = armor.getItemMeta();
+            meta.getPersistentDataContainer().set(
+                    SOCKETED_SIGILS_KEY,
+                    PersistentDataType.STRING,
+                    String.join(",", sigilData)
+            );
+            armor.setItemMeta(meta);
+        }
+    }
+
+    /**
+     * Refresh the lore of armor to reflect current sigil states.
+     * Used after tier-up to update displayed tier.
+     */
+    public void refreshArmorLore(ItemStack armor) {
+        if (armor == null || !armor.hasItemMeta()) return;
+
+        List<String> sigilData = getSocketedSigilData(armor);
+        if (sigilData.isEmpty()) return;
+
+        ItemMeta meta = armor.getItemMeta();
+        updateItemLore(meta, sigilData);
+        armor.setItemMeta(meta);
+    }
+
+    /**
+     * Refresh all socketed items for all online players.
+     * Updates lore based on current YAML configuration.
+     * @return number of items updated
+     */
+    public int refreshAllPlayerItems() {
+        int updatedCount = 0;
+
+        for (Player player : org.bukkit.Bukkit.getOnlinePlayers()) {
+            updatedCount += refreshPlayerItems(player);
+        }
+
+        return updatedCount;
+    }
+
+    /**
+     * Refresh all socketed items for a specific player.
+     * Updates lore based on current YAML configuration.
+     * @param player the player to update
+     * @return number of items updated
+     */
+    public int refreshPlayerItems(Player player) {
+        int updatedCount = 0;
+
+        // Check armor slots
+        ItemStack[] armor = player.getInventory().getArmorContents();
+        for (int i = 0; i < armor.length; i++) {
+            if (refreshItemIfSocketed(armor[i])) {
+                updatedCount++;
+            }
+        }
+        // Apply armor changes back
+        player.getInventory().setArmorContents(armor);
+
+        // Check main hand
+        ItemStack mainHand = player.getInventory().getItemInMainHand();
+        if (refreshItemIfSocketed(mainHand)) {
+            player.getInventory().setItemInMainHand(mainHand);
+            updatedCount++;
+        }
+
+        // Check off hand
+        ItemStack offHand = player.getInventory().getItemInOffHand();
+        if (refreshItemIfSocketed(offHand)) {
+            player.getInventory().setItemInOffHand(offHand);
+            updatedCount++;
+        }
+
+        // Check entire inventory for socketable items
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            if (refreshItemIfSocketed(contents[i])) {
+                updatedCount++;
+            }
+        }
+        player.getInventory().setContents(contents);
+
+        return updatedCount;
+    }
+
+    /**
+     * Refresh a single item's lore if it has socketed sigils.
+     * @param item the item to check and refresh
+     * @return true if the item was updated
+     */
+    private boolean refreshItemIfSocketed(ItemStack item) {
+        if (item == null || item.getType().isAir() || !item.hasItemMeta()) {
+            return false;
+        }
+
+        List<String> sigilData = getSocketedSigilData(item);
+        if (sigilData.isEmpty()) {
+            return false;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+        updateItemLore(meta, sigilData);
+        item.setItemMeta(meta);
+        return true;
+    }
 }

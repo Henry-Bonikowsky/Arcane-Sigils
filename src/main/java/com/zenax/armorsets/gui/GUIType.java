@@ -1,253 +1,69 @@
 package com.zenax.armorsets.gui;
 
 /**
- * Enumeration of all GUI types in the ArmorSets plugin.
- * Each type represents a different screen or interface that players can interact with.
+ * Enum representing all GUI types in the Arcane Sigils plugin.
  */
 public enum GUIType {
+    // Sigil GUIs
+    SIGILS_MENU,
+    SIGIL_EDITOR,
+    SIGIL_CONFIG,
+    SIGIL_PREVIEW,
 
-    // ===== CORE SOCKET/UNSOCKET GUIS =====
+    // Behavior GUIs
+    BEHAVIOR_BROWSER,
 
-    /**
-     * GUI for socketing a sigil into an armor piece.
-     */
+    // Signal GUIs
+    SIGNAL_SELECTOR,
+
+    // Effect GUIs
+    EFFECT_PARAM,
+    ATTRIBUTE_SELECTOR,
+
+    // Particle Selector GUIs
+    PARTICLE_SELECTOR,
+    COLOR_SELECTOR,
+    ITEM_PARTICLE_SELECTOR,
+    BLOCK_PARTICLE_SELECTOR,
+    SOUND_SELECTOR,
+
+    // Item Selector GUIs
+    ITEM_SELECTOR,
+    SOCKETABLE_SELECTOR,
+
+    // Socket GUIs
     SOCKET,
-
-    /**
-     * GUI for removing a socketed sigil from an armor piece.
-     */
     UNSOCKET,
 
-    // ===== BROWSER GUIS =====
+    // Tier GUIs
+    TIER_CONFIG,
+    TIER_XP_CONFIG,
+    TIER_PARAM_EDITOR,
+    TIER_PARAM_SELECTOR,
+    TIER_PROGRESS,
+    TIER_PROGRESS_VIEWER,
 
-    /**
-     * Browser for viewing all available sigils.
-     */
-    FUNCTION_BROWSER,
+    // Binds GUIs
+    BINDS_HOTBAR,
+    BINDS_COMMAND,
+    BINDS_EDITOR,
 
-    /**
-     * Browser for viewing all available armor sets.
-     */
-    SET_BROWSER,
+    // Condition GUIs
+    CONDITION_CONFIG,
+    CONDITION_SELECTOR,
+    CONDITION_PARAM,
+    CONDITION_VALUE_BROWSER,
+    CONDITION_NODE_SELECTOR,
 
-    /**
-     * Paginated list of functions (legacy).
-     */
-    FUNCTION_LIST,
+    // Flow Builder GUIs
+    FLOW_LIST,
+    FLOW_BUILDER,
+    NODE_PALETTE,
+    EFFECT_NODE_BROWSER,
+    NODE_CONFIG,
 
-    // ===== BUILD MENU GUIS =====
-
-    /**
-     * Main build menu for creating/editing sets and sigils.
-     */
-    BUILD_MAIN_MENU,
-
-    /**
-     * Selector for choosing which armor slot to add triggers to.
-     */
-    SLOT_SELECTOR,
-
-    /**
-     * Selector for choosing which trigger type to use.
-     */
-    TRIGGER_SELECTOR,
-
-    /**
-     * Selector for choosing which effect to apply.
-     */
-    EFFECT_SELECTOR,
-
-    /**
-     * Configuration GUI for trigger settings (chance, cooldown).
-     */
-    TRIGGER_CONFIG,
-
-    /**
-     * General effect configuration GUI.
-     */
-    EFFECT_CONFIG,
-
-    // ===== EDITOR GUIS =====
-
-    /**
-     * Editor for modifying armor set properties.
-     */
-    SET_EDITOR,
-
-    /**
-     * Editor for modifying sigil properties.
-     */
-    FUNCTION_EDITOR,
-
-    /**
-     * Viewer for set effects and triggers.
-     */
-    SET_EFFECTS_VIEWER,
-
-    /**
-     * Viewer for set synergies (full set bonuses).
-     */
-    SET_SYNERGIES_VIEWER,
-
-    /**
-     * GUI for removing triggers from a set or sigil.
-     */
-    TRIGGER_REMOVER,
-
-    /**
-     * GUI for creating a new synergy.
-     */
-    SYNERGY_CREATOR,
-
-    /**
-     * GUI for editing an existing synergy.
-     */
-    SYNERGY_EDITOR,
-
-    /**
-     * GUI for creating a new sigil.
-     */
-    SIGIL_CREATOR,
-
-    /**
-     * Viewer for effect details.
-     */
-    EFFECT_VIEWER,
-
-    /**
-     * Editor for item display properties (lore, name, material).
-     */
-    ITEM_DISPLAY_EDITOR,
-
-    // ===== EFFECT-SPECIFIC CONFIGURATION GUIS =====
-
-    /**
-     * Configuration for value-based effects (damage amount, heal amount).
-     */
-    EFFECT_VALUE_CONFIG,
-
-    /**
-     * Configuration for particle effects (type, count, spread).
-     */
-    EFFECT_PARTICLE_CONFIG,
-
-    /**
-     * Configuration for sound effects (sound type, volume, pitch).
-     */
-    EFFECT_SOUND_CONFIG,
-
-    /**
-     * Configuration for potion effects (type, duration, amplifier).
-     */
-    EFFECT_POTION_CONFIG,
-
-    /**
-     * Configuration for message effects (message text, type).
-     */
-    EFFECT_MESSAGE_CONFIG,
-
-    /**
-     * Configuration for teleport effects (distance, facing).
-     */
-    EFFECT_TELEPORT_CONFIG,
-
-    // ===== CONDITION GUIS =====
-
-    /**
-     * Selector for choosing condition category (Health, Potion, Environmental, etc.)
-     */
-    CONDITION_CATEGORY_SELECTOR,
-
-    /**
-     * Selector for choosing specific condition type within a category.
-     */
-    CONDITION_TYPE_SELECTOR,
-
-    /**
-     * Configuration for condition parameters (values, comparisons).
-     */
-    CONDITION_PARAMETER_CONFIG,
-
-    /**
-     * Viewer for all conditions on a trigger.
-     */
-    CONDITION_VIEWER,
-
-    /**
-     * Editor for modifying an existing condition.
-     */
-    CONDITION_EDITOR,
-
-    /**
-     * Selector for choosing pre-built condition templates.
-     */
-    CONDITION_TEMPLATE_SELECTOR,
-
-    /**
-     * Editor for adjusting condition parameters directly.
-     */
-    CONDITION_PARAMETER_EDITOR,
-
-    /**
-     * Selector for loading saved condition presets.
-     */
-    CONDITION_PRESET_SELECTOR,
-
-    /**
-     * Manager for saving new condition presets.
-     */
-    CONDITION_PRESET_MANAGER,
-
-    // ===== UTILITY GUIS =====
-
-    /**
-     * Confirmation dialog for destructive actions.
-     */
-    CONFIRMATION,
-
-    /**
-     * Generic GUI type for custom implementations.
-     */
-    GENERIC;
-
-    /**
-     * Check if this GUI type is a browser view.
-     */
-    public boolean isBrowser() {
-        return this == FUNCTION_BROWSER || this == SET_BROWSER || this == FUNCTION_LIST;
-    }
-
-    /**
-     * Check if this GUI type is an editor view.
-     */
-    public boolean isEditor() {
-        return this == SET_EDITOR || this == FUNCTION_EDITOR ||
-               this == SYNERGY_EDITOR || this == ITEM_DISPLAY_EDITOR;
-    }
-
-    /**
-     * Check if this GUI type is a configuration view.
-     */
-    public boolean isConfig() {
-        return this == TRIGGER_CONFIG || this == EFFECT_CONFIG ||
-               this == EFFECT_VALUE_CONFIG || this == EFFECT_PARTICLE_CONFIG ||
-               this == EFFECT_SOUND_CONFIG || this == EFFECT_POTION_CONFIG ||
-               this == EFFECT_MESSAGE_CONFIG || this == EFFECT_TELEPORT_CONFIG ||
-               this == CONDITION_PARAMETER_CONFIG;
-    }
-
-    /**
-     * Check if this GUI type is a selector view.
-     */
-    public boolean isSelector() {
-        return this == SLOT_SELECTOR || this == TRIGGER_SELECTOR || this == EFFECT_SELECTOR ||
-               this == CONDITION_CATEGORY_SELECTOR || this == CONDITION_TYPE_SELECTOR;
-    }
-
-    /**
-     * Check if this GUI type supports pagination.
-     */
-    public boolean supportsPagination() {
-        return isBrowser();
-    }
+    // Expression Builder GUIs
+    EXPRESSION_BUILDER,
+    EXPRESSION_VALUE_SELECTOR,
+    EXPRESSION_OPERATOR_SELECTOR
 }

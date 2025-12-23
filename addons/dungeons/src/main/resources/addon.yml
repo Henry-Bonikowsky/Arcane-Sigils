@@ -1,0 +1,6 @@
+id: dungeons
+name: Dungeons
+version: 1.0.0
+main: com.zenax.dungeons.DungeonsAddon
+author: Zenax
+description: Procedural dungeon exploration addon for Arcane Sigils

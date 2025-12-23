@@ -1,0 +1,42 @@
+# Fire Spiral Preset
+# A spiral of flames that rises and rotates around the target
+
+fire_spiral:
+  name: "&6Fire Spiral"
+  description:
+    - "&7A spiral of flames that"
+    - "&7rises around the target"
+  icon: FIRE_CHARGE
+
+  shape: spiral
+  shape_params:
+    radius: 2.0
+    height: 4.0
+    turns: 3
+    points: 40
+
+  modifiers:
+    - type: rotate
+      speed: 180
+    - type: rise
+      speed: 2.0
+
+  duration: 2.0
+
+  layers:
+    - type: particle
+      particle: FLAME
+      count: 2
+      spread: 0.05
+      speed: 0.01
+    - type: particle
+      particle: SMOKE_NORMAL
+      count: 1
+      spread: 0.02
+      delay: 0.1
+
+  sounds:
+    - sound: ENTITY_BLAZE_SHOOT
+      volume: 0.6
+      pitch: 1.2
+      at: start

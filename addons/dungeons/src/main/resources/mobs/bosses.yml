@@ -1,0 +1,709 @@
+# ========================================
+# Boss Mob Definitions
+# ========================================
+# This file defines all boss mobs with their phases and abilities.
+
+bosses:
+  # ========================================
+  # 1. Lich King - Undead Necromancer
+  # ========================================
+  lich_king:
+    # Display information
+    name: "&5&lLich King Malachar"
+    title: "&dThe Eternal Deceiver"
+
+    # Base mob type
+    entity-type: WITHER_SKELETON
+
+    # Stats
+    stats:
+      health: 1000.0
+      damage: 25.0
+      armor: 10.0
+      speed: 0.25
+
+    # Equipment
+    equipment:
+      helmet:
+        type: NETHERITE_HELMET
+        enchantments:
+          - PROTECTION:4
+          - UNBREAKING:3
+      chest:
+        type: NETHERITE_CHESTPLATE
+        enchantments:
+          - PROTECTION:4
+          - UNBREAKING:3
+      weapon:
+        type: NETHERITE_SWORD
+        enchantments:
+          - SHARPNESS:5
+          - FIRE_ASPECT:2
+        name: "&5Blade of Souls"
+
+    # AI behavior
+    behavior:
+      aggressive: true
+      aggro-range: 30.0
+      follow-range: 40.0
+
+    # Boss phases
+    phases:
+      # Phase 1: 100-66% HP
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 100
+        name: "Phase 1: Soul Drain"
+        abilities:
+          - id: "soul_drain"
+            cooldown: 8
+          - id: "shadow_bolt"
+            cooldown: 3
+          - id: "teleport"
+            cooldown: 15
+
+      # Phase 2: 66-33% HP
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 66
+        name: "Phase 2: Army of the Damned"
+        message: "&5Lich King Malachar&7: Rise, my minions!"
+        abilities:
+          - id: "soul_drain"
+            cooldown: 8
+          - id: "shadow_bolt"
+            cooldown: 2
+          - id: "summon_undead"
+            cooldown: 20
+          - id: "teleport"
+            cooldown: 12
+        effects:
+          - SPEED:2
+
+      # Phase 3: 33-0% HP (Enrage)
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 33
+        name: "Phase 3: Death's Embrace"
+        message: "&5Lich King Malachar&7: You will join my eternal army!"
+        abilities:
+          - id: "soul_drain"
+            cooldown: 5
+          - id: "shadow_bolt"
+            cooldown: 1
+          - id: "death_aura"
+            cooldown: 15
+          - id: "summon_undead"
+            cooldown: 15
+          - id: "soul_explosion"
+            cooldown: 25
+        effects:
+          - SPEED:3
+          - DAMAGE_RESISTANCE:2
+
+    # Ability definitions
+    abilities:
+      soul_drain:
+        name: "Soul Drain"
+        type: DRAIN
+        range: 15.0
+        damage: 15.0
+        heal-percent: 50
+        particle: SOUL
+        sound: ENTITY_WITHER_AMBIENT
+
+      shadow_bolt:
+        name: "Shadow Bolt"
+        type: PROJECTILE
+        damage: 20.0
+        speed: 1.5
+        particle: SMOKE_LARGE
+        effect: WITHER:3:5
+        sound: ENTITY_BLAZE_SHOOT
+
+      teleport:
+        name: "Phase Shift"
+        type: TELEPORT
+        range: 20.0
+        particle: PORTAL
+        sound: ENTITY_ENDERMAN_TELEPORT
+
+      summon_undead:
+        name: "Raise Dead"
+        type: SUMMON
+        mobs:
+          - id: "skeleton_warrior"
+            count: 3
+          - id: "zombie_warrior"
+            count: 2
+        spawn-radius: 8.0
+        particle: SOUL_FIRE_FLAME
+        sound: ENTITY_ZOMBIE_VILLAGER_CONVERTED
+
+      death_aura:
+        name: "Death Aura"
+        type: AURA
+        radius: 10.0
+        damage-per-tick: 3.0
+        tick-interval: 20
+        duration: 100
+        particle: SMOKE_LARGE
+        effect: WITHER:2:100
+
+      soul_explosion:
+        name: "Soul Explosion"
+        type: EXPLOSION
+        radius: 12.0
+        damage: 40.0
+        knockback: 3.0
+        particle: EXPLOSION_LARGE
+        sound: ENTITY_GENERIC_EXPLODE
+
+  # ========================================
+  # 2. Molten Guardian - Fire Elemental
+  # ========================================
+  molten_guardian:
+    name: "&c&lMolten Guardian"
+    title: "&6Keeper of the Forge"
+
+    entity-type: MAGMA_CUBE
+
+    stats:
+      health: 1200.0
+      damage: 30.0
+      armor: 15.0
+      speed: 0.2
+      fire-resistance: true
+
+    behavior:
+      aggressive: true
+      aggro-range: 25.0
+      follow-range: 35.0
+
+    # Special traits
+    traits:
+      - FIRE_IMMUNE
+      - LAVA_WALKER
+      - EXPLOSION_IMMUNE
+
+    phases:
+      # Phase 1: Molten Core
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 100
+        name: "Phase 1: Molten Core"
+        abilities:
+          - id: "flame_burst"
+            cooldown: 5
+          - id: "lava_pool"
+            cooldown: 12
+          - id: "fireball"
+            cooldown: 3
+
+      # Phase 2: Volcanic Fury
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 50
+        name: "Phase 2: Volcanic Fury"
+        message: "&cMolten Guardian&7: Feel the fury of the forge!"
+        abilities:
+          - id: "flame_burst"
+            cooldown: 4
+          - id: "lava_pool"
+            cooldown: 8
+          - id: "fireball"
+            cooldown: 2
+          - id: "meteor_shower"
+            cooldown: 20
+          - id: "eruption"
+            cooldown: 15
+        effects:
+          - FIRE_RESISTANCE:1
+          - SPEED:2
+
+    abilities:
+      flame_burst:
+        name: "Flame Burst"
+        type: CONE
+        range: 10.0
+        angle: 60
+        damage: 25.0
+        particle: FLAME
+        effect: FIRE:5:100
+        sound: BLOCK_FIRE_AMBIENT
+
+      lava_pool:
+        name: "Lava Pool"
+        type: GROUND_TARGET
+        radius: 4.0
+        duration: 200
+        damage-per-tick: 5.0
+        block: LAVA
+        particle: LAVA
+        sound: BLOCK_LAVA_POP
+
+      fireball:
+        name: "Fireball"
+        type: PROJECTILE
+        damage: 20.0
+        speed: 2.0
+        particle: FLAME
+        explosion-radius: 3.0
+        sound: ENTITY_GHAST_SHOOT
+
+      meteor_shower:
+        name: "Meteor Shower"
+        type: RAIN
+        count: 10
+        radius: 15.0
+        damage-per-meteor: 30.0
+        duration: 100
+        particle: LAVA
+        sound: ENTITY_GENERIC_EXPLODE
+
+      eruption:
+        name: "Volcanic Eruption"
+        type: EXPLOSION
+        radius: 15.0
+        damage: 50.0
+        knockback: 5.0
+        create-lava: true
+        particle: EXPLOSION_HUGE
+        sound: ENTITY_DRAGON_FIREBALL_EXPLODE
+
+  # ========================================
+  # 3. Spider Queen - Poison Master
+  # ========================================
+  spider_queen:
+    name: "&2&lArachnia the Spider Queen"
+    title: "&aWeaver of Nightmares"
+
+    entity-type: SPIDER
+
+    stats:
+      health: 800.0
+      damage: 20.0
+      armor: 5.0
+      speed: 0.35
+
+    behavior:
+      aggressive: true
+      aggro-range: 30.0
+      follow-range: 40.0
+      wall-climb: true
+
+    traits:
+      - POISON_IMMUNE
+      - COBWEB_IMMUNE
+
+    phases:
+      # Phase 1: Venomous Strike
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 100
+        name: "Phase 1: Venomous Strike"
+        abilities:
+          - id: "poison_spit"
+            cooldown: 4
+          - id: "web_shot"
+            cooldown: 8
+          - id: "leap"
+            cooldown: 10
+
+      # Phase 2: Brood Mother
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 70
+        name: "Phase 2: Brood Mother"
+        message: "&2Spider Queen&7: My children, feast!"
+        abilities:
+          - id: "poison_spit"
+            cooldown: 3
+          - id: "web_shot"
+            cooldown: 6
+          - id: "leap"
+            cooldown: 8
+          - id: "summon_spiders"
+            cooldown: 20
+
+      # Phase 3: Toxic Frenzy
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 30
+        name: "Phase 3: Toxic Frenzy"
+        message: "&2Spider Queen&7: You will become my next meal!"
+        abilities:
+          - id: "poison_spit"
+            cooldown: 2
+          - id: "web_shot"
+            cooldown: 4
+          - id: "leap"
+            cooldown: 5
+          - id: "summon_spiders"
+            cooldown: 15
+          - id: "poison_nova"
+            cooldown: 18
+          - id: "web_trap"
+            cooldown: 12
+        effects:
+          - SPEED:3
+
+    abilities:
+      poison_spit:
+        name: "Poison Spit"
+        type: PROJECTILE
+        damage: 15.0
+        speed: 2.5
+        particle: SLIME
+        effect: POISON:4:100
+        sound: ENTITY_LLAMA_SPIT
+
+      web_shot:
+        name: "Web Shot"
+        type: PROJECTILE
+        speed: 2.0
+        particle: ITEM_CRACK
+        effect: SLOW:5:80
+        create-cobweb: true
+        sound: ENTITY_SPIDER_AMBIENT
+
+      leap:
+        name: "Leap Attack"
+        type: DASH
+        distance: 12.0
+        damage: 25.0
+        knockback: 2.0
+        particle: CLOUD
+        sound: ENTITY_SPIDER_HURT
+
+      summon_spiders:
+        name: "Call Brood"
+        type: SUMMON
+        mobs:
+          - id: "poison_spider"
+            count: 4
+        spawn-radius: 6.0
+        particle: SLIME
+        sound: ENTITY_SPIDER_AMBIENT
+
+      poison_nova:
+        name: "Poison Nova"
+        type: NOVA
+        radius: 12.0
+        damage: 20.0
+        particle: SLIME
+        effect: POISON:5:200
+        sound: ENTITY_GENERIC_EXPLODE
+
+      web_trap:
+        name: "Web Trap"
+        type: GROUND_EFFECT
+        radius: 8.0
+        duration: 100
+        block: COBWEB
+        effect: SLOW:10:100
+        particle: ITEM_CRACK
+
+  # ========================================
+  # 4. Frost Wyrm - Ice Dragon
+  # ========================================
+  frost_wyrm:
+    name: "&b&lFrost Wyrm Glacius"
+    title: "&fBringer of Winter"
+
+    entity-type: PHANTOM
+
+    stats:
+      health: 1500.0
+      damage: 35.0
+      armor: 20.0
+      speed: 0.3
+      flying: true
+
+    behavior:
+      aggressive: true
+      aggro-range: 35.0
+      follow-range: 50.0
+      flying: true
+
+    traits:
+      - FREEZE_IMMUNE
+      - FLYING
+
+    phases:
+      # Phase 1: Frozen Breath
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 100
+        name: "Phase 1: Frozen Breath"
+        abilities:
+          - id: "frost_breath"
+            cooldown: 6
+          - id: "ice_shard"
+            cooldown: 3
+          - id: "tail_swipe"
+            cooldown: 8
+
+      # Phase 2: Blizzard
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 60
+        name: "Phase 2: Blizzard"
+        message: "&bFrost Wyrm&7: Winter claims all!"
+        abilities:
+          - id: "frost_breath"
+            cooldown: 5
+          - id: "ice_shard"
+            cooldown: 2
+          - id: "tail_swipe"
+            cooldown: 6
+          - id: "blizzard"
+            cooldown: 20
+          - id: "freeze"
+            cooldown: 15
+
+      # Phase 3: Absolute Zero
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 25
+        name: "Phase 3: Absolute Zero"
+        message: "&bFrost Wyrm&7: Embrace the eternal frost!"
+        abilities:
+          - id: "frost_breath"
+            cooldown: 3
+          - id: "ice_shard"
+            cooldown: 1
+          - id: "tail_swipe"
+            cooldown: 4
+          - id: "blizzard"
+            cooldown: 12
+          - id: "freeze"
+            cooldown: 10
+          - id: "ice_prison"
+            cooldown: 18
+          - id: "absolute_zero"
+            cooldown: 30
+        effects:
+          - SPEED:2
+          - DAMAGE_RESISTANCE:3
+
+    abilities:
+      frost_breath:
+        name: "Frost Breath"
+        type: CONE
+        range: 15.0
+        angle: 45
+        damage: 30.0
+        particle: SNOWFLAKE
+        effect: SLOW:3:100
+        freeze-chance: 30
+        sound: ENTITY_ENDER_DRAGON_GROWL
+
+      ice_shard:
+        name: "Ice Shard"
+        type: PROJECTILE
+        damage: 18.0
+        speed: 3.0
+        particle: SNOWFLAKE
+        effect: SLOW:2:60
+        sound: BLOCK_GLASS_BREAK
+
+      tail_swipe:
+        name: "Tail Swipe"
+        type: MELEE_AOE
+        radius: 6.0
+        damage: 40.0
+        knockback: 4.0
+        particle: SWEEP_ATTACK
+        sound: ENTITY_IRON_GOLEM_ATTACK
+
+      blizzard:
+        name: "Blizzard"
+        type: AREA_EFFECT
+        radius: 20.0
+        duration: 200
+        damage-per-tick: 2.0
+        particle: SNOWFLAKE
+        effect: SLOW:5:200
+        weather: SNOW
+        sound: ENTITY_WITHER_AMBIENT
+
+      freeze:
+        name: "Freeze"
+        type: TARGET
+        range: 25.0
+        duration: 60
+        particle: ICE
+        effect: SLOW:10:60
+        immobilize: true
+        sound: BLOCK_GLASS_BREAK
+
+      ice_prison:
+        name: "Ice Prison"
+        type: TARGET
+        range: 20.0
+        duration: 100
+        cage: ICE
+        damage: 10.0
+        particle: SNOWFLAKE
+        sound: BLOCK_GLASS_PLACE
+
+      absolute_zero:
+        name: "Absolute Zero"
+        type: NOVA
+        radius: 25.0
+        damage: 100.0
+        freeze-duration: 80
+        particle: SNOWFLAKE
+        effect: SLOW:10:100
+        sound: ENTITY_WITHER_DEATH
+
+  # ========================================
+  # 5. Void Walker - Dimensional Horror
+  # ========================================
+  void_walker:
+    name: "&0&lVoid Walker"
+    title: "&5Harbinger of Oblivion"
+
+    entity-type: ENDERMAN
+
+    stats:
+      health: 1000.0
+      damage: 28.0
+      armor: 8.0
+      speed: 0.4
+      teleport-range: 30.0
+
+    behavior:
+      aggressive: true
+      aggro-range: 40.0
+      follow-range: 50.0
+      teleport-on-hit: true
+
+    traits:
+      - WATER_IMMUNE
+      - PROJECTILE_DEFLECT:50
+
+    phases:
+      # Phase 1: Reality Tear
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 100
+        name: "Phase 1: Reality Tear"
+        abilities:
+          - id: "void_strike"
+            cooldown: 4
+          - id: "teleport_strike"
+            cooldown: 8
+          - id: "void_bolt"
+            cooldown: 5
+
+      # Phase 2: Dimensional Shift
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 66
+        name: "Phase 2: Dimensional Shift"
+        message: "&0Void Walker&7: The void calls to you..."
+        abilities:
+          - id: "void_strike"
+            cooldown: 3
+          - id: "teleport_strike"
+            cooldown: 6
+          - id: "void_bolt"
+            cooldown: 3
+          - id: "summon_voidlings"
+            cooldown: 20
+          - id: "dimension_rift"
+            cooldown: 15
+
+      # Phase 3: Oblivion
+      - trigger:
+          type: HEALTH_PERCENT
+          value: 33
+        name: "Phase 3: Oblivion"
+        message: "&0Void Walker&7: Embrace the nothingness!"
+        abilities:
+          - id: "void_strike"
+            cooldown: 2
+          - id: "teleport_strike"
+            cooldown: 4
+          - id: "void_bolt"
+            cooldown: 2
+          - id: "summon_voidlings"
+            cooldown: 12
+          - id: "dimension_rift"
+            cooldown: 10
+          - id: "void_collapse"
+            cooldown: 25
+          - id: "reality_fracture"
+            cooldown: 20
+        effects:
+          - SPEED:4
+          - INVISIBILITY:1
+
+    abilities:
+      void_strike:
+        name: "Void Strike"
+        type: MELEE
+        damage: 35.0
+        particle: PORTAL
+        effect: BLINDNESS:3:40
+        sound: ENTITY_ENDERMAN_SCREAM
+
+      teleport_strike:
+        name: "Teleport Strike"
+        type: TELEPORT_ATTACK
+        damage: 45.0
+        range: 20.0
+        particle: PORTAL
+        sound: ENTITY_ENDERMAN_TELEPORT
+
+      void_bolt:
+        name: "Void Bolt"
+        type: PROJECTILE
+        damage: 22.0
+        speed: 3.0
+        particle: PORTAL
+        effect: WITHER:2:60
+        homing: true
+        sound: ENTITY_ENDERMAN_STARE
+
+      summon_voidlings:
+        name: "Summon Voidlings"
+        type: SUMMON
+        mobs:
+          - id: "voidling"
+            count: 5
+        spawn-radius: 10.0
+        particle: PORTAL
+        sound: ENTITY_ENDERMAN_AMBIENT
+
+      dimension_rift:
+        name: "Dimension Rift"
+        type: GROUND_TARGET
+        radius: 5.0
+        duration: 100
+        damage-per-tick: 8.0
+        teleport-chance: 20
+        particle: PORTAL
+        sound: BLOCK_PORTAL_TRIGGER
+
+      void_collapse:
+        name: "Void Collapse"
+        type: IMPLOSION
+        radius: 15.0
+        damage: 60.0
+        pull-strength: 3.0
+        particle: PORTAL
+        effect: LEVITATION:5:40
+        sound: ENTITY_ENDER_DRAGON_DEATH
+
+      reality_fracture:
+        name: "Reality Fracture"
+        type: NOVA
+        radius: 20.0
+        damage: 40.0
+        particle: PORTAL
+        effect: CONFUSION:1:200
+        teleport-targets: true
+        sound: ENTITY_ENDERMAN_SCREAM

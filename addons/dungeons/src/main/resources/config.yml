@@ -1,0 +1,175 @@
+# ========================================
+# Dungeons Addon - Main Configuration
+# ========================================
+
+# General settings
+settings:
+  # Enable debug logging
+  debug: false
+
+  # Language file to use (messages_<language>.yml)
+  language: "en"
+
+  # Auto-save interval in minutes
+  auto-save-interval: 5
+
+# World settings
+world:
+  # World management mode: SEPARATE (dedicated dungeon world) or SHARED (same world as overworld)
+  mode: SEPARATE
+
+  # Name of the dungeon world (used when mode is SEPARATE)
+  world-name: "dungeons"
+
+  # Whether to create the dungeon world if it doesn't exist
+  auto-create-world: true
+
+# Party settings
+party:
+  # Maximum party size
+  max-size: 5
+
+  # Invitation timeout in seconds
+  invite-timeout: 60
+
+  # Whether party members share rewards
+  share-rewards: true
+
+  # Whether to allow party-wide voice chat (requires voice plugin)
+  voice-chat: false
+
+# Dungeon settings
+dungeon:
+  # Default time limit in minutes (0 = no limit)
+  time-limit: 60
+
+  # Respawn settings
+  respawn:
+    # Whether players can respawn in dungeons
+    enabled: true
+
+    # Respawn delay in seconds
+    delay: 10
+
+    # Maximum respawns per player (0 = unlimited)
+    max-respawns: 3
+
+    # Where to respawn: LOBBY, ENTRANCE, or CHECKPOINT
+    location: LOBBY
+
+  # Death penalty settings
+  death-penalty:
+    # Whether to apply death penalties
+    enabled: true
+
+    # Penalty type: ITEM_LOSS, DURABILITY, EXPERIENCE, or NONE
+    type: DURABILITY
+
+    # Percentage of penalty (0-100)
+    amount: 10
+
+  # Instance cleanup
+  cleanup:
+    # Remove empty instances after X minutes
+    empty-timeout: 5
+
+    # Remove completed instances after X minutes
+    completed-timeout: 10
+
+    # Remove failed instances after X minutes
+    failed-timeout: 10
+
+# Combat settings
+combat:
+  # Difficulty scaling
+  difficulty-scaling:
+    # Enable dynamic difficulty scaling
+    enabled: true
+
+    # Scale based on party size
+    party-size-scaling: true
+
+    # Scale based on player gear
+    gear-scaling: false
+
+  # Player count scaling multipliers
+  player-scaling:
+    # HP multiplier per additional player (1.0 = +100% per player)
+    health: 0.5
+
+    # Damage multiplier per additional player
+    damage: 0.3
+
+    # Minimum players for scaling to apply
+    min-players: 2
+
+# Loot settings
+loot:
+  # Luck bonus from difficulty
+  luck-bonus:
+    EASY: 0.8
+    NORMAL: 1.0
+    HARD: 1.3
+    NIGHTMARE: 1.6
+
+  # Shared loot mode: INSTANCED (personal loot) or SHARED (party-wide loot)
+  mode: INSTANCED
+
+  # Whether to show loot preview before opening chests
+  preview: true
+
+  # Loot protection time in seconds
+  protection-time: 30
+
+# Portal settings
+portal:
+  # Portal frame material
+  frame-material: CRYING_OBSIDIAN
+
+  # Portal interior material
+  interior-material: NETHER_PORTAL
+
+  # Particle effects
+  animation:
+    # Enable portal particles
+    enabled: true
+
+    # Particle type
+    type: PORTAL
+
+    # Particles per tick
+    amount: 5
+
+    # Update interval in ticks
+    interval: 5
+
+  # Portal cooldown in seconds (per player)
+  cooldown: 3
+
+  # Whether portals require a key item
+  require-key: false
+
+# Performance settings
+performance:
+  # Maximum concurrent dungeon instances
+  max-instances: 50
+
+  # Maximum mobs per instance
+  max-mobs-per-instance: 100
+
+  # Mob AI tick rate (higher = less frequent updates)
+  mob-tick-rate: 1
+
+  # Enable async world generation
+  async-generation: true
+
+# Integration settings
+integration:
+  # Placeholder API support
+  placeholder-api: true
+
+  # Vault economy integration
+  vault: true
+
+  # WorldGuard region support
+  worldguard: true

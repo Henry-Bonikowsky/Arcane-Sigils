@@ -1,0 +1,14 @@
+# Rise Modifier Definition
+# Moves all points upward over time
+
+rise:
+  name: "Rise"
+  description: "Moves points upward over time"
+  type: TRANSFORM
+
+  params:
+    speed:
+      default: 2.0
+      min: 0.1
+      max: 20.0
+      description: "Rise speed in blocks per second"
