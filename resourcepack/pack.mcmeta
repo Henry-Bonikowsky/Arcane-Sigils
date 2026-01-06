@@ -1,6 +1,7 @@
 {
   "pack": {
-    "pack_format": 34,
+    "pack_format": 81,
+    "supported_formats": [34, 81],
     "description": "Arcane Sigils UI - Custom notifications and HUD"
   }
 }

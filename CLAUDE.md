@@ -1,38 +1,66 @@
 # Arcane Sigils Plugin
 
-Paper plugin for creating magical abilities (sigils) that can be socketed into armor.
+Paper plugin - magical abilities (sigils) socketed into armor.
 
-## Build & Deploy
+**Version**: 1.0.489 | Paper 1.21 | Java 21
+
+---
+
+## Build
 
 ```bash
 export JAVA_HOME="/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.0.1.8-hotspot"
-"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn" -f "/c/Users/henry/Programs(self)/Arcane Sigils/pom.xml" clean package -DskipTests -q
-
-rm -f "/c/Users/henry/Minecraft Server/plugins/"ArcaneSigils*.jar
-cp "/c/Users/henry/Programs(self)/Arcane Sigils/target/"ArcaneSigils-*.jar "/c/Users/henry/Minecraft Server/plugins/"
+"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn" -f "/c/Users/henry/Projects/Arcane Sigils/pom.xml" clean package -DskipTests -q
 ```
 
 **Important**: Increment version in pom.xml with each build.
 
-## Config File Locations
+---
 
-**IMPORTANT**: The server uses its own config files, NOT the project source files!
+## YAML Files
 
-| Type | Server Location (EDIT THIS) | Project Source (reference only) |
-|------|----------------------------|--------------------------------|
-| Sigils | `/c/Users/henry/Minecraft Server/plugins/ArcaneSigils/sigils/` | `src/main/resources/sigils/` |
-| Behaviors | `/c/Users/henry/Minecraft Server/plugins/ArcaneSigils/behaviors/` | `src/main/resources/behaviors/` |
-| Config | `/c/Users/henry/Minecraft Server/plugins/ArcaneSigils/config.yml` | `src/main/resources/config.yml` |
+Sigils and behaviors are in `src/main/resources/`:
+- `sigils/*.yml` - Sigil definitions
+- `behaviors/*.yml` - Entity AI behaviors
 
-When editing sigil YAML, behavior YAML, or config files, **always edit the server files** - they override the JAR defaults.
+---
 
-## Core Concepts
+## Resource Pack Workflow
 
-- **Sigil** - A magical ability that can be socketed into gear
-- **Signal** - Event trigger (ON_ATTACK, ON_DEFEND, ON_KILL, ON_DEATH, ON_INTERACT, ON_SNEAK, ON_JUMP, PASSIVE)
-- **Effect** - Action when signal fires (44 types: damage, healing, teleport, particles, etc.)
-- **Condition** - Activation requirement (health %, biome, time, etc.)
-- **Tier** - Sigil level with scaling parameters
+**Always do ALL steps:**
+
+1. Edit files in `resourcepack/`
+2. Rezip (Python, not PowerShell - backslash paths break MC):
+```python
+cd "/c/Users/henry/Projects/Arcane Sigils/resourcepack" && python << 'EOF'
+import zipfile, os
+base = r"C:\Users\henry\Projects\Arcane Sigils\resourcepack"
+with zipfile.ZipFile(os.path.join(base, "ArcaneSigils-RP.zip"), 'w', zipfile.ZIP_DEFLATED) as zf:
+    zf.write(os.path.join(base, "pack.mcmeta"), "pack.mcmeta")
+    for root, dirs, files in os.walk(os.path.join(base, "assets")):
+        for f in files:
+            full = os.path.join(root, f)
+            zf.write(full, os.path.relpath(full, base).replace("\\", "/"))
+print("Done:", len(zf.namelist()), "files")
+EOF
+```
+3. Get hash: `sha1sum resourcepack/ArcaneSigils-RP.zip`
+4. Upload to GitHub releases
+5. Give user new hash for server config.yml
+
+---
+
+## Obfuscation (Release Builds)
+
+Tool: `tools/Bozar-1.7.0.exe`
+
+**Enable**: String Encryption, Line Number Obfuscation, Source File Remover, Local Variable Obfuscation, Crasher
+
+**Avoid**: Renamer (breaks reflection), Control Flow Heavy (breaks logic)
+
+Add Paper API jar to Libraries. Test obfuscated JAR before distributing.
+
+---
 
 ## Package Structure
 
@@ -42,34 +70,36 @@ When editing sigil YAML, behavior YAML, or config files, **always edit the serve
 | `effects/` | EffectManager + 44 effects in `impl/` |
 | `events/` | SignalHandler, SignalType, ConditionManager, CooldownManager |
 | `gui/` | GUIManager, GUISession, all handlers |
-| `gui/common/` | AbstractHandler, AbstractBrowserHandler, ItemBuilder |
 | `tier/` | TierScalingCalculator, TierProgressionManager |
 
-## Commands
+---
 
-| Command | Description |
-|---------|-------------|
-| `/as` | Open sigils menu |
-| `/as give sigil <id> [tier]` | Give sigil item |
-| `/as socket <id> [tier]` | Socket sigil to held item |
-| `/binds` | Open binds GUI |
+## Core Concepts
 
-## Design Philosophy
+- **Sigil** - Magical ability socketed into gear
+- **Signal** - Event trigger (ON_ATTACK, ON_DEFEND, ON_KILL, ON_DEATH, ON_INTERACT, ON_SNEAK, ON_JUMP, PASSIVE)
+- **Effect** - 44 types: damage, healing, teleport, particles, etc.
+- **Condition** - Activation requirement (health %, biome, time, etc.)
+- **Tier** - Sigil level with scaling parameters
 
-**Design for Alex** - a 16-year-old server owner who can use Minecraft GUIs but cannot program.
+**Commands**: `/as` (menu), `/as give sigil <id> [tier]`, `/as socket <id> [tier]`, `/binds`
 
-When designing features, ask:
+---
+
+## Design Philosophy: Alex Check
+
+**Design for Alex** - a 16-year-old server owner who uses GUIs but cannot program.
+
+Ask:
 - "Would Alex understand this button just by looking at it?"
 - "Can Alex create a fire-punch ability without reading docs?"
 - "If Alex makes a mistake, will they know what went wrong?"
 
-**Red flags:**
+**Red flags**:
 - "This might be useful someday" → Remove it
 - "Advanced users could..." → Design for Alex, not programmers
-- Requires reading docs to understand → Redesign the UI
-- Tooltip longer than 1 sentence → Simplify
+- Requires docs to understand → Redesign the UI
+- Tooltip > 1 sentence → Simplify
 
-**When proposing solutions**, include an "Alex Check" in your response:
-> **How would Alex like this?** [Answer the question - explain why the solution works for a non-programmer using the GUI, or flag concerns if it doesn't]
-
-**Version**: 1.0.311 | Paper 1.21 | Java 21
+**Include in proposals**:
+> **Alex Check**: [Explain why solution works for a non-programmer]

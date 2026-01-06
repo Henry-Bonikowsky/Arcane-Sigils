@@ -1,6 +1,6 @@
 name: ArcaneSigils
 version: ${project.version}
-main: com.zenax.armorsets.ArmorSetsPlugin
+main: com.miracle.arcanesigils.ArmorSetsPlugin
 api-version: '1.21'
 author: Zenax
 description: Custom Armor Sets with Hot-Swappable Sigils
@@ -37,6 +37,7 @@ permissions:
       arcanesigils.reload: true
       arcanesigils.give: true
       arcanesigils.socket: true
+      arcanesigils.combat: true
   arcanesigils.reload:
     description: Permission to reload the plugin
     default: op
@@ -44,7 +45,10 @@ permissions:
     description: Permission to give items
     default: op
   arcanesigils.socket:
-    description: Permission to socket/unsocket sigils
+    description: Permission to socket/unsocket sigils via GUI
+    default: true
+  arcanesigils.socket.command:
+    description: Permission to use /as socket command
     default: true
   arcanesigils.use:
     description: Permission to use armor set effects
@@ -55,6 +59,12 @@ permissions:
   arcanesigils.activatebind:
     description: Permission to activate binds via command
     default: true
+  arcanesigils.combat:
+    description: Permission to access legacy combat settings
+    default: op
+  arcanesigils.behaviors:
+    description: Permission to access behaviors menu
+    default: op
   dungeons.use:
     description: Basic dungeon access
     default: true

@@ -1,0 +1,71 @@
+# =============================================================================
+# Arcane Sigils - Legacy Combat Configuration
+# =============================================================================
+# Replicates 1.8.9 PvP mechanics on modern Minecraft versions.
+# All values can be changed in-game via /as combat
+# Changes take effect immediately - no restart required.
+# =============================================================================
+
+legacy-combat:
+  enabled: true
+  attack-cooldown:
+    enabled: true
+    attack-speed: 1024.0
+  sword-blocking:
+    enabled: true
+    damage-reduction: 50.0
+    consume-duration: 72000
+    slowdown-multiplier: 0.2
+  knockback:
+    enabled: true
+    horizontal-base: 0.7000000000000002
+    vertical-base: 0.35000000000000003
+    vertical-cap: 0.35000000000000003
+    sprint-multiplier: 1.0
+    w-tap-window-ms: 100
+    forward-reduction: 0.6
+    sync:
+      enabled: true
+      history-ticks: 20
+      ping-offset-ms: 25
+      max-compensation-ms: 200
+  regeneration:
+    enabled: false
+    regen-amount: 1.0
+    regen-interval-ticks: 80
+    min-hunger: 18
+    disable-saturation-boost: true
+  hitbox:
+    enabled: true
+    reach-extension: 0.1
+  sweep-attack:
+    enabled: true
+  critical-hits:
+    enabled: true
+    damage-multiplier: 1.5
+    falling-threshold: -0.0784
+  fishing-rod:
+    enabled: true
+    knockback-force: 0.4
+    knockback-vertical: 0.2
+    rod-tricking: true
+    rod-trick-window-ms: 100
+    rod-trick-multiplier: 2.0
+  tool-damage:
+    enabled: true
+    axe-damage-reduction: 3.0
+  golden-apple:
+    enabled: true
+    eat-time-seconds: 2.000000000000001
+  attack-indicator:
+    enabled: true
+  potions:
+    enabled: true
+    throw-velocity: 0.7
+    splash-radius: 4.0
+  projectile-kb:
+    enabled: true
+    snowball-knockback: 0.3
+    snowball-vertical: 0.15
+    egg-knockback: 0.25
+    egg-vertical: 0.1

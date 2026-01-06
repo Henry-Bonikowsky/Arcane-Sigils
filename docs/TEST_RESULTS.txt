@@ -1,0 +1,159 @@
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$FlowValidationTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.103 s -- in com.zenax.armorsets.core.SigilLoadingTest$FlowValidationTests
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$PharaohStyleLoadingTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.zenax.armorsets.core.SigilLoadingTest$PharaohStyleLoadingTests
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$MultipleFlowsTests
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.core.SigilLoadingTest$MultipleFlowsTests
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$TierScalingTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zenax.armorsets.core.SigilLoadingTest$TierScalingTests
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$ComplexFlowLoadingTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.core.SigilLoadingTest$ComplexFlowLoadingTests
+[INFO] Running com.zenax.armorsets.core.SigilLoadingTest$FlowConfigLoadingTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.core.SigilLoadingTest$FlowConfigLoadingTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.138 s -- in com.zenax.armorsets.core.SigilLoadingTest
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$EdgeCaseTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.events.ConditionTypeTest$EdgeCaseTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$VictimConditionTests
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.zenax.armorsets.events.ConditionTypeTest$VictimConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$WeatherConditionTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in com.zenax.armorsets.events.ConditionTypeTest$WeatherConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$TimeConditionTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.events.ConditionTypeTest$TimeConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$SignalConditionTests
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.events.ConditionTypeTest$SignalConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$MarkConditionTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.ConditionTypeTest$MarkConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$PotionConditionTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.ConditionTypeTest$PotionConditionTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$TargetSpecifierTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.events.ConditionTypeTest$TargetSpecifierTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$KnownConditionTypesTests
+[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.zenax.armorsets.events.ConditionTypeTest$KnownConditionTypesTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$ComparisonOperatorTests
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zenax.armorsets.events.ConditionTypeTest$ComparisonOperatorTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$ConditionParsingTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.events.ConditionTypeTest$ConditionParsingTests
+[INFO] Running com.zenax.armorsets.events.ConditionTypeTest$EnumVerificationTests
+[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.zenax.armorsets.events.ConditionTypeTest$EnumVerificationTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.097 s -- in com.zenax.armorsets.events.ConditionTypeTest
+[INFO] Running com.zenax.armorsets.events.CooldownManagerTest
+[INFO] Running com.zenax.armorsets.events.CooldownManagerTest$NullBehaviorTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in com.zenax.armorsets.events.CooldownManagerTest$NullBehaviorTests
+[INFO] Running com.zenax.armorsets.events.CooldownManagerTest$MethodContractTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.CooldownManagerTest$MethodContractTests
+[INFO] Running com.zenax.armorsets.events.CooldownManagerTest$InstantiationTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.CooldownManagerTest$InstantiationTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in com.zenax.armorsets.events.CooldownManagerTest
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$AbilityFlowTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.SignalActivationTest$AbilityFlowTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$ActivationFlowTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.SignalActivationTest$ActivationFlowTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$ConditionLogicTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.SignalActivationTest$ConditionLogicTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$PriorityTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.SignalActivationTest$PriorityTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$ChanceTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.zenax.armorsets.events.SignalActivationTest$ChanceTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$FlowMatchingTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.events.SignalActivationTest$FlowMatchingTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$TriggerNormalizationTests
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.events.SignalActivationTest$TriggerNormalizationTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$SignalTypeParsingTests
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.events.SignalActivationTest$SignalTypeParsingTests
+[INFO] Running com.zenax.armorsets.events.SignalActivationTest$SignalTypeEnumVerificationTests
+[INFO] Tests run: 29, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zenax.armorsets.events.SignalActivationTest$SignalTypeEnumVerificationTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.zenax.armorsets.events.SignalActivationTest
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$EdgeCaseTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.FlowContextTest$EdgeCaseTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$EffectsTrackingTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.FlowContextTest$EffectsTrackingTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$ContextStateTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowContextTest$ContextStateTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$ConditionEvaluationTests
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.013 s -- in com.zenax.armorsets.flow.FlowContextTest$ConditionEvaluationTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$TierScalingTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowContextTest$TierScalingTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$ExpressionResolutionTests
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zenax.armorsets.flow.FlowContextTest$ExpressionResolutionTests
+[INFO] Running com.zenax.armorsets.flow.FlowContextTest$VariableManagementTests
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.flow.FlowContextTest$VariableManagementTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.028 s -- in com.zenax.armorsets.flow.FlowContextTest
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$ComplexFlowTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.flow.FlowExecutorTest$ComplexFlowTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$MathOperationsTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.FlowExecutorTest$MathOperationsTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$SkipCooldownTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowExecutorTest$SkipCooldownTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$LoopExecutionTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowExecutorTest$LoopExecutionTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$VariableOperationsTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowExecutorTest$VariableOperationsTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$ConditionBranchingTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.FlowExecutorTest$ConditionBranchingTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$GraphStructureTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zenax.armorsets.flow.FlowExecutorTest$GraphStructureTests
+[INFO] Running com.zenax.armorsets.flow.FlowExecutorTest$ValidationTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowExecutorTest$ValidationTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in com.zenax.armorsets.flow.FlowExecutorTest
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$ComplexFlowTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowGraphTest$ComplexFlowTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$DeepCopyTests
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.zenax.armorsets.flow.FlowGraphTest$DeepCopyTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$PositionTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowGraphTest$PositionTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$ValidationTests
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.flow.FlowGraphTest$ValidationTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$ConnectionTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowGraphTest$ConnectionTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$StartNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowGraphTest$StartNodeTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$NodeManagementTests
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.zenax.armorsets.flow.FlowGraphTest$NodeManagementTests
+[INFO] Running com.zenax.armorsets.flow.FlowGraphTest$BasicPropertiesTests
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.FlowGraphTest$BasicPropertiesTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.zenax.armorsets.flow.FlowGraphTest
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$NodeTypeSpecificTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowSerializerTest$NodeTypeSpecificTests
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$MultipleFlowsTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.zenax.armorsets.flow.FlowSerializerTest$MultipleFlowsTests
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$RoundTripTests
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowSerializerTest$RoundTripTests
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$FlowConfigToMapTests
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowSerializerTest$FlowConfigToMapTests
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$FlowConfigTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.FlowSerializerTest$FlowConfigTests
+[INFO] Running com.zenax.armorsets.flow.FlowSerializerTest$FlowGraphFromMapTests
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.flow.FlowSerializerTest$FlowGraphFromMapTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in com.zenax.armorsets.flow.FlowSerializerTest
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$FlowNodeBaseTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$FlowNodeBaseTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$RandomNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$RandomNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$MathNodeTests
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$MathNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$SkipCooldownNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$SkipCooldownNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$DelayNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$DelayNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$VariableNodeTests
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$VariableNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$LoopNodeTests
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$LoopNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$ConditionNodeTests
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$ConditionNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$EndNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$EndNodeTests
+[INFO] Running com.zenax.armorsets.flow.nodes.NodeTypesTest$StartNodeTests
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest$StartNodeTests
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in com.zenax.armorsets.flow.nodes.NodeTypesTest
+[INFO] Results:
+[INFO] Tests run: 421, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS

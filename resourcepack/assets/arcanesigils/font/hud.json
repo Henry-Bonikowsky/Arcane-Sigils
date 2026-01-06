@@ -1,0 +1,8265 @@
+{
+  "providers": [
+    {
+      "type": "space",
+      "advances": {
+        "": -1,
+        "": -2,
+        "": -4,
+        "": -8,
+        "": -16,
+        "": -32,
+        "": -64,
+        "": -128,
+        "": -256,
+        "": -512,
+        "": 1,
+        "": 2,
+        "": 4,
+        "": 8,
+        "": 16,
+        "": 32,
+        "": 64,
+        "": 128,
+        "": 256,
+        "": 512,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 150,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6,
+        "": 6
+      }
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_0.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_5.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_10.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_15.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_20.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_25.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_30.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_35.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_40.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_45.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_50.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_55.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_60.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_65.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_70.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_75.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_80.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_85.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_90.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_95.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_100.png",
+      "ascent": -2,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "!"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "'"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "("
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        ")"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "-"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "."
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        ":"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "?"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "["
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "]"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "|"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "0"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "1"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "2"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "3"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "4"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "5"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "6"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "7"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "8"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "9"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "A"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "B"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "C"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "D"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "E"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "F"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "G"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "H"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "I"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "J"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "K"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "L"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "M"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "N"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "O"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "P"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "Q"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "R"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "S"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "T"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "U"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "V"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "W"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "X"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "Y"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "Z"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "a"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "b"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "c"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "d"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "e"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "f"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "g"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "h"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "i"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "j"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "k"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "l"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "m"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "n"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "o"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "p"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "q"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "r"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "s"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "t"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "u"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "v"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "w"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "x"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "y"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        "z"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_0.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_5.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_10.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_15.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_20.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_25.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_30.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_35.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_40.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_45.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_50.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_55.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_60.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_65.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_70.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_75.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_80.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_85.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_90.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_95.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_100.png",
+      "ascent": -14,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_0.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_5.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_10.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_15.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_20.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_25.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_30.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_35.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_40.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_45.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_50.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_55.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_60.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_65.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_70.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_75.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_80.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_85.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_90.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_95.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_100.png",
+      "ascent": -26,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_0.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_5.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_10.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_15.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_20.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_25.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_30.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_35.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_40.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_45.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_50.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_55.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_60.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_65.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_70.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_75.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_80.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_85.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_90.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_95.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_100.png",
+      "ascent": -38,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_0.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_5.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_10.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_15.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_20.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_25.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_30.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_35.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_40.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_45.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_50.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_55.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_60.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_65.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_70.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_75.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_80.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_85.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_90.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_95.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/hud_bg_100.png",
+      "ascent": -50,
+      "height": 38,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        ""
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄠ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄿ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅛ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅝ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅼ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꄹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅁ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅂ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅃ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅄ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅅ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅆ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅇ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅈ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅉ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅊ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅋ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅌ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅍ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅎ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅏ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅐ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅑ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅒ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅓ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅔ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅕ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅖ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅗ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅘ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅙ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅚ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅢ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅣ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅤ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅥ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅦ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅪ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅫ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅬ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅯ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -18,
+      "height": 8,
+      "chars": [
+        "ꅺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈠ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈿ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉛ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉝ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉼ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꈹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉁ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉂ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉃ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉄ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉅ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉆ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉇ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉈ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉉ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉊ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉋ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉌ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉍ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉎ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉏ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉐ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉑ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉒ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉓ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉔ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉕ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉖ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉗ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉘ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉙ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉚ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉢ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉣ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉤ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉥ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉦ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉪ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉫ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉬ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉯ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -30,
+      "height": 8,
+      "chars": [
+        "ꉺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌠ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌿ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍛ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍝ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍼ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꌹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍁ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍂ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍃ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍄ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍅ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍆ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍇ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍈ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍉ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍊ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍋ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍌ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍍ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍎ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍏ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍐ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍑ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍒ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍓ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍔ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍕ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍖ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍗ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍘ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍙ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍚ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍢ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍣ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍤ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍥ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍦ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍪ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍫ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍬ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍯ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -42,
+      "height": 8,
+      "chars": [
+        "ꍺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐠ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0021.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0027.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0028.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0029.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_002E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_003F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐿ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑛ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑝ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑼ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0030.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0031.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0032.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0033.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0034.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0035.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0036.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0037.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0038.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0039.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꐹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0041.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑁ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0042.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑂ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0043.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑃ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0044.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑄ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0045.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑅ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0046.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑆ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0047.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑇ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0048.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑈ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0049.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑉ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑊ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑋ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑌ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑍ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑎ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_004F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑏ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0050.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑐ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0051.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑑ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0052.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑒ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0053.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑓ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0054.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑔ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0055.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑕ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0056.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑖ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0057.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑗ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0058.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑘ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0059.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑙ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_005A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑚ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0061.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑡ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0062.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑢ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0063.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑣ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0064.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑤ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0065.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑥ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0066.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑦ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0067.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑧ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0068.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑨ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0069.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑩ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑪ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006B.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑫ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006C.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑬ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006D.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑭ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006E.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑮ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_006F.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑯ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0070.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑰ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0071.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑱ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0072.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑲ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0073.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑳ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0074.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑴ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0075.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑵ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0076.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑶ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0077.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑷ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0078.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑸ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0079.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑹ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_007A.png",
+      "ascent": -54,
+      "height": 8,
+      "chars": [
+        "ꑺ"
+      ],
+      "advance": 6
+    },
+    {
+      "type": "bitmap",
+      "file": "arcanesigils:font/char_0020.png",
+      "ascent": 0,
+      "height": 8,
+      "chars": [
+        " "
+      ],
+      "advance": 6
+    }
+  ]
+}

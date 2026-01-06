@@ -1,0 +1,16 @@
+# Build outputs
+target/
+
+# IDE
+.idea/
+*.iml
+
+# Tools (Bozar obfuscator - 35MB binary)
+tools/
+
+# Temp files
+*.log
+*.tmp
+
+# Deploy script (contains server credentials)
+deploy.sh

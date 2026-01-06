@@ -3,124 +3,119 @@
 # Signals: PLAYER_STAND (when stood on), PLAYER_NEAR (proximity), EXPIRE (duration ends)
 
 quicksand_behavior:
-  name: "Quicksand Trap"
+  name: Quicksand Trap
   type: BEHAVIOR
   description:
-    - "Slows players who stand on it"
-    - "Drains health over time"
-
+  - Slows players who stand on it
+  - Drains health over time
+  
   flows:
-    # When a player stands on the blocks
-    - type: SIGNAL
-      trigger: PLAYER_STAND
-      chance: 100
-      cooldown: 1
-      startNodeId: start
-      nodes:
-        - id: start
-          type: START
-          x: 0
-          y: 0
-          next: slowness
-        - id: slowness
-          type: EFFECT
-          effect: POTION
-          x: 0
-          y: 1
-          params:
-            potion_type: SLOWNESS
-            duration: 2
-            amplifier: 2
-            target: '@Victim'
-          next: jump_block
-        - id: jump_block
-          type: EFFECT
-          effect: POTION
-          x: 0
-          y: 2
-          params:
-            potion_type: JUMP
-            duration: 2
-            amplifier: 128
-            target: '@Victim'
-          next: damage
-        - id: damage
-          type: EFFECT
-          effect: DEAL_DAMAGE
-          x: 0
-          y: 3
-          params:
-            damage: 1
-            target: '@Victim'
-          next: sand_particle
-        - id: sand_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 4
-          params:
-            particle_type: FALLING_DUST
-            material: SAND
-            count: 10
-            target: '@Victim'
-          next: end
-        - id: end
-          type: END
-          x: 0
-          y: 5
-
-    # When player enters proximity
-    - type: SIGNAL
-      trigger: PLAYER_NEAR
-      chance: 100
-      cooldown: 2
-      startNodeId: start
-      nodes:
-        - id: start
-          type: START
-          x: 0
-          y: 0
-          next: near_particle
-        - id: near_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 1
-          params:
-            particle_type: DUST
-            red: 194
-            green: 178
-            blue: 128
-            count: 5
-            target: '@Victim'
-          next: end
-        - id: end
-          type: END
-          x: 0
-          y: 2
-
-    # When trap expires
-    - type: SIGNAL
-      trigger: EXPIRE
-      chance: 100
-      startNodeId: start
-      nodes:
-        - id: start
-          type: START
-          x: 0
-          y: 0
-          next: expire_particle
-        - id: expire_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 1
-          params:
-            particle_type: POOF
-            count: 20
-            target: '@Self'
-          next: end
-        - id: end
-          type: END
-          x: 0
-          y: 2
+  - type: SIGNAL
+    trigger: PLAYER_STAND
+    chance: 100
+    cooldown: 1
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      x: 0
+      y: 0
+      next: slowness
+    - id: slowness
+      type: EFFECT
+      effect: POTION
+      x: 0
+      y: 1
+      params:
+        potion_type: SLOWNESS
+        duration: 2
+        amplifier: 2
+        target: '@Victim'
+      next: jump_block
+    - id: jump_block
+      type: EFFECT
+      effect: POTION
+      x: 0
+      y: 2
+      params:
+        potion_type: JUMP
+        duration: 2
+        amplifier: 128
+        target: '@Victim'
+      next: damage
+    - id: damage
+      type: EFFECT
+      effect: DEAL_DAMAGE
+      x: 0
+      y: 3
+      params:
+        damage: 1
+        target: '@Victim'
+      next: sand_particle
+    - id: sand_particle
+      type: EFFECT
+      effect: PARTICLE
+      x: 0
+      y: 4
+      params:
+        particle_type: FALLING_DUST
+        material: SAND
+        count: 10
+        target: '@Victim'
+      next: end
+    - id: end
+      type: END
+      x: 0
+      y: 5
+  - type: SIGNAL
+    trigger: PLAYER_NEAR
+    chance: 100
+    cooldown: 2
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      x: 0
+      y: 0
+      next: near_particle
+    - id: near_particle
+      type: EFFECT
+      effect: PARTICLE
+      x: 0
+      y: 1
+      params:
+        particle_type: DUST
+        red: 194
+        green: 178
+        blue: 128
+        count: 5
+        target: '@Victim'
+      next: end
+    - id: end
+      type: END
+      x: 0
+      y: 2
+  - type: SIGNAL
+    trigger: EXPIRE
+    chance: 100
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      x: 0
+      y: 0
+      next: expire_particle
+    - id: expire_particle
+      type: EFFECT
+      effect: PARTICLE
+      x: 0
+      y: 1
+      params:
+        particle_type: POOF
+        count: 20
+        target: '@Self'
+      next: end
+    - id: end
+      type: END
+      x: 0
+      y: 2

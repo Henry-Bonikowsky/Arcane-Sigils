@@ -58,26 +58,12 @@ royal_guard_behavior:
             amplifier: 0
             chance: 25
             target: '@Victim'
-          next: mark_particle
-        - id: mark_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 4
-          params:
-            particle_type: DUST
-            red: 255
-            green: 215
-            blue: 0
-            count: 8
-            chance: 25
-            target: '@Victim'
           next: mark_sound
         - id: mark_sound
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 5
+          y: 4
           params:
             sound: ENTITY_HUSK_HURT
             volume: 0.8
@@ -90,21 +76,9 @@ royal_guard_behavior:
           type: EFFECT
           effect: STUN
           x: 0
-          y: 6
+          y: 5
           params:
             duration: 3
-            chance: 5
-            target: '@Victim'
-          next: stun_particle
-        - id: stun_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 7
-          params:
-            particle_type: FALLING_DUST
-            material: SAND
-            count: 30
             chance: 5
             target: '@Victim'
           next: stun_sound
@@ -112,7 +86,7 @@ royal_guard_behavior:
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 8
+          y: 6
           params:
             sound: ENTITY_VEX_CHARGE
             volume: 1.0
@@ -124,7 +98,7 @@ royal_guard_behavior:
           type: EFFECT
           effect: MESSAGE
           x: 0
-          y: 9
+          y: 7
           params:
             type: ACTIONBAR
             message: '&6&lPharaoh''s Curse! &7You are stunned!'
@@ -134,9 +108,9 @@ royal_guard_behavior:
         - id: end
           type: END
           x: 0
-          y: 10
+          y: 8
 
-    # When mummy takes damage - slight recoil effect
+    # When mummy takes damage - sound only
     - type: SIGNAL
       trigger: DEFENSE
       chance: 50
@@ -147,25 +121,12 @@ royal_guard_behavior:
           type: START
           x: 0
           y: 0
-          next: defense_particle
-        - id: defense_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 1
-          params:
-            particle_type: DUST
-            red: 194
-            green: 178
-            blue: 128
-            count: 5
-            target: '@Self'
           next: defense_sound
         - id: defense_sound
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 2
+          y: 1
           params:
             sound: ENTITY_HUSK_HURT
             volume: 0.6
@@ -175,39 +136,9 @@ royal_guard_behavior:
         - id: end
           type: END
           x: 0
-          y: 3
-
-    # Passive sand particle aura
-    - type: SIGNAL
-      trigger: TICK
-      chance: 100
-      cooldown: 2
-      startNodeId: start
-      nodes:
-        - id: start
-          type: START
-          x: 0
-          y: 0
-          next: tick_particle
-        - id: tick_particle
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 1
-          params:
-            particle_type: DUST
-            red: 194
-            green: 178
-            blue: 128
-            count: 3
-            target: '@Self'
-          next: end
-        - id: end
-          type: END
-          x: 0
           y: 2
 
-    # When mummy dies - sandy disintegration
+    # When mummy dies - sounds only
     - type: SIGNAL
       trigger: ENTITY_DEATH
       chance: 100
@@ -217,46 +148,12 @@ royal_guard_behavior:
           type: START
           x: 0
           y: 0
-          next: death_sand
-        - id: death_sand
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 1
-          params:
-            particle_type: FALLING_DUST
-            material: SAND
-            count: 50
-            target: '@Self'
-          next: death_dust
-        - id: death_dust
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 2
-          params:
-            particle_type: DUST
-            red: 194
-            green: 178
-            blue: 128
-            count: 30
-            target: '@Self'
-          next: death_soul
-        - id: death_soul
-          type: EFFECT
-          effect: PARTICLE
-          x: 0
-          y: 3
-          params:
-            particle_type: SOUL
-            count: 15
-            target: '@Self'
           next: death_sound1
         - id: death_sound1
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 4
+          y: 1
           params:
             sound: ENTITY_HUSK_DEATH
             volume: 1.0
@@ -267,7 +164,7 @@ royal_guard_behavior:
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 5
+          y: 2
           params:
             sound: BLOCK_SAND_BREAK
             volume: 1.0
@@ -277,4 +174,4 @@ royal_guard_behavior:
         - id: end
           type: END
           x: 0
-          y: 6
+          y: 3
