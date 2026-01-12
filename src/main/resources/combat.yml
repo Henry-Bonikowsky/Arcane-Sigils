@@ -1,10 +1,5 @@
-# =============================================================================
 # Arcane Sigils - Legacy Combat Configuration
-# =============================================================================
-# Replicates 1.8.9 PvP mechanics on modern Minecraft versions.
-# All values can be changed in-game via /as combat
-# Changes take effect immediately - no restart required.
-# =============================================================================
+# TRUE KOHI/1.8 VALUES
 
 legacy-combat:
   enabled: true
@@ -18,17 +13,11 @@ legacy-combat:
     slowdown-multiplier: 0.2
   knockback:
     enabled: true
-    horizontal-base: 0.7000000000000002
-    vertical-base: 0.35000000000000003
-    vertical-cap: 0.35000000000000003
-    sprint-multiplier: 1.0
-    w-tap-window-ms: 100
-    forward-reduction: 0.6
-    sync:
-      enabled: true
-      history-ticks: 20
-      ping-offset-ms: 25
-      max-compensation-ms: 200
+    horizontal-base: 0.35
+    vertical-base: 0.35
+    vertical-cap: 0.4
+    extra-horizontal: 0.425
+    extra-vertical: 0.077
   regeneration:
     enabled: false
     regen-amount: 1.0
@@ -40,6 +29,11 @@ legacy-combat:
     reach-extension: 0.1
   sweep-attack:
     enabled: true
+  hit-sound-filter:
+    enabled: true
+  custom-immunity:
+    enabled: true
+    immunity-ticks: 10
   critical-hits:
     enabled: true
     damage-multiplier: 1.5
@@ -56,7 +50,7 @@ legacy-combat:
     axe-damage-reduction: 3.0
   golden-apple:
     enabled: true
-    eat-time-seconds: 2.000000000000001
+    eat-time-seconds: 2.0
   attack-indicator:
     enabled: true
   potions:
@@ -69,3 +63,6 @@ legacy-combat:
     snowball-vertical: 0.15
     egg-knockback: 0.25
     egg-vertical: 0.1
+  cps-limit:
+    enabled: false
+    max-cps: 20

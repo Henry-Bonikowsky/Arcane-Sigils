@@ -14,3 +14,9 @@ tools/
 
 # Deploy script (contains server credentials)
 deploy.sh
+tmpclaude-*
+*.bak
+*.broken
+*.old
+*.old2
+*.backup

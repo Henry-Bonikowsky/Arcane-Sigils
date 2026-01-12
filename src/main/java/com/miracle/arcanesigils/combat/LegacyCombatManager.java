@@ -2,7 +2,6 @@ package com.miracle.arcanesigils.combat;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.combat.modules.*;
-import com.miracle.arcanesigils.combat.sync.PositionTracker;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,12 +23,10 @@ public class LegacyCombatManager implements Listener {
     private final ArmorSetsPlugin plugin;
     private final LegacyCombatConfig config;
     private final Map<String, CombatModule> modules = new HashMap<>();
-    private final PositionTracker positionTracker;
 
     public LegacyCombatManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         this.config = new LegacyCombatConfig(plugin);
-        this.positionTracker = new PositionTracker(plugin, config);
 
         // Register event listener
         Bukkit.getPluginManager().registerEvents(this, plugin);
@@ -44,6 +41,8 @@ public class LegacyCombatManager implements Listener {
         // Register all combat modules
         registerModule(new AttackCooldownModule(this));
         registerModule(new SweepAttackModule(this));
+        registerModule(new HitSoundFilterModule(this));
+        registerModule(new CustomImmunityModule(this));
         registerModule(new HitboxModule(this));
         registerModule(new CriticalHitModule(this));
         registerModule(new RegenerationModule(this));
@@ -86,7 +85,6 @@ public class LegacyCombatManager implements Listener {
         Player player = event.getPlayer();
 
         // Start tracking player position for KB sync
-        positionTracker.startTracking(player);
 
         // Apply all enabled modules to the player
         for (CombatModule module : modules.values()) {
@@ -106,7 +104,6 @@ public class LegacyCombatManager implements Listener {
         Player player = event.getPlayer();
 
         // Stop tracking player position
-        positionTracker.stopTracking(player);
 
         // Remove module effects from player
         for (CombatModule module : modules.values()) {
@@ -126,7 +123,6 @@ public class LegacyCombatManager implements Listener {
      */
     public void reload() {
         config.load();
-        positionTracker.reload();
 
         for (CombatModule module : modules.values()) {
             module.reload();
@@ -144,7 +140,6 @@ public class LegacyCombatManager implements Listener {
                 module.setEnabled(false);
             }
         }
-        positionTracker.disable();
     }
 
     /**
@@ -170,7 +165,4 @@ public class LegacyCombatManager implements Listener {
         return config;
     }
 
-    public PositionTracker getPositionTracker() {
-        return positionTracker;
-    }
 }

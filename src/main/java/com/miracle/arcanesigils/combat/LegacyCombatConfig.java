@@ -32,18 +32,15 @@ public class LegacyCombatConfig {
     private int consumeDuration = 72000;
     private double slowdownMultiplier = 0.2;
 
-    // Knockback settings
+    // Knockback settings (Kohi defaults)
     private boolean knockbackEnabled = true;
-    private double kbHorizontalBase = 0.4;
-    private double kbVerticalBase = 0.4;
+    private double kbHorizontalBase = 0.35;
+    private double kbVerticalBase = 0.35;
     private double kbVerticalCap = 0.4;
-    private double kbSprintMultiplier = 1.0;
-    private int kbWTapWindowMs = 100;
-    private double kbForwardReduction = 0.6;
-    private boolean kbSyncEnabled = true;
-    private int kbSyncHistoryTicks = 20;
-    private int kbSyncPingOffsetMs = 25;
-    private int kbSyncMaxCompensationMs = 200;
+    private double kbExtraHorizontal = 0.425;
+    private double kbExtraVertical = 0.077;
+    private int damageImmunityTicks = 10;
+
 
     // Regeneration settings
     private boolean regenerationEnabled = true;
@@ -143,20 +140,11 @@ public class LegacyCombatConfig {
         ConfigurationSection kb = root.getConfigurationSection("knockback");
         if (kb != null) {
             knockbackEnabled = kb.getBoolean("enabled", true);
-            kbHorizontalBase = kb.getDouble("horizontal-base", 0.4);
-            kbVerticalBase = kb.getDouble("vertical-base", 0.4);
+            kbHorizontalBase = kb.getDouble("horizontal-base", 0.35);
+            kbVerticalBase = kb.getDouble("vertical-base", 0.35);
             kbVerticalCap = kb.getDouble("vertical-cap", 0.4);
-            kbSprintMultiplier = kb.getDouble("sprint-multiplier", 1.0);
-            kbWTapWindowMs = kb.getInt("w-tap-window-ms", 100);
-            kbForwardReduction = kb.getDouble("forward-reduction", 0.6);
-
-            ConfigurationSection sync = kb.getConfigurationSection("sync");
-            if (sync != null) {
-                kbSyncEnabled = sync.getBoolean("enabled", true);
-                kbSyncHistoryTicks = sync.getInt("history-ticks", 20);
-                kbSyncPingOffsetMs = sync.getInt("ping-offset-ms", 25);
-                kbSyncMaxCompensationMs = sync.getInt("max-compensation-ms", 200);
-            }
+            kbExtraHorizontal = kb.getDouble("extra-horizontal", 0.425);
+            kbExtraVertical = kb.getDouble("extra-vertical", 0.077);
         }
 
         // Regeneration
@@ -270,15 +258,8 @@ public class LegacyCombatConfig {
         kb.set("horizontal-base", kbHorizontalBase);
         kb.set("vertical-base", kbVerticalBase);
         kb.set("vertical-cap", kbVerticalCap);
-        kb.set("sprint-multiplier", kbSprintMultiplier);
-        kb.set("w-tap-window-ms", kbWTapWindowMs);
-        kb.set("forward-reduction", kbForwardReduction);
-
-        ConfigurationSection sync = kb.createSection("sync");
-        sync.set("enabled", kbSyncEnabled);
-        sync.set("history-ticks", kbSyncHistoryTicks);
-        sync.set("ping-offset-ms", kbSyncPingOffsetMs);
-        sync.set("max-compensation-ms", kbSyncMaxCompensationMs);
+        kb.set("extra-horizontal", kbExtraHorizontal);
+        kb.set("extra-vertical", kbExtraVertical);
 
         // Regeneration
         ConfigurationSection regen = root.createSection("regeneration");
@@ -417,20 +398,6 @@ public class LegacyCombatConfig {
     public void setKbVerticalBase(double v) { this.kbVerticalBase = v; }
     public double getKbVerticalCap() { return kbVerticalCap; }
     public void setKbVerticalCap(double v) { this.kbVerticalCap = v; }
-    public double getKbSprintMultiplier() { return kbSprintMultiplier; }
-    public void setKbSprintMultiplier(double v) { this.kbSprintMultiplier = v; }
-    public int getKbWTapWindowMs() { return kbWTapWindowMs; }
-    public void setKbWTapWindowMs(int v) { this.kbWTapWindowMs = v; }
-    public double getKbForwardReduction() { return kbForwardReduction; }
-    public void setKbForwardReduction(double v) { this.kbForwardReduction = v; }
-    public boolean isKbSyncEnabled() { return kbSyncEnabled; }
-    public void setKbSyncEnabled(boolean v) { this.kbSyncEnabled = v; }
-    public int getKbSyncHistoryTicks() { return kbSyncHistoryTicks; }
-    public void setKbSyncHistoryTicks(int v) { this.kbSyncHistoryTicks = v; }
-    public int getKbSyncPingOffsetMs() { return kbSyncPingOffsetMs; }
-    public void setKbSyncPingOffsetMs(int v) { this.kbSyncPingOffsetMs = v; }
-    public int getKbSyncMaxCompensationMs() { return kbSyncMaxCompensationMs; }
-    public void setKbSyncMaxCompensationMs(int v) { this.kbSyncMaxCompensationMs = v; }
 
     // Regeneration
     public boolean isRegenerationEnabled() { return regenerationEnabled; }
@@ -519,4 +486,24 @@ public class LegacyCombatConfig {
     public void setCpsLimitEnabled(boolean v) { this.cpsLimitEnabled = v; }
     public int getMaxCps() { return maxCps; }
     public void setMaxCps(int v) { this.maxCps = v; }
+
+    // Additional KB getters/setters
+    public double getKbExtraHorizontal() { return kbExtraHorizontal; }
+    public void setKbExtraHorizontal(double v) { this.kbExtraHorizontal = v; }
+    public double getKbExtraVertical() { return kbExtraVertical; }
+    public void setKbExtraVertical(double v) { this.kbExtraVertical = v; }
+
+
+    // Aliases for compatibility
+    public double getKbHorizontal() { return getKbHorizontalBase(); }
+    public void setKbHorizontal(double v) { setKbHorizontalBase(v); }
+    public double getKbVertical() { return getKbVerticalBase(); }
+    public void setKbVertical(double v) { setKbVerticalBase(v); }
+    public double getKbVerticalLimit() { return getKbVerticalCap(); }
+    public void setKbVerticalLimit(double v) { setKbVerticalCap(v); }
+
+
+    // Knockback getters/setters
+    public int getDamageImmunityTicks() { return damageImmunityTicks; }
+    public void setDamageImmunityTicks(int v) { this.damageImmunityTicks = v; }
 }

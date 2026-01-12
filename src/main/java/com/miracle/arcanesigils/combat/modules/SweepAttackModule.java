@@ -37,6 +37,23 @@ public class SweepAttackModule extends AbstractCombatModule implements Listener 
     }
 
     @Override
+    public void onEnable() {
+        // Periodically enforce sweep ratio = 0 for all online players (every 5 seconds)
+        // This prevents other plugins/systems from resetting it
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            if (isEnabled()) {
+                for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    setSweepRatioZero(p);
+                }
+            }
+        }, 100L, 100L);
+        
+        if (DEBUG) {
+            plugin.getLogger().info("[SweepAttack] Enabled with periodic enforcement");
+        }
+    }
+
+    @Override
     public void applyToPlayer(Player player) {
         if (!isEnabled()) return;
         setSweepRatioZero(player);
