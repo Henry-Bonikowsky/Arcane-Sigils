@@ -1,12 +1,16 @@
 package com.miracle.arcanesigils.flow;
 
+import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.tier.TierScalingConfig;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -68,6 +72,18 @@ public class FlowContext {
      * Set by SKIP_COOLDOWN nodes when conditions fail.
      */
     private boolean skipCooldown = false;
+
+    /**
+     * Execution trace for test mode.
+     * Stores a log of each node executed for debugging.
+     */
+    private final List<String> executionTrace = new ArrayList<>();
+
+    /**
+     * Whether this flow is running in test mode.
+     * Test mode bypasses conditions and signals, showing execution tree.
+     */
+    private boolean testMode = false;
 
     public FlowContext(EffectContext effectContext) {
         this.effectContext = effectContext;
@@ -219,6 +235,94 @@ public class FlowContext {
             };
         }
 
+        // Handle SIGIL-scoped variables: {sigil.varname}
+        if (placeholder.startsWith("sigil.")) {
+            String varName = placeholder.substring(6); // Remove "sigil." prefix
+
+            if (effectContext != null) {
+                String sigilId = effectContext.getMetadata("sourceSigilId", null);
+                Player player = effectContext.getPlayer();
+                ItemStack sourceItem = effectContext.getMetadata("sourceItem", null);
+
+                if (sigilId != null && player != null && sourceItem != null) {
+                    // Determine slot from sourceItem type
+                    String slot = getSlotFromItem(sourceItem);
+
+                    if (slot != null) {
+                        ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
+                        Object value = plugin.getSigilVariableManager()
+                            .getSigilVariable(player, sigilId, slot, varName);
+
+                        if (value != null) {
+                            return value;
+                        }
+                    }
+                }
+            }
+            return 0; // Default if variable not found
+        }
+
+        // Handle calculated variable: charges_needed (100 - current charge)
+        if (placeholder.equals("charges_needed")) {
+            if (effectContext != null) {
+                String sigilId = effectContext.getMetadata("sourceSigilId", null);
+                Player player = effectContext.getPlayer();
+                ItemStack sourceItem = effectContext.getMetadata("sourceItem", null);
+
+                if (sigilId != null && player != null && sourceItem != null) {
+                    String slot = getSlotFromItem(sourceItem);
+
+                    if (slot != null) {
+                        ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
+                        int charge = 0;
+                        Object chargeObj = plugin.getSigilVariableManager()
+                            .getSigilVariable(player, sigilId, slot, "charge");
+
+                        if (chargeObj instanceof Number num) {
+                            charge = num.intValue();
+                        }
+
+                        return Math.max(0, 100 - charge);
+                    }
+                }
+            }
+            return 100; // Default if can't calculate
+        }
+
+        // Handle current_dr calculation (current charge DR as percentage)
+        if (placeholder.equals("current_dr")) {
+            if (effectContext != null) {
+                String sigilId = effectContext.getMetadata("sourceSigilId", null);
+                Player player = effectContext.getPlayer();
+                ItemStack sourceItem = effectContext.getMetadata("sourceItem", null);
+                TierScalingConfig currentTierConfig = effectContext.getMetadata("tierScalingConfig", null);
+
+                if (sigilId != null && player != null && sourceItem != null && currentTierConfig != null) {
+                    String slot = getSlotFromItem(sourceItem);
+
+                    if (slot != null) {
+                        ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
+                        int charge = 0;
+                        Object chargeObj = plugin.getSigilVariableManager()
+                            .getSigilVariable(player, sigilId, slot, "charge");
+
+                        if (chargeObj instanceof Number num) {
+                            charge = Math.min(num.intValue(), 100); // Cap at 100
+                        }
+
+                        // Get charge_dr_percent from tier config
+                        double chargeDrPercent = currentTierConfig.getParamValue("charge_dr_percent", tier);
+
+                        // Calculate current DR as percentage
+                        double drPercent = charge * chargeDrPercent * 100;
+
+                        return String.format("%.2f", drPercent);
+                    }
+                }
+            }
+            return "0.00"; // Default if can't calculate
+        }
+
         // Full placeholder resolution with effectContext available
         return switch (placeholder.toLowerCase()) {
             // Damage
@@ -355,7 +459,8 @@ public class FlowContext {
         }
 
         com.miracle.arcanesigils.events.ConditionManager conditionManager =
-            new com.miracle.arcanesigils.events.ConditionManager();
+            new com.miracle.arcanesigils.events.ConditionManager(
+                com.miracle.arcanesigils.ArmorSetsPlugin.getInstance());
 
         boolean result = conditionManager.checkConditions(
             java.util.Collections.singletonList(condition),
@@ -458,5 +563,66 @@ public class FlowContext {
      */
     public boolean shouldSkipCooldown() {
         return skipCooldown;
+    }
+
+    // ============ Test Mode Support ============
+
+    /**
+     * Set whether this flow is running in test mode.
+     * Test mode bypasses conditions and shows execution trace.
+     */
+    public void setTestMode(boolean testMode) {
+        this.testMode = testMode;
+    }
+
+    /**
+     * Check if this flow is running in test mode.
+     */
+    public boolean isTestMode() {
+        return testMode;
+    }
+
+    /**
+     * Add an entry to the execution trace.
+     * Used in test mode to show which nodes executed.
+     */
+    public void addTraceEntry(String entry) {
+        executionTrace.add(entry);
+    }
+
+    /**
+     * Get the execution trace.
+     * Returns a copy to prevent modification.
+     */
+    public List<String> getExecutionTrace() {
+        return new ArrayList<>(executionTrace);
+    }
+
+    /**
+     * Determine armor/item slot from ItemStack type.
+     * Used for SIGIL variable resolution.
+     *
+     * @param item The item to check
+     * @return Slot name (HELMET, CHESTPLATE, LEGGINGS, BOOTS) or null
+     */
+    private String getSlotFromItem(ItemStack item) {
+        if (item == null) return null;
+
+        String typeName = item.getType().name();
+
+        // Armor slots
+        if (typeName.contains("HELMET")) return "HELMET";
+        if (typeName.contains("CHESTPLATE")) return "CHESTPLATE";
+        if (typeName.contains("LEGGINGS")) return "LEGGINGS";
+        if (typeName.contains("BOOTS")) return "BOOTS";
+
+        // Weapon/tool slots (use generic names)
+        if (typeName.contains("SWORD")) return "SWORD";
+        if (typeName.contains("AXE")) return "AXE";
+        if (typeName.contains("BOW")) return "BOW";
+        if (typeName.contains("CROSSBOW")) return "CROSSBOW";
+        if (typeName.contains("PICKAXE")) return "PICKAXE";
+
+        return "UNKNOWN";
     }
 }

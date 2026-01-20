@@ -88,8 +88,12 @@ public class ModifyAttributeEffect extends AbstractEffect {
         String targetStr = params.getTarget();
         if (targetStr != null && targetStr.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetStr, 5);
+            java.util.List<LivingEntity> nearbyEntities = getNearbyEntities(context, radius);
+            getPlugin().getLogger().info("[MODIFY_ATTRIBUTE DEBUG] Found " + nearbyEntities.size() + " nearby entities within radius " + radius);
             boolean anySuccess = false;
-            for (LivingEntity entity : getNearbyEntities(context, radius)) {
+            for (LivingEntity entity : nearbyEntities) {
+                boolean isPlayer = entity instanceof Player;
+                getPlugin().getLogger().info("[MODIFY_ATTRIBUTE DEBUG] Applying to: " + entity.getName() + " (" + entity.getType() + ", isPlayer=" + isPlayer + ")");
                 if (applyToTarget(entity, params, context)) {
                     anySuccess = true;
                 }
@@ -197,6 +201,31 @@ public class ModifyAttributeEffect extends AbstractEffect {
             maxHealthBeforeModifier = attrInstance.getValue();
         }
 
+        // CHECK INTERCEPTION BEFORE APPLYING
+        ArmorSetsPlugin plugin = getPlugin();
+        com.miracle.arcanesigils.interception.InterceptionManager interceptionManager = plugin.getInterceptionManager();
+
+        if (interceptionManager != null && target instanceof org.bukkit.entity.Player player) {
+            com.miracle.arcanesigils.interception.InterceptionEvent interceptionEvent =
+                new com.miracle.arcanesigils.interception.InterceptionEvent(
+                    com.miracle.arcanesigils.interception.InterceptionEvent.Type.ATTRIBUTE_MODIFIER,
+                    player,
+                    context.getPlayer(),
+                    attribute,
+                    operation,
+                    value,
+                    key.getKey()
+                );
+
+            com.miracle.arcanesigils.interception.InterceptionEvent result =
+                interceptionManager.fireIntercept(interceptionEvent);
+
+            if (result.isCancelled()) {
+                debug("Attribute modifier " + attribute + " blocked by interceptor on " + target.getName());
+                return false; // Modifier was blocked (e.g., by Cleopatra suppression)
+            }
+        }
+
         // Apply the modifier
         attrInstance.addModifier(modifier);
 
@@ -233,7 +262,6 @@ public class ModifyAttributeEffect extends AbstractEffect {
 
         // Schedule removal of modifier after duration (unless permanent)
         if (shouldScheduleRemoval) {
-            ArmorSetsPlugin plugin = getPlugin();
             final AttributeModifier finalModifier = modifier;
             final Attribute finalAttribute = attribute;
             Bukkit.getScheduler().runTaskLater(plugin, () -> {

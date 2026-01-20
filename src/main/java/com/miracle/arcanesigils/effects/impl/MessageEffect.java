@@ -13,7 +13,7 @@ import java.time.Duration;
 /**
  * Message effect supporting multiple display types:
  * - MESSAGE:text - Chat message (default)
- * - MESSAGE:ACTIONBAR:text - Action bar message
+ * - MESSAGE:ACTIONBAR:text - Chat message (ACTIONBAR deprecated, now uses CHAT)
  * - MESSAGE:TITLE:text - Title (big center text)
  * - MESSAGE:SUBTITLE:text - Subtitle (smaller center text)
  */
@@ -74,30 +74,51 @@ public class MessageEffect extends AbstractEffect {
     @Override
     public boolean execute(EffectContext context) {
         EffectParams params = context.getParams();
-        if (params == null) return false;
+        if (params == null) {
+            com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Params are NULL");
+            return false;
+        }
+
+        com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Params: %s", params);
 
         String message = params.getString("message", "");
-        if (message.isEmpty()) return false;
+        com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Raw message string: '%s'", message);
+
+        if (message.isEmpty()) {
+            com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Message is EMPTY - aborting");
+            return false;
+        }
 
         String type = params.getString("type", "CHAT").toUpperCase();
+        com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Type: %s", type);
 
         LivingEntity target = getTarget(context);
         if (target instanceof Player player) {
             Component component = TextUtil.parseComponent(message);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Component created: %s", component);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Sending to player: %s", player.getName());
 
             switch (type) {
-                case "ACTIONBAR" -> player.sendActionBar(component);
-                case "TITLE" -> player.showTitle(Title.title(
-                    component,
-                    Component.empty(),
-                    Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))
-                ));
-                case "SUBTITLE" -> player.showTitle(Title.title(
-                    Component.empty(),
-                    component,
-                    Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))
-                ));
-                default -> player.sendMessage(component);
+                case "TITLE" -> {
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Showing TITLE");
+                    player.showTitle(Title.title(
+                        component,
+                        Component.empty(),
+                        Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))
+                    ));
+                }
+                case "SUBTITLE" -> {
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Showing SUBTITLE");
+                    player.showTitle(Title.title(
+                        Component.empty(),
+                        component,
+                        Title.Times.times(Duration.ofMillis(500), Duration.ofSeconds(2), Duration.ofMillis(500))
+                    ));
+                }
+                default -> {
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[MessageEffect] Sending CHAT message (type: %s)", type);
+                    player.sendMessage(component);
+                }
             }
             return true;
         }
