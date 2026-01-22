@@ -292,6 +292,11 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
             if (!(targetEntity instanceof Player)) {
                 LogHelper.debug("[SpawnEntity] OWNER_TARGET mode requires Player target. Target is %s. Not spawning.",
                     targetEntity != null ? targetEntity.getClass().getSimpleName() : "null");
+                // Set error to stop flow and show message to player
+                if (context.getFlowContext() != null) {
+                    String abilityName = context.getSigilId() != null ? context.getSigilId() : "Ability";
+                    context.getFlowContext().setError(abilityName + " requires a target!");
+                }
                 return false;
             }
             LogHelper.debug("[SpawnEntity] OWNER_TARGET mode: Valid player target '%s' found. Proceeding with spawn.",
