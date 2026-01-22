@@ -1,6 +1,11 @@
 package com.miracle.arcanesigils.combat.modules;
 
 import com.miracle.arcanesigils.combat.LegacyCombatManager;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CustomImmunityModule extends AbstractCombatModule implements Listener {
 
     private final Map<UUID, Long> lastHitTime = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> recentFailedAttackers = new ConcurrentHashMap<>();
+    private PacketAdapter soundCanceller;
 
     public CustomImmunityModule(LegacyCombatManager manager) {
         super(manager);
@@ -31,12 +38,83 @@ public class CustomImmunityModule extends AbstractCombatModule implements Listen
 
     @Override
     public void onEnable() {
-        plugin.getLogger().info("[CustomImmunity] Enabled - 1.8 style hit delay active");
+        // Cancel hit sounds for immune victims AND weak attack sounds for failed attackers
+        soundCanceller = new PacketAdapter(plugin, 
+            PacketType.Play.Server.NAMED_SOUND_EFFECT,
+            PacketType.Play.Server.ENTITY_STATUS) {
+            
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                if (!isEnabled()) return;
+                
+                try {
+                    Player receiver = event.getPlayer();
+                    
+                    if (event.getPacketType() == PacketType.Play.Server.NAMED_SOUND_EFFECT) {
+                        Sound sound = event.getPacket().getSoundEffects().read(0);
+                        
+                        // Cancel weak attack sounds for players who recently hit an immune target
+                        if (sound == Sound.ENTITY_PLAYER_ATTACK_WEAK || sound == Sound.ENTITY_PLAYER_ATTACK_NODAMAGE) {
+                            Long lastFailed = recentFailedAttackers.get(receiver.getUniqueId());
+                            if (lastFailed != null && (System.currentTimeMillis() - lastFailed) < 100) {
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+                        
+                        // Cancel hurt sounds for immune victims
+                        if (isImmune(receiver)) {
+                            if (sound == Sound.ENTITY_PLAYER_HURT || 
+                                sound == Sound.ENTITY_PLAYER_HURT_DROWN ||
+                                sound == Sound.ENTITY_PLAYER_HURT_ON_FIRE ||
+                                sound == Sound.ENTITY_PLAYER_HURT_SWEET_BERRY_BUSH ||
+                                sound == Sound.ENTITY_PLAYER_HURT_FREEZE) {
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+                    }
+                    
+                    if (event.getPacketType() == PacketType.Play.Server.ENTITY_STATUS) {
+                        byte status = event.getPacket().getBytes().read(0);
+                        
+                        // Cancel weak attack animation for recent failed attackers
+                        if (status == 33) {
+                            Long lastFailed = recentFailedAttackers.get(receiver.getUniqueId());
+                            if (lastFailed != null && (System.currentTimeMillis() - lastFailed) < 100) {
+                                event.setCancelled(true);
+                                return;
+                            }
+                        }
+                        
+                        // Cancel hurt animation for immune victims
+                        if (status == 2 && isImmune(receiver)) {
+                            event.setCancelled(true);
+                            return;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+        };
+        ProtocolLibrary.getProtocolManager().addPacketListener(soundCanceller);
+        
+        // Clean up old entries every second
+        org.bukkit.Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            long now = System.currentTimeMillis();
+            recentFailedAttackers.entrySet().removeIf(e -> (now - e.getValue()) > 200);
+        }, 20L, 20L);
+        
+        plugin.getLogger().info("[CustomImmunity] Enabled - tracking failed hits for sound cancellation");
     }
 
     @Override
     public void onDisable() {
+        if (soundCanceller != null) {
+            ProtocolLibrary.getProtocolManager().removePacketListener(soundCanceller);
+            soundCanceller = null;
+        }
         lastHitTime.clear();
+        recentFailedAttackers.clear();
     }
 
     public boolean isImmune(Player player) {
@@ -54,19 +132,22 @@ public class CustomImmunityModule extends AbstractCombatModule implements Listen
         if (!isEnabled()) return;
         
         if (event.getEntity() instanceof Player victim) {
+            // Track who attacked (for weak sound cancellation)
+            Player attacker = null;
+            if (event.getDamager() instanceof Player p) {
+                attacker = p;
+            } else if (event.getDamager() instanceof org.bukkit.entity.Projectile proj) {
+                if (proj.getShooter() instanceof Player shooter) {
+                    attacker = shooter;
+                }
+            }
+            
             if (isImmune(victim)) {
                 event.setCancelled(true);
                 
-                // Notify HitSoundFilterModule to cancel sounds/animations
-                HitSoundFilterModule soundFilter = manager.getModule("hit-sound-filter");
-                if (soundFilter != null && soundFilter.isEnabled()) {
-                    UUID attackerUuid = null;
-                    if (event.getDamager() instanceof Player attacker) {
-                        attackerUuid = attacker.getUniqueId();
-                    }
-                    if (attackerUuid != null) {
-                        soundFilter.registerCancelledHit(attackerUuid, victim.getUniqueId());
-                    }
+                // Mark this attacker as having recently failed a hit
+                if (attacker != null) {
+                    recentFailedAttackers.put(attacker.getUniqueId(), System.currentTimeMillis());
                 }
                 return;
             }

@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Notifies players when their ability cooldowns expire.
- * Plays a sound and shows an action bar message.
+ * Plays a sound and shows a chat message.
  */
 public class CooldownNotifier {
 
@@ -109,11 +109,11 @@ public class CooldownNotifier {
             player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.8f, pitch);
         }
 
-        // Show ready notification via action bar
+        // Show ready notification via chat
         Component ready = Component.text(abilityName + " ")
             .color(NamedTextColor.GREEN)
             .append(Component.text("Ready!").color(NamedTextColor.WHITE));
-        player.sendActionBar(ready);
+        player.sendMessage(ready);
     }
 
     private boolean isEnabled() {

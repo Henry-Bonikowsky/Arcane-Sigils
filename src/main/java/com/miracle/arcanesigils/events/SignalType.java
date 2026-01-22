@@ -127,7 +127,21 @@ public enum SignalType {
      * Signaled to behaviors when the owner takes damage.
      * Used by aura/trap behaviors to trigger effects when owner is hit.
      */
-    OWNER_DEFEND("OWNER_DEFEND", "When owner takes damage");
+    OWNER_DEFEND("OWNER_DEFEND", "When owner takes damage"),
+
+    /**
+     * Signaled when a potion effect is about to be applied to the player.
+     * Used by Ancient Crown to intercept and reduce negative effects.
+     * Provides effect type, amplifier, and duration.
+     */
+    POTION_EFFECT_APPLY("POTION_EFFECT_APPLY", "When potion effect applied"),
+
+    /**
+     * Signaled when an attribute modifier is about to be applied to the player.
+     * Used by Ancient Crown to intercept and reduce negative modifiers.
+     * Provides attribute type, operation, and value.
+     */
+    ATTRIBUTE_MODIFY("ATTRIBUTE_MODIFY", "When attribute modified");
 
     private final String configKey;
     private final String description;

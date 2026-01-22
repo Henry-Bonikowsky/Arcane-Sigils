@@ -5,9 +5,13 @@ import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.events.SignalType;
 import com.miracle.arcanesigils.flow.FlowConfig;
 import com.miracle.arcanesigils.flow.FlowExecutor;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * Re-applying a mark refreshes the timer without re-running EFFECT_STATIC.
  */
-public class MarkManager {
+public class MarkManager implements Listener {
     private final ArmorSetsPlugin plugin;
 
     // Map of entity UUID -> Map of mark name -> MarkData
@@ -50,7 +54,11 @@ public class MarkManager {
         this.plugin = plugin;
 
         // Start task to handle mark expiration and TICK signals
-        Bukkit.getScheduler().runTaskTimer(plugin, this::processTick, 20L, 20L);
+        // Ticks every 2 game ticks (0.1 seconds) for responsive behaviors like quicksand pull
+        Bukkit.getScheduler().runTaskTimer(plugin, this::processTick, 2L, 2L);
+
+        // Register event listener for player quit cleanup
+        Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     /**
@@ -76,6 +84,13 @@ public class MarkManager {
         UUID entityId = entity.getUniqueId();
         String normalizedMark = markName.toUpperCase();
 
+        LogHelper.debug("[MarkManager] Applying mark '%s' to %s: duration=%.1fs, behavior=%s, owner=%s",
+            normalizedMark,
+            entity instanceof Player p ? p.getName() : entity.getType().name(),
+            durationSeconds,
+            behaviorId != null ? behaviorId : "none",
+            owner != null ? owner.getName() : "none");
+
         entityMarks.computeIfAbsent(entityId, k -> new ConcurrentHashMap<>());
 
         long expiryTime;
@@ -89,8 +104,40 @@ public class MarkManager {
         MarkData existingData = marks.get(normalizedMark);
 
         if (existingData != null) {
-            // Mark already exists - just refresh timer, don't re-run EFFECT_STATIC
-            existingData.expiryTime = expiryTime;
+            // Check for per-mark config, fall back to global config
+            com.miracle.arcanesigils.config.MarkConfig markConfig = 
+                plugin.getConfigManager().getMarkConfig(normalizedMark);
+            
+            boolean stackingEnabled;
+            double stackIncrement;
+            double maxDuration;
+            
+            if (markConfig != null) {
+                // Use per-mark configuration
+                stackingEnabled = markConfig.isStackingEnabled();
+                stackIncrement = markConfig.getStackIncrement();
+                maxDuration = markConfig.getMaxDuration();
+            } else {
+                // Fall back to global configuration
+                stackingEnabled = plugin.getConfig().getBoolean("marks.enable-stacking", true);
+                stackIncrement = plugin.getConfig().getDouble("marks.stack-increment", 1.0);
+                maxDuration = plugin.getConfig().getDouble("marks.max-duration", 1.0);
+            }
+            
+            if (stackingEnabled && durationSeconds > 0) {
+                // STACK DURATION: Get remaining time and add stack increment
+                double remainingSeconds = (existingData.expiryTime - System.currentTimeMillis()) / 1000.0;
+                double newDuration = Math.min(remainingSeconds + stackIncrement, maxDuration);
+                existingData.expiryTime = System.currentTimeMillis() + (long)(newDuration * 1000);
+                LogHelper.debug("[MarkManager] Stacking mark '%s': remaining=%.1fs, increment=%.1fs, new=%.1fs (max=%.1fs)",
+                    normalizedMark, remainingSeconds, stackIncrement, newDuration, maxDuration);
+            } else {
+                // Just refresh timer (old behavior for permanent marks or stacking disabled)
+                existingData.expiryTime = expiryTime;
+                LogHelper.debug("[MarkManager] Refreshing mark '%s': stacking=%s, new duration=%.1fs",
+                    normalizedMark, stackingEnabled, durationSeconds);
+            }
+            
             // Update owner if provided
             if (owner != null) {
                 existingData.ownerUUID = owner.getUniqueId();
@@ -100,8 +147,14 @@ public class MarkManager {
             MarkData newData = new MarkData(expiryTime, behaviorId, owner != null ? owner.getUniqueId() : null);
             marks.put(normalizedMark, newData);
 
+            LogHelper.debug("[MarkManager] New mark '%s' applied to %s",
+                normalizedMark,
+                entity instanceof Player p ? p.getName() : entity.getType().name());
+
             // Run EFFECT_STATIC flows from behavior
             if (behaviorId != null && !behaviorId.isEmpty()) {
+                LogHelper.debug("[MarkManager] Running EFFECT_STATIC for mark '%s' behavior '%s'",
+                    normalizedMark, behaviorId);
                 runBehaviorSignal(entity, newData, SignalType.EFFECT_STATIC);
                 newData.staticApplied = true;
             }
@@ -302,7 +355,9 @@ public class MarkManager {
             // Try loading as regular sigil if not found as behavior
             behavior = plugin.getSigilManager().getSigil(data.behaviorId);
         }
-        if (behavior == null) return;
+        if (behavior == null) {
+            return;
+        }
 
         // Get owner player for context
         Player owner = data.ownerUUID != null ? Bukkit.getPlayer(data.ownerUUID) : null;
@@ -327,10 +382,19 @@ public class MarkManager {
 
             // Check if this flow matches the signal type
             String trigger = flow.getTrigger();
+            
             if (trigger != null && trigger.equalsIgnoreCase(signalType.getConfigKey())) {
                 executor.execute(flow.getGraph(), context);
             }
         }
+    }
+
+    /**
+     * Clean up marks when player quits to prevent persistence across logins.
+     */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        clearAllMarks(event.getPlayer());
     }
 
     /**

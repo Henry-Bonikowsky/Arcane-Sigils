@@ -40,8 +40,13 @@ public class FlowExecutor {
      * @return true if flow executed successfully
      */
     public boolean execute(FlowGraph graph, EffectContext effectContext) {
+        LogHelper.debug("[FlowExecutor] execute() called, graph=%s, effectContext.player=%s",
+            graph != null ? graph.getId() : "NULL",
+            effectContext != null && effectContext.getPlayer() != null ? effectContext.getPlayer().getName() : "NULL");
         FlowContext context = executeWithContext(graph, effectContext);
-        return context != null && !context.isCancelled();
+        boolean result = context != null && !context.isCancelled();
+        LogHelper.debug("[FlowExecutor] execute() returning: %s", result);
+        return result;
     }
 
     /**
@@ -65,12 +70,120 @@ public class FlowExecutor {
         }
 
         // Create flow context
+        LogHelper.debug("[FlowExecutor] Creating FlowContext from EffectContext");
         FlowContext context = new FlowContext(effectContext);
+        LogHelper.debug("[FlowExecutor] FlowContext created, player=%s",
+            context.getPlayer() != null ? context.getPlayer().getName() : "NULL");
 
         // Execute the flow
+        LogHelper.debug("[FlowExecutor] Starting executeFromNode from START");
         executeFromNode(graph, startNode, context, 0);
+        LogHelper.debug("[FlowExecutor] executeFromNode completed");
 
         return context;
+    }
+
+    /**
+     * Static method to execute a flow with a pre-created context.
+     * Use this for test mode execution where you need full control over the context.
+     *
+     * @param graph The flow graph to execute
+     * @param context The pre-created flow context
+     * @return The context after execution (same object as input)
+     */
+    public static FlowContext executeWithContext(FlowGraph graph, FlowContext context) {
+        if (graph == null) {
+            LogHelper.debug("[Flow] Cannot execute null flow graph");
+            return context;
+        }
+
+        FlowNode startNode = graph.getStartNode();
+        if (startNode == null) {
+            LogHelper.debug("[Flow] Flow '%s' has no start node", graph.getId());
+            return context;
+        }
+
+        // Execute the flow synchronously (no delays in test mode)
+        executeFromNodeStatic(graph, startNode, context, 0);
+
+        return context;
+    }
+
+    /**
+     * Static version of executeFromNode for test mode (synchronous, no delays).
+     */
+    private static boolean executeFromNodeStatic(FlowGraph graph, FlowNode startNode, FlowContext context, int depth) {
+        if (depth > MAX_DEPTH) {
+            context.setError("Maximum flow depth exceeded (possible infinite recursion)");
+            return false;
+        }
+
+        FlowNode currentNode = startNode;
+        int nodesExecuted = 0;
+        Set<String> visitedInCycle = new HashSet<>();
+
+        while (currentNode != null && !context.isCancelled()) {
+            // Safety check for infinite loops
+            nodesExecuted++;
+            if (nodesExecuted > MAX_NODES) {
+                context.setError("Maximum node execution limit reached (possible infinite loop)");
+                return false;
+            }
+
+            // Detect cycles
+            if (currentNode.getType() != NodeType.DELAY && currentNode.getType() != NodeType.LOOP) {
+                if (visitedInCycle.contains(currentNode.getId())) {
+                    context.setError("Cycle detected at node: " + currentNode.getDisplayName());
+                    return false;
+                }
+                visitedInCycle.add(currentNode.getId());
+            }
+
+            LogHelper.debug("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
+
+            try {
+                // Execute the node and get the output port to follow
+                String outputPort = currentNode.execute(context);
+
+                // Add trace entry in test mode (for non-condition nodes)
+                if (context.isTestMode() && currentNode.getType() != NodeType.CONDITION) {
+                    String nodeDesc = getNodeDescription(currentNode);
+                    context.addTraceEntry("§a✓ " + nodeDesc);
+                }
+
+                // Check if flow was cancelled during execution
+                if (context.isCancelled()) {
+                    LogHelper.debug("[Flow] Flow cancelled at node: %s", currentNode.getId());
+                    break;
+                }
+
+                // In test mode, skip delay nodes (treat as instant)
+                if (currentNode.getType() == NodeType.DELAY && context.isTestMode()) {
+                    String nextNodeId = currentNode.getConnection(outputPort);
+                    currentNode = nextNodeId != null ? graph.getNode(nextNodeId) : null;
+                    continue;
+                }
+
+                // Find next node based on output port
+                if (outputPort == null) {
+                    LogHelper.debug("[Flow] Node %s returned null, ending branch", currentNode.getId());
+                    currentNode = null;
+                } else {
+                    String nextNodeId = currentNode.getConnection(outputPort);
+                    currentNode = nextNodeId != null ? graph.getNode(nextNodeId) : null;
+
+                    if (nextNodeId != null && currentNode == null) {
+                        LogHelper.debug("[Flow] Warning: connects to non-existent node %s", nextNodeId);
+                    }
+                }
+
+            } catch (Exception e) {
+                context.setError("Error in node '" + currentNode.getDisplayName() + "': " + e.getMessage());
+                return false;
+            }
+        }
+
+        return !context.isCancelled();
     }
 
     /**
@@ -115,6 +228,12 @@ public class FlowExecutor {
             try {
                 // Execute the node and get the output port to follow
                 String outputPort = currentNode.execute(context);
+
+                // Add trace entry in test mode (for non-condition nodes)
+                if (context.isTestMode() && currentNode.getType() != NodeType.CONDITION) {
+                    String nodeDesc = getNodeDescription(currentNode);
+                    context.addTraceEntry("§a✓ " + nodeDesc);
+                }
 
                 // Check if flow was cancelled during execution
                 if (context.isCancelled()) {
@@ -173,15 +292,15 @@ public class FlowExecutor {
 
     /**
      * Handle a flow execution error.
-     * Shows actionbar notification to player and logs to console.
+     * Shows chat notification to player and logs to console.
      */
     private void handleError(FlowContext context, String message) {
         context.setError(message);
 
-        // Notify player via actionbar
+        // Notify player via chat
         Player player = context.getPlayer();
         if (player != null && player.isOnline()) {
-            player.sendActionBar(Component.text("\u00a7c[Sigil] " + message));
+            player.sendMessage(Component.text("\u00a7c[Sigil] " + message));
         }
 
         // Log to console
@@ -196,5 +315,47 @@ public class FlowExecutor {
      */
     public boolean validate(FlowGraph graph) {
         return graph != null && graph.isValid();
+    }
+
+    /**
+     * Get a human-readable description of a node for test mode display.
+     *
+     * @param node The node to describe
+     * @return A formatted description string
+     */
+    private static String getNodeDescription(FlowNode node) {
+        if (node == null) {
+            return "UNKNOWN";
+        }
+
+        NodeType type = node.getType();
+        if (type == null) {
+            return node.getDisplayName();
+        }
+
+        return switch (type) {
+            case START -> "START";
+            case CONDITION -> {
+                // Conditions are handled separately in ConditionNode.execute()
+                String condition = node.getStringParam("condition", "unknown");
+                yield "CONDITION §7(" + condition + ")";
+            }
+            case EFFECT -> {
+                String effectType = node.getStringParam("type", "unknown");
+                yield effectType + " §7(effect)";
+            }
+            case VARIABLE -> {
+                String varName = node.getStringParam("name", "?");
+                yield "SET §7$" + varName;
+            }
+            case DELAY -> {
+                double duration = node.getDoubleParam("duration", 1.0);
+                yield "DELAY §7(" + duration + "s)";
+            }
+            case LOOP -> "LOOP";
+            case SKIP_COOLDOWN -> "SKIP COOLDOWN";
+            case END -> "END";
+            default -> node.getDisplayName();
+        };
     }
 }

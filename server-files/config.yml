@@ -1,0 +1,146 @@
+# ArcaneSigils Configuration
+# Version: 1.0.0
+
+# General Settings
+settings:
+  # Enable debug messages in console
+  debug: true
+
+  # Performance settings
+  effect-check-interval: 20  # Ticks between static effect reapplication (20 = 1 second)
+
+  # Whether to use ItemsAdder for custom items (if installed)
+  use-itemsadder: true
+
+# Sigil Settings
+sigils:
+  # Allow sigils to be traded between players
+  allow-trading: true
+
+  # Allow extracting sigils from armor (returns shard item)
+  allow-extraction: true
+
+  # Cost to extract a sigil (set to 0 to disable)
+  extraction-cost: 0
+
+  # Tier restrictions: Can a lower tier armor accept higher tier sigils?
+  enforce-tier-restrictions: false
+
+  # Slot restrictions: Sigils can only go in their designated slot (helmet sigil -> helmet only)
+  enforce-slot-restrictions: true
+
+# Set Detection Settings
+sets:
+  # How to detect if player is wearing a full set
+  # Options: NAME_PATTERN, LORE_TAG, NBT_TAG
+  detection-method: NAME_PATTERN
+
+  # Whether mixing tiers disables set bonuses
+  # If true, all 4 pieces must be same tier
+  require-same-tier: true
+
+  # Partial set bonuses (when wearing less than 4 pieces)
+  partial-bonuses:
+    enabled: false
+    2-piece-multiplier: 0.25
+    3-piece-multiplier: 0.5
+
+# GUI Settings
+gui:
+  # Socket GUI title
+  socket-title: "&8Socket Sigil"
+
+  # Sigil storage GUI title
+  storage-title: "&8Sigil Storage"
+
+  # Sounds
+  sounds:
+    open: BLOCK_CHEST_OPEN
+    close: BLOCK_CHEST_CLOSE
+    socket: BLOCK_ANVIL_USE
+    unsocket: BLOCK_ANVIL_LAND
+    error: ENTITY_VILLAGER_NO
+
+# Cooldown Settings
+cooldowns:
+  # Global cooldown between any ability activation (ticks)
+  global-cooldown: 10
+
+  # Show cooldown messages
+  show-cooldown-messages: true
+
+  # Cooldown message format
+  cooldown-message: "&c%ability% is on cooldown! (%remaining%s remaining)"
+
+  # Cooldown ready notifications
+  notify-ready: true
+  ready-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+  ready-sound-pitch: 1.5
+  ready-message: "&a%ability% &7is ready!"
+
+# BossBar Notification Settings
+# Shows animated progress bars for cooldowns and buff durations
+notifications:
+  # Enable bossbar notifications
+  enabled: true
+
+  # Maximum simultaneous bars per player (oldest removed if exceeded)
+  max-bars: 5
+
+  # Update frequency in ticks (2 = 100ms smooth, 4 = 200ms lighter)
+  update-interval: 2
+
+  # Time threshold (seconds) when bar changes to "low" warning color
+  low-time-threshold: 2.0
+
+  # Bar style: SOLID, SEGMENTED_6, SEGMENTED_10, SEGMENTED_12, SEGMENTED_20
+  bar-style: SOLID
+
+  # Title format (placeholders: %name%, %time%)
+  title-format: "%name% - %time%s"
+
+  # Cooldown bar settings (time until ability ready)
+  cooldowns:
+    color: RED
+    low-color: YELLOW
+
+  # Duration bar settings (time until buff/effect expires)
+  durations:
+    color: BLUE
+    low-color: YELLOW
+
+# Effect Settings
+effects:
+  # Damage increase cap (percentage)
+  max-damage-increase: 500
+
+  # Teleport max distance
+  max-teleport-distance: 50
+
+  # Entity spawn limits
+  max-spawned-entities: 5
+
+  # Lifesteal cap (percentage of damage)
+  max-lifesteal: 50
+
+# Mark Settings
+marks:
+  # Enable duration stacking when mark is re-applied
+  enable-stacking: true
+  
+  # Duration to add when mark is re-applied (seconds)
+  stack-increment: 1.0
+  
+  # Maximum mark duration (seconds)
+  max-duration: 3.0
+
+# Integration Settings
+integrations:
+  # PlaceholderAPI support
+  placeholderapi: true
+
+  # WorldGuard region checks
+  worldguard: true
+
+  # Respect WorldGuard PvP flags
+  respect-pvp-flags: true

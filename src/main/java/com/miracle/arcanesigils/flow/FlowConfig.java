@@ -14,10 +14,6 @@ import java.util.List;
  *   trigger: ON_ATTACK    # For SIGNAL: which event triggers this flow
  *   cooldown: 5           # Seconds between activations
  *   chance: 100           # % chance to activate (SIGNAL only)
- *   conditions:           # Optional conditions
- *     logic: AND
- *     list:
- *       - "VICTIM_IS_PLAYER"
  *
  *   # Flow graph definition
  *   id: "attack_flow"
@@ -25,7 +21,12 @@ import java.util.List;
  *   nodes:
  *     - id: "start"
  *       type: START
- *       next: "deal_damage"
+ *       next: "condition_check"
+ *     - id: "condition_check"
+ *       type: CONDITION
+ *       condition: "HAS_MARK:PHARAOH_MARK:@Victim"
+ *       yes: "deal_damage"
+ *       no: "end"
  *     - ...
  * </pre>
  */
@@ -53,16 +54,6 @@ public class FlowConfig {
      * Only used for SIGNAL type. ABILITY is always 100% when activated.
      */
     private double chance = 100.0;
-
-    /**
-     * List of condition strings that must pass for activation.
-     */
-    private List<String> conditions = new ArrayList<>();
-
-    /**
-     * Logic for combining conditions - AND (all must pass) or OR (any can pass).
-     */
-    private ConditionLogic conditionLogic = ConditionLogic.AND;
 
     /**
      * Priority for flow execution order when multiple flows share the same trigger.
@@ -117,30 +108,6 @@ public class FlowConfig {
 
     public void setChance(double chance) {
         this.chance = chance;
-    }
-
-    public List<String> getConditions() {
-        return conditions;
-    }
-
-    public void setConditions(List<String> conditions) {
-        this.conditions = conditions != null ? conditions : new ArrayList<>();
-    }
-
-    public void addCondition(String condition) {
-        this.conditions.add(condition);
-    }
-
-    public void removeCondition(String condition) {
-        this.conditions.remove(condition);
-    }
-
-    public ConditionLogic getConditionLogic() {
-        return conditionLogic;
-    }
-
-    public void setConditionLogic(ConditionLogic conditionLogic) {
-        this.conditionLogic = conditionLogic != null ? conditionLogic : ConditionLogic.AND;
     }
 
     public int getPriority() {
@@ -208,12 +175,38 @@ public class FlowConfig {
         return errors;
     }
 
+    // ============ DEPRECATED - Old Conditions API (Stub Methods) ============
+    
     /**
-     * Logic for combining multiple conditions.
+     * @deprecated Old conditions system removed. Use CONDITION nodes instead.
      */
-    public enum ConditionLogic {
-        AND,  // All conditions must pass (default)
-        OR    // Any condition can pass
+    @Deprecated
+    public java.util.List<String> getConditions() {
+        return new java.util.ArrayList<>();
+    }
+    
+    /**
+     * @deprecated Old conditions system removed. Use CONDITION nodes instead.
+     */
+    @Deprecated
+    public void setConditions(java.util.List<String> conditions) {
+        // Stub - does nothing
+    }
+    
+    /**
+     * @deprecated Old conditions system removed. Use CONDITION nodes instead.
+     */
+    @Deprecated
+    public void setConditionLogic(Object logic) {
+        // Stub - does nothing
+    }
+    
+    /**
+     * @deprecated Old conditions system removed. Use CONDITION nodes instead.
+     */
+    @Deprecated
+    public Object getConditionLogic() {
+        return null;
     }
 
     // ============ Cloning ============
@@ -228,8 +221,6 @@ public class FlowConfig {
         copy.trigger = this.trigger;
         copy.cooldown = this.cooldown;
         copy.chance = this.chance;
-        copy.conditions = new ArrayList<>(this.conditions);
-        copy.conditionLogic = this.conditionLogic;
         copy.graph = this.graph != null ? this.graph.deepCopy() : null;
         return copy;
     }

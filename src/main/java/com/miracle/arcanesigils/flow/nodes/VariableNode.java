@@ -1,9 +1,11 @@
 package com.miracle.arcanesigils.flow.nodes;
 
+import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.flow.FlowContext;
 import com.miracle.arcanesigils.flow.FlowNode;
 import com.miracle.arcanesigils.flow.NodeType;
 import com.miracle.arcanesigils.utils.LogHelper;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +15,26 @@ import java.util.List;
  * Variables can be used in expressions throughout the flow.
  */
 public class VariableNode extends FlowNode {
+
+    /**
+     * Variable scope.
+     */
+    public enum VariableScope {
+        /**
+         * Flow-scoped - stored in FlowContext, lasts for one flow execution.
+         */
+        FLOW,
+
+        /**
+         * Player-scoped - stored in PlayerVariableManager, persists across flows with duration.
+         */
+        PLAYER,
+
+        /**
+         * Sigil-scoped - stored in SigilVariableManager, per-instance (player + sigilId + slot).
+         */
+        SIGIL
+    }
 
     /**
      * Operation type.
@@ -48,8 +70,12 @@ public class VariableNode extends FlowNode {
         super(id);
         setDisplayName("Variable");
         setParam("operation", Operation.SET.name());
+        setParam("scope", VariableScope.FLOW.name());
         setParam("name", "myVar");
         setParam("value", 0);
+        setParam("duration", 0); // Only for PLAYER and SIGIL scopes
+        setParam("sigilId", ""); // Only for SIGIL scope
+        setParam("slot", ""); // Only for SIGIL scope (e.g., "CHESTPLATE")
     }
 
     @Override
@@ -59,6 +85,16 @@ public class VariableNode extends FlowNode {
 
     @Override
     public String execute(FlowContext context) {
+        // Get scope
+        String scopeStr = getStringParam("scope", "FLOW");
+        VariableScope scope;
+        try {
+            scope = VariableScope.valueOf(scopeStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            scope = VariableScope.FLOW;
+        }
+
+        // Get operation
         String opStr = getStringParam("operation", "SET");
         Operation operation;
         try {
@@ -91,10 +127,93 @@ public class VariableNode extends FlowNode {
             case DIVIDE -> newValue != 0 ? currentValue / newValue : currentValue;
         };
 
-        context.setVariable(varName, result);
+        // Handle scope
+        if (scope == VariableScope.PLAYER) {
+            Player player = context.getPlayer();
+            if (player == null) {
+                LogHelper.debug("[VariableNode] PLAYER scope requires a player context");
+                return "next";
+            }
 
-        LogHelper.debug("[VariableNode] %s %s: %s (%.2f -> %.2f)",
-                operation, varName, rawValue, currentValue, result);
+            // Get duration (only for player scope)
+            Object durationObj = getParam("duration");
+            int duration;
+            if (durationObj instanceof String str) {
+                duration = (int) context.resolveNumeric(str, 0);
+            } else if (durationObj instanceof Number num) {
+                duration = num.intValue();
+            } else {
+                duration = 0;
+            }
+
+            // Store in player variable manager
+            ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
+            plugin.getPlayerVariableManager().setVariable(player.getUniqueId(), varName, result, duration);
+
+            LogHelper.debug("[VariableNode] PLAYER %s %s: %s (%.2f -> %.2f, duration=%ds)",
+                    operation, varName, rawValue, currentValue, result, duration);
+        } else if (scope == VariableScope.SIGIL) {
+            Player player = context.getPlayer();
+            if (player == null) {
+                LogHelper.debug("[VariableNode] SIGIL scope requires a player context");
+                return "next";
+            }
+
+            // Get sigilId and slot params
+            String sigilId = getStringParam("sigilId", "");
+            String slot = getStringParam("slot", "");
+            
+            if (sigilId.isEmpty() || slot.isEmpty()) {
+                LogHelper.debug("[VariableNode] SIGIL scope requires sigilId and slot params");
+                return "next";
+            }
+
+            // Get duration
+            Object durationObj = getParam("duration");
+            int duration;
+            if (durationObj instanceof String str) {
+                duration = (int) context.resolveNumeric(str, 0);
+            } else if (durationObj instanceof Number num) {
+                duration = num.intValue();
+            } else {
+                duration = 0;
+            }
+
+            ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
+            
+            // For operations other than SET, get current sigil variable value
+            if (operation != Operation.SET) {
+                Object currentObj = plugin.getSigilVariableManager()
+                    .getSigilVariable(player, sigilId, slot, varName);
+                if (currentObj instanceof Number num) {
+                    currentValue = num.doubleValue();
+                } else {
+                    currentValue = 0;
+                }
+                
+                // Recalculate result with actual current value
+                result = switch (operation) {
+                    case SET -> newValue;
+                    case ADD -> currentValue + newValue;
+                    case SUBTRACT -> currentValue - newValue;
+                    case MULTIPLY -> currentValue * newValue;
+                    case DIVIDE -> newValue != 0 ? currentValue / newValue : currentValue;
+                };
+            }
+            
+            // Store in sigil variable manager
+            plugin.getSigilVariableManager()
+                .setSigilVariable(player, sigilId, slot, varName, result, duration);
+
+            LogHelper.debug("[VariableNode] SIGIL %s %s (sigil=%s, slot=%s): %s (%.2f -> %.2f, duration=%ds)",
+                    operation, varName, sigilId, slot, rawValue, currentValue, result, duration);
+        } else {
+            // Flow-scoped - existing behavior
+            context.setVariable(varName, result);
+
+            LogHelper.debug("[VariableNode] FLOW %s %s: %s (%.2f -> %.2f)",
+                    operation, varName, rawValue, currentValue, result);
+        }
 
         return "next";
     }

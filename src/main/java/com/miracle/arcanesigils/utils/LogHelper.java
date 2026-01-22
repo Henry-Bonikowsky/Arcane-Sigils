@@ -37,8 +37,11 @@ public final class LogHelper {
      * @param plugin The ArmorSetsPlugin instance
      */
     public static void refreshDebugSetting(ArmorSetsPlugin plugin) {
-        debugEnabled = plugin.getConfigManager().getMainConfig()
-                .getBoolean("settings.debug", false);
+        // Safe check: ConfigManager might not be initialized yet during early plugin startup
+        if (plugin.getConfigManager() != null) {
+            var config = plugin.getConfigManager().getMainConfig();
+            debugEnabled = config.getBoolean("settings.debug", false);
+        }
     }
 
     /**
@@ -134,6 +137,8 @@ public final class LogHelper {
         }
     }
 
+    // ==================== Debug Methods ====================
+
     /**
      * Log a debug message (only if debug is enabled in config).
      *
@@ -159,12 +164,12 @@ public final class LogHelper {
 
     /**
      * Check if debug logging is enabled.
-     *
-     * @return true if debug is enabled
      */
     public static boolean isDebugEnabled() {
         return debugEnabled;
     }
+
+    // ==================== Specialized Methods ====================
 
     /**
      * Log an unknown condition warning.

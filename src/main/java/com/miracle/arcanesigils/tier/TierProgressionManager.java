@@ -145,9 +145,9 @@ public class TierProgressionManager {
         String romanTier = toRomanNumeral(newTier);
         String sigilName = sigil.getName();
 
-        // Action bar message
+        // Chat message
         String message = "§a&l\u2191 §f" + sigilName + " §7upgraded to §e" + romanTier;
-        player.sendActionBar(TextUtil.parseComponent(message));
+        player.sendMessage(TextUtil.parseComponent(message));
 
         // Quiet sound
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.3f, 1.5f);

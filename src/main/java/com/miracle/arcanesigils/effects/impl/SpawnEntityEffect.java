@@ -6,6 +6,8 @@ import com.miracle.arcanesigils.effects.BehaviorManager;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.utils.TextUtil;
+import com.miracle.arcanesigils.utils.LogHelper;
+import com.miracle.arcanesigils.binds.TargetGlowManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
@@ -48,6 +50,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * - hp=50              Max health (default: entity default)
  * - speed=0.35         Movement speed (default: entity default)
  * - damage=6           Attack damage (default: entity default)
+ * - attack_speed=8.0   Attack speed - higher = faster attacks (default: 4.0)
  * - knockback_resist=0.5  Knockback resistance 0-1 (default: 0)
  *
  * EQUIPMENT:
@@ -237,6 +240,9 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
 
             // Behavior sigil (replaces on-hit handling with full sigil system)
             case "behavior" -> params.set("behavior", value);
+            
+            // Fast attack speed multiplier
+            case "fast_attack_speed" -> params.set("fast_attack_speed", parseDouble(value, 2.0));
         }
     }
 
@@ -257,6 +263,9 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                 .getInt("effects.max-spawned-entities", 10);
         count = Math.min(count, maxCount);
 
+        LogHelper.debug("[SpawnEntity] Starting spawn: type=%s, count=%d, duration=%d, target_mode=%s", 
+            entityTypeName, count, duration, params.getString("target_mode", "VICTIM"));
+
         // Get entity type
         EntityType entityType = getEntityType(entityTypeName);
         if (entityType == null) {
@@ -276,6 +285,18 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
 
         // Determine target
         LivingEntity targetEntity = determineTarget(context, params);
+
+        // If target mode is OWNER_TARGET, only spawn if target is a Player
+        String targetMode = params.getString("target_mode", "VICTIM");
+        if (targetMode.equalsIgnoreCase("OWNER_TARGET") || targetMode.equalsIgnoreCase("TARGET")) {
+            if (!(targetEntity instanceof Player)) {
+                LogHelper.debug("[SpawnEntity] OWNER_TARGET mode requires Player target. Target is %s. Not spawning.",
+                    targetEntity != null ? targetEntity.getClass().getSimpleName() : "null");
+                return false;
+            }
+            LogHelper.debug("[SpawnEntity] OWNER_TARGET mode: Valid player target '%s' found. Proceeding with spawn.",
+                ((Player) targetEntity).getName());
+        }
 
         // Get behavior sigil if specified
         String behaviorId = params.getString("behavior", null);
@@ -304,8 +325,13 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                 ownerToEntities.computeIfAbsent(owner.getUniqueId(), k -> ConcurrentHashMap.newKeySet())
                         .add(entity.getUniqueId());
 
+                LogHelper.debug("[SpawnEntity] Spawned entity #%d: type=%s, UUID=%s", 
+                    i+1, entity.getType(), entity.getUniqueId());
+
                 // Register with BehaviorManager if behavior sigil is specified
                 if (behaviorSigil != null && behaviorManager != null) {
+                    LogHelper.debug("[SpawnEntity] Registering entity with BehaviorManager: behavior=%s, duration=%d", 
+                        behaviorId, duration);
                     behaviorManager.registerEntity(entity, behaviorSigil, owner.getUniqueId(), duration);
                 }
             }
@@ -313,11 +339,21 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
 
         if (spawned.isEmpty()) return false;
 
+        LogHelper.debug("[SpawnEntity] Successfully spawned %d entities. Initial target=%s (UUID=%s)", 
+            spawned.size(),
+            targetEntity != null ? targetEntity.getName() : "none",
+            targetEntity != null ? targetEntity.getUniqueId() : "none");
+
         // Set up force targeting if enabled
         boolean forceTarget = params.getBoolean("force_target", true);
-        String targetMode = params.getString("target_mode", "VICTIM");
+        // targetMode already declared earlier
         if (forceTarget && targetEntity != null && !targetMode.equals("NONE")) {
+            LogHelper.debug("[SpawnEntity] Setting up force targeting: mode=%s, force=%s", 
+                targetMode, forceTarget);
             setupForceTargeting(spawned, targetEntity, owner, params);
+        } else {
+            LogHelper.debug("[SpawnEntity] Force targeting disabled or no target: force=%s, target=%s, mode=%s", 
+                forceTarget, targetEntity != null ? "exists" : "none", targetMode);
         }
 
         // Schedule removal after duration
@@ -453,6 +489,18 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
             debug("WARNING: Entity " + living.getType() + " has no ATTACK_DAMAGE attribute!");
         }
 
+        // Attack Speed - clear modifiers first to prevent equipment from overriding
+        AttributeInstance attackSpeed = living.getAttribute(Attribute.ATTACK_SPEED);
+        if (attackSpeed != null) {
+            double attackSpeedValue = params.getDouble("attack_speed", 4.0); // Default zombie attack speed is 4.0
+            debug(String.format("Setting attack speed to %.1f (has param: %b)", attackSpeedValue, params.has("attack_speed")));
+            // Clear any existing modifiers that could override our attack speed
+            attackSpeed.getModifiers().forEach(attackSpeed::removeModifier);
+            attackSpeed.setBaseValue(attackSpeedValue);
+        } else {
+            debug("WARNING: Entity " + living.getType() + " has no ATTACK_SPEED attribute!");
+        }
+
         // Knockback Resistance
         AttributeInstance kbResist = living.getAttribute(Attribute.KNOCKBACK_RESISTANCE);
         if (kbResist != null) {
@@ -544,6 +592,7 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
         // Minecraft's entity initialization can override our values
         final double finalSpeedValue = params.getDouble("speed", 0.23);
         final double finalDamageValue = params.getDouble("damage", 3);
+        final double finalAttackSpeedValue = params.getDouble("attack_speed", 4.0);
 
         // First pass: 1 tick delay
         Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
@@ -562,6 +611,14 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                     finalDamage.getModifiers().forEach(finalDamage::removeModifier);
                     finalDamage.setBaseValue(finalDamageValue);
                     debug(String.format("Applied attack damage %.1f (1-tick delay)", finalDamageValue));
+                }
+
+                // Re-apply attack speed
+                AttributeInstance finalAttackSpeed = living.getAttribute(Attribute.ATTACK_SPEED);
+                if (finalAttackSpeed != null) {
+                    finalAttackSpeed.getModifiers().forEach(finalAttackSpeed::removeModifier);
+                    finalAttackSpeed.setBaseValue(finalAttackSpeedValue);
+                    debug(String.format("Applied attack speed %.1f (1-tick delay)", finalAttackSpeedValue));
                 }
             }
         }, 1L);
@@ -591,12 +648,32 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                     }
                 }
 
+                // Re-apply attack speed
+                AttributeInstance finalAttackSpeed = living.getAttribute(Attribute.ATTACK_SPEED);
+                if (finalAttackSpeed != null) {
+                    double currentAttackSpeed = finalAttackSpeed.getBaseValue();
+                    if (Math.abs(currentAttackSpeed - finalAttackSpeedValue) > 0.1) {
+                        debug(String.format("Attack speed was reset to %.1f, re-applying %.1f", currentAttackSpeed, finalAttackSpeedValue));
+                        finalAttackSpeed.getModifiers().forEach(finalAttackSpeed::removeModifier);
+                        finalAttackSpeed.setBaseValue(finalAttackSpeedValue);
+                    }
+                }
+
                 // Debug: log final attribute values
                 debug("=== Final entity attributes (5-tick) ===");
                 AttributeInstance spd = living.getAttribute(Attribute.MOVEMENT_SPEED);
                 AttributeInstance dmg = living.getAttribute(Attribute.ATTACK_DAMAGE);
+                AttributeInstance atkSpd = living.getAttribute(Attribute.ATTACK_SPEED);
                 if (spd != null) debug("Final movement speed: " + spd.getBaseValue());
                 if (dmg != null) debug("Final attack damage: " + dmg.getBaseValue());
+                if (atkSpd != null) debug("Final attack speed: " + atkSpd.getBaseValue());
+                
+                // === FAST ATTACK SPEED (NMS) ===
+                if (params.has("fast_attack_speed") && living instanceof Mob mob) {
+                    double multiplier = params.getDouble("fast_attack_speed", 2.0);
+                    com.miracle.arcanesigils.nms.FastAttackHelper.setFastAttackSpeed(mob, multiplier, getPlugin());
+                    debug(String.format("Applied fast attack speed: %.1fx multiplier", multiplier));
+                }
             }
         }, 5L);
 
@@ -656,22 +733,59 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
         double range = params.getDouble("target_range", 10);
         boolean excludeOwner = params.getBoolean("exclude_owner", true);
 
+        LogHelper.debug("[SpawnEntity] Determining initial target: mode=%s, range=%.1f, excludeOwner=%s", 
+            targetMode, range, excludeOwner);
+
         return switch (targetMode.toUpperCase()) {
             case "VICTIM" -> {
                 // If no victim, fall back to nearby enemy (respects exclude_owner)
                 LivingEntity victim = context.getVictim();
-                yield victim != null ? victim : findNearestEnemy(owner, range, excludeOwner);
+                LivingEntity result = victim != null ? victim : findNearestEnemy(owner, range, excludeOwner);
+                LogHelper.debug("[SpawnEntity] VICTIM mode: victim=%s, fallback=%s, final=%s", 
+                    victim != null ? victim.getName() : "none",
+                    victim == null ? "used findNearestEnemy" : "none",
+                    result != null ? result.getName() : "none");
+                yield result;
             }
-            case "NEARBY" -> findNearestEnemy(owner, range, excludeOwner);
+            case "NEARBY" -> {
+                LivingEntity result = findNearestEnemy(owner, range, excludeOwner);
+                LogHelper.debug("[SpawnEntity] NEARBY mode: found=%s", 
+                    result != null ? result.getName() : "none");
+                yield result;
+            }
             case "TARGET", "OWNER_TARGET" -> {
-                // Find what the owner is looking at (ability UI highlighted target)
-                LivingEntity target = getTarget(context, range);
-                yield (target != owner) ? target : null;
+                // Get bound target from TargetGlowManager (set in binds UI)
+                LivingEntity target = null;
+                if (owner != null && owner.isOnline()) {
+                    com.miracle.arcanesigils.binds.TargetGlowManager glowManager = 
+                        ((com.miracle.arcanesigils.ArmorSetsPlugin) getPlugin()).getTargetGlowManager();
+                    if (glowManager != null) {
+                        target = glowManager.getTarget(owner);
+                    }
+                }
+                
+                // Fallback to look target if no bound target
+                if (target == null) {
+                    target = getTarget(context, range);
+                }
+                
+                LivingEntity result = (target != owner) ? target : null;
+                LogHelper.debug("[SpawnEntity] OWNER_TARGET mode: boundTarget=%s, final=%s", 
+                    target != null ? target.getName() : "none",
+                    result != null ? result.getName() : "none");
+                yield result;
             }
-            case "NONE" -> null;
+            case "NONE" -> {
+                LogHelper.debug("[SpawnEntity] NONE mode: no target");
+                yield null;
+            }
             default -> {
                 LivingEntity victim = context.getVictim();
-                yield victim != null ? victim : findNearestEnemy(owner, range, excludeOwner);
+                LivingEntity result = victim != null ? victim : findNearestEnemy(owner, range, excludeOwner);
+                LogHelper.debug("[SpawnEntity] DEFAULT mode: victim=%s, final=%s", 
+                    victim != null ? victim.getName() : "none",
+                    result != null ? result.getName() : "none");
+                yield result;
             }
         };
     }
@@ -728,15 +842,54 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                 Entity t = Bukkit.getEntity(targetUUID);
                 if (t instanceof LivingEntity living && t.isValid() && !t.isDead()) {
                     currentTarget = living;
+                    LogHelper.debug("[SpawnEntity] Force-targeting VICTIM mode: target=%s (valid=%s)", 
+                        living.getName(), living.isValid());
+                } else {
+                    LogHelper.debug("[SpawnEntity] Force-targeting VICTIM mode: target UUID not found or dead");
                 }
-            } else if (targetMode.equals("NEARBY") || targetMode.equals("TARGET") || targetMode.equals("OWNER_TARGET")) {
+            } else if (targetMode.equals("OWNER_TARGET") || targetMode.equals("TARGET")) {
+                Player ownerPlayer = Bukkit.getPlayer(ownerUUID);
+                if (ownerPlayer != null && ownerPlayer.isOnline()) {
+                    // Try to get bound target from TargetGlowManager first
+                    TargetGlowManager glowManager = ((ArmorSetsPlugin) getPlugin()).getTargetGlowManager();
+                    if (glowManager != null) {
+                        LivingEntity boundTarget = glowManager.getTarget(ownerPlayer);
+                        if (boundTarget != null && boundTarget.isValid() && !boundTarget.isDead()) {
+                            currentTarget = boundTarget;
+                            LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: Using bound target=%s from TargetGlowManager", 
+                                boundTarget.getName());
+                        } else {
+                            LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: No valid bound target, using initial target UUID");
+                            // Fall back to initial target if bound target is gone
+                            Entity t = Bukkit.getEntity(targetUUID);
+                            if (t instanceof LivingEntity living && t.isValid() && !t.isDead()) {
+                                currentTarget = living;
+                            }
+                        }
+                    } else {
+                        LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: TargetGlowManager not available, using initial target UUID");
+                        // TargetGlowManager not available, use initial target
+                        Entity t = Bukkit.getEntity(targetUUID);
+                        if (t instanceof LivingEntity living && t.isValid() && !t.isDead()) {
+                            currentTarget = living;
+                        }
+                    }
+                } else {
+                    LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: Owner offline");
+                }
+            } else if (targetMode.equals("NEARBY")) {
                 Player ownerPlayer = Bukkit.getPlayer(ownerUUID);
                 if (ownerPlayer != null && ownerPlayer.isOnline()) {
                     currentTarget = findNearestEnemy(ownerPlayer, targetRange, excludeOwner);
+                    LogHelper.debug("[SpawnEntity] Force-targeting NEARBY mode: Found nearest enemy=%s", 
+                        currentTarget != null ? currentTarget.getName() : "none");
                 }
             }
 
-            if (currentTarget == null) return;
+            if (currentTarget == null) {
+                LogHelper.debug("[SpawnEntity] Force-targeting: No valid target found, skipping this cycle");
+                return;
+            }
 
             // Force each entity to target
             for (UUID id : entityIds) {

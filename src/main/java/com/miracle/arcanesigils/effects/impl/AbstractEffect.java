@@ -1,10 +1,13 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.binds.TargetGlowManager;
 import com.miracle.arcanesigils.effects.Effect;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
+import com.miracle.arcanesigils.flow.FlowContext;
 import com.miracle.arcanesigils.utils.TargetFinder;
+import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -183,6 +186,26 @@ public abstract class AbstractEffect implements Effect {
                 return context.getAttacker();
             }
             // Fallback to null if no attacker
+            return null;
+        } else if (target.equalsIgnoreCase("@Target")) {
+            // Target from bind menu selection (for ABILITY flows)
+            TargetGlowManager targetManager = ArmorSetsPlugin.getInstance().getTargetGlowManager();
+            if (targetManager != null) {
+                LivingEntity bindTarget = targetManager.getTarget(context.getPlayer());
+                if (bindTarget != null && !bindTarget.isDead()) {
+                    return bindTarget;
+                }
+            }
+
+            // No valid target - stop flow with error
+            FlowContext flowContext = context.getFlowContext();
+            if (flowContext != null) {
+                String abilityName = context.getSigilId() != null
+                    ? context.getSigilId()
+                    : "Ability";
+                flowContext.setError(abilityName + " requires a target!");
+            }
+
             return null;
         } else if (target.equalsIgnoreCase("@LookTarget") || target.equalsIgnoreCase("@Look")) {
             // Explicitly target what player is looking at

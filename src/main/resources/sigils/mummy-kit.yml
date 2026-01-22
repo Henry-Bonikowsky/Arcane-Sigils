@@ -21,46 +21,46 @@ mithridatism:
   max_tier: 1
   socketables:
     - helmet
-  flow:
-    type: SIGNAL
-    trigger: TICK
-    cooldown: 40
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: cleanse
-      - id: cleanse
-        type: EFFECT
-        effect: CLEAR_NEGATIVE_EFFECTS
-        x: 0
-        y: 1
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 2
-        params:
-          sound: BLOCK_BEACON_DEACTIVATE
-          volume: 0.8
-          pitch: 1.2
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 3
-        params:
-          type: ACTIONBAR
-          message: "&6&lMithridatism! &7Cleansed!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 4
+  flows:
+    - type: SIGNAL
+      trigger: TICK
+      cooldown: 40
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: cleanse
+        - id: cleanse
+          type: EFFECT
+          effect: CLEAR_NEGATIVE_EFFECTS
+          x: 0
+          y: 1
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: BLOCK_BEACON_DEACTIVATE
+            volume: 0.8
+            pitch: 1.2
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 3
+          params:
+            type: CHAT
+            message: "&6&lMithridatism! &7Cleansed!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4
 
 # ============================================
 # GAUZE - Chestplate
@@ -79,51 +79,51 @@ gauze:
   max_tier: 1
   socketables:
     - chestplate
-  flow:
-    type: SIGNAL
-    trigger: TICK
-    chance: 5
-    cooldown: 30
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: regen
-      - id: regen
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 1
-        params:
-          potion_type: REGENERATION
-          duration: 8
-          amplifier: 1
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 2
-        params:
-          sound: ENTITY_ZOMBIE_VILLAGER_CURE
-          volume: 0.6
-          pitch: 1.5
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 3
-        params:
-          type: ACTIONBAR
-          message: "&6&lGauze! &aRegeneration granted!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 4
+  flows:
+    - type: SIGNAL
+      trigger: TICK
+      chance: 5
+      cooldown: 30
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: regen
+        - id: regen
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: REGENERATION
+            duration: 8
+            amplifier: 1
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: ENTITY_ZOMBIE_VILLAGER_CURE
+            volume: 0.6
+            pitch: 1.5
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 3
+          params:
+            type: CHAT
+            message: "&6&lGauze! &aRegeneration granted!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4
 
 # ============================================
 # PACIFY - Leggings
@@ -141,59 +141,59 @@ pacify:
   max_tier: 1
   socketables:
     - leggings
-  flow:
-    type: SIGNAL
-    trigger: TICK
-    cooldown: 20
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: dr
-      - id: dr
-        type: EFFECT
-        effect: DAMAGE_REDUCTION_BUFF
-        x: 0
-        y: 1
-        params:
-          duration: 15
-          percent: 10
-        next: speed
-      - id: speed
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 2
-        params:
-          potion_type: SPEED
-          duration: 15
-          amplifier: 0
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 3
-        params:
-          sound: ENTITY_EXPERIENCE_ORB_PICKUP
-          volume: 0.5
-          pitch: 1.0
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 4
-        params:
-          type: ACTIONBAR
-          message: "&6&lPacify! &7Protected and swift!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 5
+  flows:
+    - type: SIGNAL
+      trigger: TICK
+      cooldown: 20
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: dr
+        - id: dr
+          type: EFFECT
+          effect: DAMAGE_REDUCTION_BUFF
+          x: 0
+          y: 1
+          params:
+            duration: 15
+            percent: 10
+          next: speed
+        - id: speed
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: SPEED
+            duration: 15
+            amplifier: 0
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ENTITY_EXPERIENCE_ORB_PICKUP
+            volume: 0.5
+            pitch: 1.0
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 4
+          params:
+            type: CHAT
+            message: "&6&lPacify! &7Protected and swift!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 5
 
 # ============================================
 # DESERT WALKER - Boots
@@ -211,36 +211,38 @@ desert_walker:
   max_tier: 1
   socketables:
     - boots
-  flow:
-    type: SIGNAL
-    trigger: TICK
-    cooldown: 3
-    conditions:
-      logic: OR
-      list:
-        - BLOCK_BELOW:SAND
-        - BLOCK_BELOW:RED_SAND
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: speed
-      - id: speed
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 1
-        params:
-          potion_type: SPEED
-          duration: 5
-          amplifier: 0
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 2
+  flows:
+    - type: SIGNAL
+      trigger: TICK
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: check_sand
+        - id: check_sand
+          type: CONDITION
+          x: 0
+          y: 1
+          condition: "BLOCK_BELOW:SAND,RED_SAND"
+          connections:
+            'yes': speed
+            'no': end
+        - id: speed
+          type: EFFECT
+          effect: POTION
+          x: 1
+          y: 2
+          params:
+            potion_type: SPEED
+            duration: 5
+            amplifier: 0
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 2
 
 # ============================================
 # BLIGHT - Sword
@@ -259,60 +261,60 @@ blight:
   max_tier: 1
   socketables:
     - sword
-  flow:
-    type: SIGNAL
-    trigger: ATTACK
-    chance: 20
-    cooldown: 15
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: poison
-      - id: poison
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 1
-        params:
-          potion_type: POISON
-          duration: 3
-          amplifier: 2
-          target: "@Victim"
-        next: damage
-      - id: damage
-        type: EFFECT
-        effect: DAMAGE_BOOST
-        x: 0
-        y: 2
-        params:
-          value: 10
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 3
-        params:
-          sound: ENTITY_SPIDER_HURT
-          volume: 1.0
-          pitch: 0.6
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 4
-        params:
-          type: ACTIONBAR
-          message: "&6&lBlight! &2Poison inflicted!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 5
+  flows:
+    - type: SIGNAL
+      trigger: ATTACK
+      chance: 20
+      cooldown: 15
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: poison
+        - id: poison
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: POISON
+            duration: 3
+            amplifier: 2
+            target: "@Victim"
+          next: damage
+        - id: damage
+          type: EFFECT
+          effect: DAMAGE_BOOST
+          x: 0
+          y: 2
+          params:
+            value: 10
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ENTITY_SPIDER_HURT
+            volume: 1.0
+            pitch: 0.6
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 4
+          params:
+            type: CHAT
+            message: "&6&lBlight! &2Poison inflicted!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 5
 
 # ============================================
 # SAND SHACKLES - Crossbow
@@ -331,48 +333,48 @@ sand_shackles:
   max_tier: 1
   socketables:
     - crossbow
-  flow:
-    type: SIGNAL
-    trigger: BOW_HIT
-    chance: 10
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: slowness
-      - id: slowness
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 1
-        params:
-          potion_type: SLOWNESS
-          duration: 5
-          amplifier: 1
-          target: "@Victim"
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 2
-        params:
-          sound: BLOCK_SAND_BREAK
-          volume: 1.0
-          pitch: 0.8
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 3
-        params:
-          type: ACTIONBAR
-          message: "&6&lSand Shackles! &7Target slowed!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 4
+  flows:
+    - type: SIGNAL
+      trigger: BOW_HIT
+      chance: 10
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: slowness
+        - id: slowness
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: SLOWNESS
+            duration: 5
+            amplifier: 1
+            target: "@Victim"
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: BLOCK_SAND_BREAK
+            volume: 1.0
+            pitch: 0.8
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 3
+          params:
+            type: CHAT
+            message: "&6&lSand Shackles! &7Target slowed!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4

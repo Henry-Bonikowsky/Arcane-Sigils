@@ -1,0 +1,74 @@
+ancient_set:
+  name: "Ancient Set"
+  description: "When wearing 2+ Ancient armor pieces, gain Resistance when low on HP"
+
+  # Crates that belong to this set
+  crates:
+    - "Pharaoh Crate Exclusive"
+    - "Seasonal Pass Exclusive"
+
+  # Minimum pieces required for set bonus
+  min_pieces: 2
+
+  # Set bonus effect flow (uses EFFECT_STATIC signal)
+  flow:
+    type: SIGNAL
+    trigger: EFFECT_STATIC
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      params:
+        signal_type: EFFECT_STATIC
+        flow_type: SIGNAL
+        chance: '{set_chance}'
+      next: check_health
+    - id: check_health
+      type: CONDITION
+      condition: "HEALTH_PERCENT:LESS_THAN:50"
+      connections:
+        'yes': resistance
+        'no': end
+    - id: resistance
+      type: EFFECT
+      effect: POTION
+      params:
+        potion_type: RESISTANCE
+        amplifier: 1  # Resistance II
+        duration: '{set_duration}'
+      next: particles
+    - id: particles
+      type: EFFECT
+      effect: PARTICLE
+      params:
+        particle_type: DUST
+        color: GOLD
+        size: 1.0
+        count: 20
+        spread: 0.5
+      next: sound
+    - id: sound
+      type: EFFECT
+      effect: SOUND
+      params:
+        sound: BLOCK_BEACON_POWER_SELECT
+        volume: 0.8
+        pitch: 1.2
+      next: end
+    - id: end
+      type: END
+
+  # Tier-based parameters
+  tier_params:
+    set_chance:
+      1: 5
+      2: 7.5
+      3: 10
+      4: 12.5
+      5: 15
+    set_duration:
+      1: 1
+      2: 2
+      3: 3
+      4: 4
+      5: 5

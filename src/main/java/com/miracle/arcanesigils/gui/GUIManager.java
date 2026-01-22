@@ -43,6 +43,12 @@ public class GUIManager implements Listener {
         registerHandler(GUIType.SIGIL_CONFIG, new com.miracle.arcanesigils.gui.sigil.SigilConfigHandler(plugin, this));
         registerHandler(GUIType.ITEM_SELECTOR, new com.miracle.arcanesigils.gui.sigil.ItemSelectorHandler(plugin, this));
         registerHandler(GUIType.SOCKETABLE_SELECTOR, new com.miracle.arcanesigils.gui.sigil.SocketableSelectorHandler(plugin, this));
+        
+        // Register filter handlers
+        registerHandler(GUIType.RARITY_FILTER, new com.miracle.arcanesigils.gui.sigil.RarityFilterHandler(plugin, this));
+        registerHandler(GUIType.SLOT_FILTER, new com.miracle.arcanesigils.gui.sigil.SlotFilterHandler(plugin, this));
+        registerHandler(GUIType.TIER_FILTER, new com.miracle.arcanesigils.gui.sigil.TierRangeFilterHandler(plugin, this));
+        registerHandler(GUIType.CRATE_FILTER, new com.miracle.arcanesigils.gui.sigil.CrateFilterHandler(plugin, this));
 
         // Register behavior handlers
         registerHandler(GUIType.BEHAVIOR_BROWSER, new com.miracle.arcanesigils.gui.behavior.BehaviorBrowserHandler(plugin, this));
@@ -70,17 +76,14 @@ public class GUIManager implements Listener {
         registerHandler(GUIType.TIER_PARAM_EDITOR, new com.miracle.arcanesigils.gui.tier.TierParamEditorHandler(plugin, this));
         registerHandler(GUIType.TIER_PARAM_SELECTOR, new com.miracle.arcanesigils.gui.tier.TierParamSelectorHandler(plugin, this));
         registerHandler(GUIType.TIER_PROGRESS_VIEWER, new com.miracle.arcanesigils.gui.tier.TierProgressViewerHandler(plugin, this));
+        registerHandler(GUIType.QUICK_PARAM_EDITOR, new com.miracle.arcanesigils.gui.params.QuickParamEditorHandler(plugin, this));
 
         // Register binds handlers
         registerHandler(GUIType.BINDS_HOTBAR, new com.miracle.arcanesigils.binds.gui.BindsHotbarHandler(plugin, this));
         registerHandler(GUIType.BINDS_COMMAND, new com.miracle.arcanesigils.binds.gui.BindsCommandHandler(plugin, this));
         registerHandler(GUIType.BINDS_EDITOR, new com.miracle.arcanesigils.binds.gui.BindsEditorHandler(plugin, this));
 
-        // Register condition handlers
-        registerHandler(GUIType.CONDITION_CONFIG, new com.miracle.arcanesigils.gui.condition.ConditionConfigHandler(plugin, this));
-        registerHandler(GUIType.CONDITION_SELECTOR, new com.miracle.arcanesigils.gui.condition.ConditionSelectorHandler(plugin, this));
-        registerHandler(GUIType.CONDITION_PARAM, new com.miracle.arcanesigils.gui.condition.ConditionParamHandler(plugin, this));
-        registerHandler(GUIType.CONDITION_VALUE_BROWSER, new com.miracle.arcanesigils.gui.condition.ConditionValueBrowserHandler(plugin, this));
+        // Old condition handlers removed - use CONDITION nodes instead
         registerHandler(GUIType.CONDITION_NODE_SELECTOR, new com.miracle.arcanesigils.gui.condition.FlowConditionSelectorHandler(plugin, this));
 
         // Register flow builder handlers

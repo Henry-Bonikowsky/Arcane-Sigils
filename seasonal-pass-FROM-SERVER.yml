@@ -1,0 +1,836 @@
+# ============================================
+# SEASONAL PASS - Exclusive Sigil Set
+# ============================================
+# 3 Exclusive Sigils with 5 Tier Progression
+# Part of the VK Seasonal Battle Pass
+# ============================================
+
+# ============================================
+# ANCIENT CROWN - Helmet (Exclusive)
+# ============================================
+ancient_crown:
+  name: "<gradient:#9400D3:#4B0082>Ancient Crown</gradient>"
+  description:
+    - "&7When hit, has a chance to"
+    - "&7completely resist all negative"
+    - "&7effects for a short duration."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: HELMET
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3001
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      immunity_chance:
+        - 20
+        - 40
+        - 60
+        - 80
+        - 100
+      immunity_duration:
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - helmet
+  flows:
+    - type: SIGNAL
+      trigger: DEFENSE
+      chance: "{immunity_chance}"
+      cooldown: 15
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: cleanse
+        - id: cleanse
+          type: EFFECT
+          effect: CLEAR_NEGATIVE_EFFECTS
+          x: 0
+          y: 1
+          next: resistance
+        - id: resistance
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: RESISTANCE
+            duration: "{immunity_duration}"
+            amplifier: 0
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: BLOCK_ENCHANTMENT_TABLE_USE
+            volume: 1.0
+            pitch: 1.5
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 4
+          params:
+            type: CHAT
+            message: "&5&lAncient Crown! &7Immunity granted!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 5
+
+# ============================================
+# KING'S BRACE - Chestplate (Exclusive)
+# ============================================
+kings_brace:
+  name: "<gradient:#9400D3:#4B0082>King's Brace</gradient>"
+  description:
+    - "&7Activate to gain powerful"
+    - "&7damage reduction and absorption"
+    - "&7hearts for a short time."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: CHESTPLATE
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3002
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      damage_reduction:
+        - 15
+        - 20
+        - 25
+        - 30
+        - 35
+      absorption_hearts:
+        - 1
+        - 2
+        - 2
+        - 3
+        - 4
+      buff_duration:
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+      cooldown:
+        - 60
+        - 55
+        - 50
+        - 45
+        - 40
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - chestplate
+  flows:
+    - type: ABILITY
+      cooldown: "{cooldown}"
+      id: kings_brace_ability
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: absorption
+        - id: absorption
+          type: EFFECT
+          effect: ABSORBTION
+          x: 0
+          y: 1
+          params:
+            duration: "{buff_duration}"
+            value: "{absorption_hearts}"
+          next: dr
+        - id: dr
+          type: EFFECT
+          effect: DAMAGE_REDUCTION_BUFF
+          x: 0
+          y: 2
+          params:
+            duration: "{buff_duration}"
+            percent: "{damage_reduction}"
+          next: sound1
+        - id: sound1
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ITEM_ARMOR_EQUIP_NETHERITE
+            volume: 1.0
+            pitch: 0.8
+          next: sound2
+        - id: sound2
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 4
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 0.8
+            pitch: 1.2
+          next: msg
+        - id: msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 5
+          params:
+            type: CHAT
+            message: "&5&lKing's Brace! &7Royal protection activated!"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 6
+
+# ============================================
+# CLEOPATRA - Leggings (Exclusive)
+# ============================================
+cleopatra:
+  name: "<gradient:#9400D3:#4B0082>Cleopatra</gradient>"
+  description:
+    - "&7On attack, has a chance to"
+    - "&7steal buffs from your target"
+    - "&7and apply weakness."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: LEGGINGS
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3003
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      steal_chance:
+        - 5
+        - 8
+        - 12
+        - 16
+        - 20
+      weakness_duration:
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+      weakness_amp:
+        - 0
+        - 0
+        - 1
+        - 1
+        - 2
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - leggings
+  flows:
+    - type: ABILITY
+      cooldown: 10
+      id: cleopatra_ability
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: steal
+        - id: steal
+          type: EFFECT
+          effect: STEAL_BUFFS
+          x: 0
+          y: 1
+          params:
+            target: "@Target"
+            max_buffs: 2
+          next: weakness
+        - id: weakness
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: WEAKNESS
+            duration: "{weakness_duration}"
+            amplifier: "{weakness_amp}"
+            target: "@Target"
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ENTITY_ILLUSIONER_CAST_SPELL
+            volume: 1.0
+            pitch: 1.2
+          next: msg_self
+        - id: msg_self
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 4
+          params:
+            type: CHAT
+            message: "&5&lCleopatra! &7Buffs stolen!"
+          next: msg_victim
+        - id: msg_victim
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 5
+          params:
+            type: CHAT
+            message: "&5&lCleopatra! &7Your power was stolen!"
+            target: "@Target"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 6
+
+# ============================================
+# DIVINE INTERVENTION - Sword (Exclusive)
+# ============================================
+divine_intervention:
+  name: "<gradient:#4169E1:#1E90FF>Divine Intervention</gradient>"
+  description:
+    - "&7When taking damage while blocking,"
+    - "&7gain invulnerability for the"
+    - "&7next 3 incoming hits."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: SWORD
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3010
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      cooldown:
+        - 60
+        - 50
+        - 40
+        - 30
+        - 20
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - sword
+  flows:
+    - type: SIGNAL
+      trigger: DEFENSE
+      chance: "{chance}"
+      cooldown: "{cooldown}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: check_blocking
+        - id: check_blocking
+          type: CONDITION
+          condition: IS_BLOCKING_SWORD
+          x: 0
+          y: 1
+          connections:
+            'yes': invuln
+            'no': end
+        - id: invuln
+          type: EFFECT
+          effect: INVULNERABILITY_HITS
+          x: 1
+          y: 2
+          params:
+            hits: 3
+          next: sound_activate
+        - id: sound_activate
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 3
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 1.5
+            pitch: 1.8
+          next: sound_anvil
+        - id: sound_anvil
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 4
+          params:
+            sound: BLOCK_ANVIL_LAND
+            volume: 0.8
+            pitch: 2.0
+          next: end
+        - id: end
+          type: END
+          x: 1
+          y: 5
+
+# ============================================
+# NILE'S GRACE - Axe (Exclusive)
+# ============================================
+niles_grace:
+  name: "<gradient:#32CD32:#228B22>Nile's Grace</gradient>"
+  description:
+    - "&7Activate to grant yourself and"
+    - "&7nearby allies Regeneration III"
+    - "&7and Resistance III."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: AXE
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3011
+  max_tier: 10
+  tier:
+    mode: PARAMETER
+    params:
+      duration:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - axe
+  flows:
+    - type: ABILITY
+      cooldown: 180
+      id: niles_grace_ability
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: regen_self
+        - id: regen_self
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: REGENERATION
+            duration: "{duration}"
+            amplifier: 2
+            target: "@Self"
+          next: resist_self
+        - id: resist_self
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: RESISTANCE
+            duration: "{duration}"
+            amplifier: 2
+            target: "@Self"
+          next: regen_nearby
+        - id: regen_nearby
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 3
+          params:
+            potion_type: REGENERATION
+            duration: "{duration}"
+            amplifier: 2
+            target: "@NearbyEntities:10"
+          next: resist_nearby
+        - id: resist_nearby
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 4
+          params:
+            potion_type: RESISTANCE
+            duration: "{duration}"
+            amplifier: 2
+            target: "@NearbyEntities:10"
+          next: burst_particles
+        - id: burst_particles
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 5
+          params:
+            particle_type: FALLING_DUST
+            material: GOLD_BLOCK
+            count: 100
+            shape: burst
+            waves: 2
+            start_radius: 0.5
+            end_radius: 10
+            wave_delay: 10
+            y_offset: 1.5
+          next: burst_red_sand
+        - id: burst_red_sand
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 6
+          params:
+            particle_type: FALLING_DUST
+            material: RED_SAND
+            count: 100
+            shape: burst
+            waves: 2
+            start_radius: 0.5
+            end_radius: 10
+            wave_delay: 10
+            y_offset: 1.5
+          next: sound_heal
+        - id: sound_heal
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 7
+          params:
+            sound: ENTITY_PLAYER_LEVELUP
+            volume: 1.5
+            pitch: 1.2
+          next: sound_beacon
+        - id: sound_beacon
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 8
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 1.0
+            pitch: 0.8
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 9
+
+# ============================================
+# ANCIENT BREAK - Pickaxe (Exclusive)
+# ============================================
+ancient_break:
+  name: "<gradient:#FFD700:#CD853F>Ancient Break</gradient>"
+  description:
+    - "&7When mining, chance to"
+    - "&7grant Haste effect."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: PICKAXE
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3012
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      haste_amp:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - pickaxe
+  flows:
+    - type: SIGNAL
+      trigger: BLOCK_BREAK
+      chance: "{chance}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: haste
+        - id: haste
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: HASTE
+            duration: 10
+            amplifier: "{haste_amp}"
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: BLOCK_BEACON_POWER_SELECT
+            volume: 0.5
+            pitch: 1.5
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3
+
+# ============================================
+# HORUS'S ARROW - Bow (Exclusive)
+# ============================================
+horus_arrow_stun:
+  name: "<gradient:#FFD700:#CD853F>Horus's Arrow</gradient>"
+  description:
+    - "&7When shooting a player,"
+    - "&7chance to stun them."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: BOW
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3013
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 5
+        - 10
+        - 15
+        - 20
+        - 25
+      stun_duration:
+        - 0.5
+        - 1.0
+        - 1.5
+        - 2.0
+        - 2.5
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - bow
+  flows:
+    - type: SIGNAL
+      trigger: BOW_HIT
+      chance: "{chance}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: stun
+        - id: stun
+          type: EFFECT
+          effect: STUN
+          x: 0
+          y: 1
+          params:
+            duration: "{stun_duration}"
+            target: "@Victim"
+          next: change_skin
+        - id: change_skin
+          type: EFFECT
+          effect: CHANGE_SKIN
+          x: 0
+          y: 2
+          params:
+            skin: SandOfSand
+            duration: "{stun_duration}"
+            target: "@Victim"
+          next: sand_burst
+        - id: sand_burst
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 3
+          params:
+            particle_type: FALLING_DUST
+            material: SAND
+            count: 50
+            spread: 0.5
+            target: "@Victim"
+          next: sound_curse
+        - id: sound_curse
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 4
+          params:
+            sound: ENTITY_VEX_CHARGE
+            volume: 1.0
+            pitch: 0.5
+          next: sound_sand
+        - id: sound_sand
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 5
+          params:
+            sound: BLOCK_SAND_BREAK
+            volume: 1.2
+            pitch: 0.4
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 6
+
+# ============================================
+# MAELSTROM - Crossbow (Exclusive)
+# ============================================
+maelstrom:
+  name: "<gradient:#4682B4:#00BFFF>Maelstrom</gradient>"
+  description:
+    - "&7When shooting a player,"
+    - "&7pulls them toward you."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: CROSSBOW
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3014
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      pull_strength:
+        - 1.5
+        - 2.0
+        - 2.5
+        - 3.0
+        - 3.5
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - crossbow
+  flows:
+    - type: SIGNAL
+      trigger: BOW_HIT
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: pull
+        - id: pull
+          type: EFFECT
+          effect: PULL
+          x: 0
+          y: 1
+          params:
+            force: "{pull_strength}"
+            cooldown: 120
+            target: "@Victim"
+          next: water_spiral
+        - id: water_spiral
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 2
+          params:
+            particle_type: WATER_SPLASH
+            count: 40
+            spread: 1.0
+            target: "@Victim"
+          next: sound_splash
+        - id: sound_splash
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ENTITY_PLAYER_SPLASH
+            volume: 1.5
+            pitch: 0.7
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4

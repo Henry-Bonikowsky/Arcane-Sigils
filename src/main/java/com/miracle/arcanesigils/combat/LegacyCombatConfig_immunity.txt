@@ -1,0 +1,4 @@
+    public int getDamageImmunityTicks() { return damageImmunityTicks; }
+    public void setDamageImmunityTicks(int v) { this.damageImmunityTicks = v; }
+    public int getVanillaImmunityTicks() { return vanillaImmunityTicks; }
+    public void setVanillaImmunityTicks(int v) { this.vanillaImmunityTicks = v; }

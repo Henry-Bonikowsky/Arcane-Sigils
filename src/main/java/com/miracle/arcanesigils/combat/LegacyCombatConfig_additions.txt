@@ -1,0 +1,11 @@
+    // Additional KB settings for .old version
+    private double kbFriction = 2.0;
+    private double kbExtraHorizontal = 0.425;
+    private double kbExtraVertical = 0.085;
+    private double kbVictimSprintMultiplier = 1.5;
+    private boolean kbCancelVictimSprint = true;
+    private boolean kbEnhancedAirtime = false;
+    private double kbAirBoost = 0.1;
+    private boolean kbGroundCompensationEnabled = false;
+    private double kbGroundCompensation = 1.6;
+    private int kbGroundCompensationWindow = 10;

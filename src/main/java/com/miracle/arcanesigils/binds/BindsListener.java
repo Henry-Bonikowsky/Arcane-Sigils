@@ -1,10 +1,13 @@
 package com.miracle.arcanesigils.binds;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.ai.AITrainingManager;
+import com.miracle.arcanesigils.ai.RewardSignal;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.events.SignalType;
 import com.miracle.arcanesigils.flow.FlowConfig;
+import com.miracle.arcanesigils.flow.FlowContext;
 import com.miracle.arcanesigils.flow.FlowExecutor;
 import com.miracle.arcanesigils.utils.LogHelper;
 import com.miracle.arcanesigils.utils.TextUtil;
@@ -54,6 +57,10 @@ public class BindsListener implements Listener {
     // Track last held slot to detect when player is already on a slot
     private final Map<UUID, Integer> lastHeldSlot = new HashMap<>();
 
+    // Track last activated bind for AI training kill attribution
+    private final Map<UUID, Integer> lastActivatedBindSlot = new HashMap<>();
+    private final Map<UUID, Long> lastActivationTime = new HashMap<>();
+
     // Activation delays
     private static final long DOUBLE_TAP_WINDOW = 300; // ms - quick double-tap detection
     private static final long SIMULTANEOUS_WINDOW = 200; // ms for ATTACK+USE detection
@@ -64,7 +71,7 @@ public class BindsListener implements Listener {
         this.bindsManager = bindsManager;
         this.bossBarManager = bossBarManager;
         this.targetGlowManager = targetGlowManager;
-        this.conditionManager = new com.miracle.arcanesigils.events.ConditionManager();
+        this.conditionManager = new com.miracle.arcanesigils.events.ConditionManager(plugin);
     }
 
     // ==================== TOGGLE DETECTION ====================
@@ -423,7 +430,7 @@ public class BindsListener implements Listener {
             ItemStack equippedItem = findEquippedSigil(player, sigilId);
             if (equippedItem == null) {
                 LogHelper.debug("[Binds] Skipping unequipped sigil (no delay): " + sigilId);
-                player.sendActionBar(Component.text(TextUtil.colorize(
+                player.sendMessage(Component.text(TextUtil.colorize(
                     "&c" + TextUtil.stripColors(sigil.getName()) + " &7is not equipped!")));
                 continue; // Skip immediately, no delay
             }
@@ -435,7 +442,7 @@ public class BindsListener implements Listener {
             final ItemStack finalEquippedItem = equippedItem;
             final org.bukkit.entity.LivingEntity finalTarget = capturedTarget; // Pass captured target to delayed execution
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                activateSigilWithItem(player, sigilId, finalEquippedItem, finalTarget);
+                activateSigilWithItem(player, sigilId, finalEquippedItem, finalTarget, slotOrId);
             }, delay);
         }
 
@@ -467,13 +474,13 @@ public class BindsListener implements Listener {
         ItemStack equippedItem = findEquippedSigil(player, sigilId);
         if (equippedItem == null) {
             LogHelper.debug("[Binds] Sigil not equipped: " + sigilId);
-            player.sendActionBar(Component.text(TextUtil.colorize(
+            player.sendMessage(Component.text(TextUtil.colorize(
                 "&c" + TextUtil.stripColors(sigil.getName()) + " &7is not equipped!")));
             return;
         }
 
         // Delegate to the version with pre-found item and no pre-captured target
-        activateSigilWithItem(player, sigilId, equippedItem, null);
+        activateSigilWithItem(player, sigilId, equippedItem, null, -1);
     }
 
     /**
@@ -484,8 +491,9 @@ public class BindsListener implements Listener {
      * @param sigilId The sigil ID
      * @param equippedItem The item containing the sigil (pre-found)
      * @param capturedTarget Optional target captured at schedule time (for delayed abilities)
+     * @param slotOrId The bind slot or ID (for AI training tracking)
      */
-    private void activateSigilWithItem(Player player, String sigilId, ItemStack equippedItem, org.bukkit.entity.LivingEntity capturedTarget) {
+    private void activateSigilWithItem(Player player, String sigilId, ItemStack equippedItem, org.bukkit.entity.LivingEntity capturedTarget, int slotOrId) {
         // Get the sigil template
         Sigil sigil = plugin.getSigilManager().getSigil(sigilId);
         if (sigil == null) {
@@ -493,10 +501,13 @@ public class BindsListener implements Listener {
             return;
         }
 
-        // Get ALL flows from sigil and sort by priority (higher first)
-        List<FlowConfig> flows = new java.util.ArrayList<>(sigil.getFlows());
+        // Get ABILITY flows from sigil and sort by priority (higher first)
+        // Filter to ABILITY type only - SIGNAL flows should not execute on bind activation
+        List<FlowConfig> flows = sigil.getFlows().stream()
+                .filter(FlowConfig::isAbility)
+                .collect(java.util.stream.Collectors.toList());
         if (flows.isEmpty()) {
-            LogHelper.debug("[Binds] Sigil has no flows: " + sigilId);
+            LogHelper.debug("[Binds] Sigil has no ability flows: " + sigilId);
             return;
         }
 
@@ -542,6 +553,7 @@ public class BindsListener implements Listener {
         context.setMetadata("sourceSigilId", sigil.getId());
         context.setMetadata("sourceSigilTier", equippedTier);
         context.setMetadata("sourceItem", equippedItem);
+        context.setMetadata("aiTraining_bindSlot", slotOrId);
 
         // CRITICAL: Set tier scaling config for {param} placeholder replacement
         // Without this, tier params like {damage}, {speed}, {cooldown} won't resolve!
@@ -588,25 +600,52 @@ public class BindsListener implements Listener {
                 if (remaining > longestRemainingCooldown) {
                     longestRemainingCooldown = remaining;
                 }
-                continue; // Try next flow
-            }
-
-            // Check conditions for this flow
-            if (!flow.getConditions().isEmpty()) {
-                if (!conditionManager.checkConditions(flow.getConditions(), context)) {
-                    plugin.getLogger().info("[Priority] Flow '" + flowId + "' conditions not met, trying next");
-                    anyConditionsFailed = true;
-                    continue; // Try next flow
+                // Send cooldown signal for AI training
+                AITrainingManager aiTraining = plugin.getAITrainingManager();
+                if (aiTraining != null && slotOrId >= 0) {
+                    aiTraining.sendCooldownSignal(player, slotOrId, remaining);
                 }
+                continue; // Try next flow
             }
 
             // This flow passes! Execute it
             plugin.getLogger().info("[Priority] Flow '" + flowId + "' ACTIVATED - stopping here");
             FlowExecutor executor = new FlowExecutor(plugin);
-            executor.execute(flow.getGraph(), context);
+            FlowContext flowContext = executor.executeWithContext(flow.getGraph(), context);
+
+            // AI Training: Send reward signals based on execution results
+            AITrainingManager aiTraining = plugin.getAITrainingManager();
+            if (aiTraining != null && slotOrId >= 0) {
+                // Track this bind activation for kill attribution
+                lastActivatedBindSlot.put(player.getUniqueId(), slotOrId);
+                lastActivationTime.put(player.getUniqueId(), System.currentTimeMillis());
+
+                // Check if any effects executed
+                if (flowContext != null && flowContext.hasEffectsExecuted()) {
+                    // Get accumulated damage/healing from context
+                    Object damageObj = flowContext.getVariable("aiTraining_totalDamage");
+                    Object healObj = flowContext.getVariable("aiTraining_totalHeal");
+                    
+                    Double totalDamage = (damageObj instanceof Double) ? (Double) damageObj : null;
+                    Double totalHeal = (healObj instanceof Double) ? (Double) healObj : null;
+
+                    if (totalDamage != null && totalDamage > 0) {
+                        aiTraining.sendHitSignal(player, slotOrId, totalDamage);
+                    } else if (totalHeal != null && totalHeal > 0) {
+                        aiTraining.sendHealSignal(player, slotOrId, totalHeal);
+                    } else {
+                        // Effects executed but no damage/heal - generic success
+                        aiTraining.sendHitSignal(player, slotOrId, 0.0);
+                    }
+                } else {
+                    // No effects executed - MISS
+                    aiTraining.sendMissSignal(player, slotOrId);
+                }
+            }
 
             // Set cooldown - use sigil's display name, not the ugly ID
-            if (cooldown > 0) {
+            // Only set cooldown if flow wasn't cancelled (e.g., missing target)
+            if (cooldown > 0 && flowContext != null && !flowContext.isCancelled()) {
                 String displayName = TextUtil.stripColors(sigil.getName());
                 plugin.getCooldownManager().setCooldown(player, cooldownKey, displayName, cooldown);
             }
@@ -625,7 +664,7 @@ public class BindsListener implements Listener {
             return; // IMPORTANT: Stop after first successful activation
         }
 
-        // If we get here, no flow activated - give specific feedback via action bar
+        // If we get here, no flow activated - give specific feedback via chat
         String sigilName = TextUtil.stripColors(sigil.getName());
         Component feedback;
         if (anyOnCooldown && !anyConditionsFailed) {
@@ -649,7 +688,7 @@ public class BindsListener implements Listener {
             feedback = Component.text("Cannot activate ", NamedTextColor.RED)
                 .append(Component.text(sigilName, NamedTextColor.GRAY));
         }
-        player.sendActionBar(feedback);
+        player.sendMessage(feedback);
     }
 
     /**
@@ -711,11 +750,33 @@ public class BindsListener implements Listener {
         lastAttackTime.remove(uuid);
         lastUseTime.remove(uuid);
         lastHeldSlot.remove(uuid);
+        lastActivatedBindSlot.remove(uuid);
+        lastActivationTime.remove(uuid);
 
         // Cancel any pending swap task
         Integer pendingTask = pendingSwapTasks.remove(uuid);
         if (pendingTask != null) {
             Bukkit.getScheduler().cancelTask(pendingTask);
         }
+    }
+
+    // ==================== AI TRAINING ====================
+
+    /**
+     * Get the last activated bind slot for a player (for kill attribution).
+     * Returns null if no bind was activated or if it was too long ago.
+     *
+     * @param uuid Player UUID
+     * @param maxAgeMs Maximum age in milliseconds (typically 5000ms for kills)
+     * @return The bind slot/ID, or null if not found or too old
+     */
+    public Integer getLastActivatedBindSlot(UUID uuid, long maxAgeMs) {
+        Long activationTime = lastActivationTime.get(uuid);
+        if (activationTime == null) return null;
+
+        long age = System.currentTimeMillis() - activationTime;
+        if (age > maxAgeMs) return null;
+
+        return lastActivatedBindSlot.get(uuid);
     }
 }

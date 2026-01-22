@@ -57,14 +57,33 @@ public class FlowListHandler extends AbstractHandler {
                 FlowConfig flow = flows.get(index);
 
                 if (event.isLeftClick()) {
-                    // Edit flow
                     playSound(player, "click");
                     session.put("editingFlowIndex", index);
-                    FlowBuilderHandler.openGUI(
-                        guiManager, player, sigil,
-                        flow.getTrigger() != null ? flow.getTrigger() : "flow",
-                        flow.getGraph(), flow
-                    );
+
+                    String signalKey = flow.getTrigger() != null ? flow.getTrigger() : "flow";
+
+                    // Smart routing based on shift-click and tier params
+                    boolean hasTierParams = sigil.getTierScalingConfig() != null &&
+                                           !sigil.getTierScalingConfig().getParams().isEmpty();
+
+                    if (event.isShiftClick()) {
+                        // Shift-click = always open Flow Builder (advanced mode)
+                        FlowBuilderHandler.openGUI(
+                            guiManager, player, sigil,
+                            signalKey, flow.getGraph(), flow
+                        );
+                    } else if (hasTierParams) {
+                        // Has tier params = open Quick Param Editor (Alex-friendly)
+                        com.miracle.arcanesigils.gui.params.QuickParamEditorHandler.openGUI(
+                            guiManager, player, sigil, signalKey
+                        );
+                    } else {
+                        // No tier params = open Flow Builder to create them
+                        FlowBuilderHandler.openGUI(
+                            guiManager, player, sigil,
+                            signalKey, flow.getGraph(), flow
+                        );
+                    }
                 } else if (event.isRightClick()) {
                     // Delete flow (with confirmation)
                     Boolean confirmed = session.get("deleteConfirm_" + index, Boolean.class);
@@ -102,7 +121,7 @@ public class FlowListHandler extends AbstractHandler {
                     playSound(player, "error");
                 }
             }
-            case GUILayout.CREATE_SIGIL -> {
+            case 24 -> {
                 // Create new flow
                 playSound(player, "click");
                 createNewFlow(player, session, sigil);
@@ -187,7 +206,7 @@ public class FlowListHandler extends AbstractHandler {
 
             if (flowIndex < endIndex) {
                 FlowConfig flow = flows.get(flowIndex);
-                inv.setItem(slot, createFlowItem(flow, flowIndex));
+                inv.setItem(slot, createFlowItem(flow, flowIndex, sigil));
             } else {
                 inv.setItem(slot, new ItemStack(Material.AIR));
             }
@@ -200,7 +219,7 @@ public class FlowListHandler extends AbstractHandler {
 
         inv.setItem(GUILayout.PAGE_INDICATOR, ItemBuilder.createPageIndicator(page, maxPage, flows.size()));
 
-        inv.setItem(GUILayout.CREATE_SIGIL, ItemBuilder.createItem(
+        inv.setItem(24, ItemBuilder.createItem(
             Material.EMERALD,
             "&a&lAdd Flow",
             "&7Click to add a new flow",
@@ -233,7 +252,7 @@ public class FlowListHandler extends AbstractHandler {
     /**
      * Create an item representing a flow.
      */
-    private static ItemStack createFlowItem(FlowConfig flow, int index) {
+    private static ItemStack createFlowItem(FlowConfig flow, int index, Sigil sigil) {
         List<String> lore = new ArrayList<>();
 
         String trigger = flow.getTrigger() != null ? flow.getTrigger() : "UNKNOWN";
@@ -242,11 +261,18 @@ public class FlowListHandler extends AbstractHandler {
         // Material based on trigger type
         Material material = getMaterialForTrigger(trigger);
 
+        // Display name with trigger prominently shown
+        String displayName = flow.getTrigger() != null
+            ? "&e" + flow.getTrigger() + " &7Flow"
+            : "&7Unnamed Flow";
+
         // Flow info
         lore.add("&8Index: " + index);
         lore.add("");
-        lore.add("&7Type: " + (isAbility ? "&dAbility" : "&6Signal"));
-        lore.add("&7Trigger: &f" + trigger);
+        lore.add("&7Type: &f" + (flow.getType() == FlowType.SIGNAL ? "Signal" : "Ability"));
+        if (flow.getTrigger() != null) {
+            lore.add("&7Trigger: &f" + flow.getTrigger());
+        }
 
         if (flow.getCooldown() > 0) {
             lore.add("&7Cooldown: &f" + flow.getCooldown() + "s");
@@ -260,10 +286,19 @@ public class FlowListHandler extends AbstractHandler {
         lore.add("&7Nodes: &f" + nodeCount);
 
         lore.add("");
-        lore.add("&eLeft-click to edit");
+
+        // Smart routing hints based on tier params
+        boolean hasTierParams = sigil.getTierScalingConfig() != null &&
+                               !sigil.getTierScalingConfig().getParams().isEmpty();
+        if (hasTierParams) {
+            lore.add("&eClick: &7Quick edit params");
+            lore.add("&eShift+Click: &7Advanced editor");
+        } else {
+            lore.add("&eClick to edit");
+        }
         lore.add("&cRight-click to delete");
 
-        return ItemBuilder.createItem(material, "&b" + trigger + " Flow", lore);
+        return ItemBuilder.createItem(material, displayName, lore);
     }
 
     /**

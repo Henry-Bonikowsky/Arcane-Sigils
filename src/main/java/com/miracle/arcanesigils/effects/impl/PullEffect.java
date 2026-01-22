@@ -39,6 +39,26 @@ public class PullEffect extends AbstractEffect {
 
         target.setVelocity(direction);
 
+        // Apply cooldown if specified (for Maelstrom crossbow)
+        if (context.getParams() != null) {
+            Object cooldownObj = context.getParams().get("cooldown");
+            if (cooldownObj != null) {
+                double cooldown = cooldownObj instanceof Number
+                    ? ((Number) cooldownObj).doubleValue()
+                    : 0.0;
+
+                if (cooldown > 0 && context.getPlayer() != null) {
+                    String flowId = context.getMetadata("flowId", "pull_effect");
+                    getPlugin().getCooldownManager().setCooldown(
+                        context.getPlayer(),
+                        flowId,
+                        "Maelstrom",
+                        cooldown
+                    );
+                }
+            }
+        }
+
         // Effects
         target.getWorld().spawnParticle(Particle.WITCH, target.getLocation(), 15, 0.3, 0.5, 0.3, 0.05);
         target.getWorld().playSound(target.getLocation(), Sound.ENTITY_FISHING_BOBBER_RETRIEVE, 1.0f, 0.8f);

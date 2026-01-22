@@ -1,0 +1,32 @@
+quicksand_pull_behavior:
+  name: "Quicksand Pull"
+  type: BEHAVIOR
+  description:
+  - "Continuously pulls marked entity toward owner"
+  
+  flows:
+  - type: SIGNAL
+    trigger: TICK
+    id: pull_tick
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      x: 0
+      y: 0
+      params:
+        flow_type: SIGNAL
+        signal_type: TICK
+      next: pull
+    - id: pull
+      type: EFFECT
+      x: 0
+      y: 1
+      effect: PULL_TO_OWNER
+      params:
+        strength: 0.3
+      next: end
+    - id: end
+      type: END
+      x: 0
+      y: 2

@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils;
 
 import com.miracle.arcanesigils.addon.AddonManager;
+import com.miracle.arcanesigils.ai.AITrainingManager;
 import com.miracle.arcanesigils.debug.PluginDebugger;
 import com.miracle.arcanesigils.binds.BindsBossBarManager;
 import com.miracle.arcanesigils.binds.BindsListener;
@@ -23,12 +24,17 @@ import com.miracle.arcanesigils.effects.StunManager;
 import com.miracle.arcanesigils.events.CooldownManager;
 import com.miracle.arcanesigils.events.SignalHandler;
 import com.miracle.arcanesigils.gui.GUIManager;
+import com.miracle.arcanesigils.interception.InterceptionManager;
+import com.miracle.arcanesigils.interception.PotionEffectInterceptionListener;
 import com.miracle.arcanesigils.listeners.EnchantCapRemover;
 import com.miracle.arcanesigils.particles.ShapeEngine;
 import com.miracle.arcanesigils.tier.TierProgressionManager;
 import com.miracle.arcanesigils.utils.ScreenShakeUtil;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class ArmorSetsPlugin extends JavaPlugin {
@@ -44,8 +50,12 @@ public class ArmorSetsPlugin extends JavaPlugin {
     private com.miracle.arcanesigils.effects.MarkManager markManager;
     private CooldownManager cooldownManager;
     private CooldownNotifier cooldownNotifier;
+    private com.miracle.arcanesigils.variables.PlayerVariableManager playerVariableManager;
+    private com.miracle.arcanesigils.variables.SigilVariableManager sigilVariableManager;
     private SigilManager sigilManager;
     private SocketManager socketManager;
+    private com.miracle.arcanesigils.sets.SetBonusManager setBonusManager;
+    private com.miracle.arcanesigils.notifications.NotificationManager notificationManager;
     private SignalHandler signalHandler;
     private GUIManager guiManager;
     private TierProgressionManager tierProgressionManager;
@@ -58,12 +68,23 @@ public class ArmorSetsPlugin extends JavaPlugin {
     private ProjectileManager projectileManager;
     private LegacyCombatManager legacyCombatManager;
     private PluginDebugger pluginDebugger;
+    private com.miracle.arcanesigils.listeners.CollisionDisabler collisionDisabler;
+    private AITrainingManager aiTrainingManager;
+    private InterceptionManager interceptionManager;
+    private com.miracle.arcanesigils.effects.AttributeModifierManager attributeModifierManager;
+    private com.miracle.arcanesigils.effects.PotionEffectTracker potionEffectTracker;
+
+    // Track players with active Quicksand (no knockback mode)
+    private final Map<UUID, Long> quicksandActivePlayers = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
         instance = this;
 
         getLogger().info("Initializing ArcaneSigils plugin...");
+
+        // Initialize LogHelper first
+        com.miracle.arcanesigils.utils.LogHelper.init(this);
 
         // Initialize managers in order
         initializeManagers();
@@ -112,6 +133,9 @@ public class ArmorSetsPlugin extends JavaPlugin {
         if (auraManager != null) {
             auraManager.shutdown();
         }
+        if (attributeModifierManager != null) {
+            attributeModifierManager.shutdown();
+        }
         if (shapeEngine != null) {
             shapeEngine.stopAllAnimations();
         }
@@ -133,6 +157,18 @@ public class ArmorSetsPlugin extends JavaPlugin {
         if (legacyCombatManager != null) {
             legacyCombatManager.disable();
         }
+        if (collisionDisabler != null) {
+            collisionDisabler.shutdown();
+        }
+        if (aiTrainingManager != null) {
+            aiTrainingManager.shutdown();
+        }
+        if (playerVariableManager != null) {
+            playerVariableManager.shutdown();
+        }
+        if (sigilVariableManager != null) {
+            sigilVariableManager.shutdown();
+        }
 
         // Clean up screen shake effects
         ScreenShakeUtil.cleanup();
@@ -147,8 +183,17 @@ public class ArmorSetsPlugin extends JavaPlugin {
             configManager = new ConfigManager(this);
             configManager.loadAll();
 
+            // Now that config is loaded, refresh LogHelper debug setting
+            com.miracle.arcanesigils.utils.LogHelper.refreshDebugSetting(this);
+
             // Effect manager (needed by others)
             effectManager = new EffectManager(this);
+            
+            // Attribute modifier manager (prevents stacking bugs)
+            attributeModifierManager = new com.miracle.arcanesigils.effects.AttributeModifierManager(this);
+
+            // Potion effect tracker (for Ancient Crown counter-modifiers)
+            potionEffectTracker = new com.miracle.arcanesigils.effects.PotionEffectTracker(this);
 
             // Shape engine (particle/visual effects system)
             shapeEngine = new ShapeEngine(this);
@@ -178,6 +223,12 @@ public class ArmorSetsPlugin extends JavaPlugin {
             // Cooldown ready notifier
             cooldownNotifier = new CooldownNotifier(this);
 
+            // Player variable manager
+            playerVariableManager = new com.miracle.arcanesigils.variables.PlayerVariableManager(this);
+            
+            // Sigil variable manager (per-sigil state tracking)
+            sigilVariableManager = new com.miracle.arcanesigils.variables.SigilVariableManager(this);
+
             // Sigil manager
             sigilManager = new SigilManager(this);
             sigilManager.loadSigils();
@@ -185,6 +236,12 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
             // Socket manager
             socketManager = new SocketManager(this);
+
+            // Set bonus manager (load set bonuses from sets/ folder)
+            setBonusManager = new com.miracle.arcanesigils.sets.SetBonusManager(this);
+
+            // Notification manager (chat notifications)
+            notificationManager = new com.miracle.arcanesigils.notifications.NotificationManager(this);
 
             // Tier progression manager (XP system)
             tierProgressionManager = new TierProgressionManager(this);
@@ -212,6 +269,15 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
             // Plugin debugger (for identifying external plugin issues)
             pluginDebugger = new PluginDebugger(this);
+
+            // Collision disabler (prevent player collisions for effects like quicksand)
+            collisionDisabler = new com.miracle.arcanesigils.listeners.CollisionDisabler(this);
+
+            // AI Training Manager (reward signals for AI training)
+            aiTrainingManager = new AITrainingManager(this);
+
+            // Interception Manager (effect interception system for Ancient Crown, Cleopatra, etc.)
+            interceptionManager = new InterceptionManager();
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to initialize managers!", e);
@@ -255,6 +321,17 @@ public class ArmorSetsPlugin extends JavaPlugin {
         pm.registerEvents(pluginDebugger, this);
         pm.registerEvents(skinChangeManager, this);
         pm.registerEvents(new EnchantCapRemover(), this);
+        pm.registerEvents(collisionDisabler, this);
+        pm.registerEvents(new com.miracle.arcanesigils.listeners.QuicksandKnockbackListener(this), this);
+
+        pm.registerEvents(new PotionEffectInterceptionListener(this), this);
+
+        pm.registerEvents(potionEffectTracker, this);
+        pm.registerEvents(new com.miracle.arcanesigils.listeners.PotionDamageReductionListener(this), this);
+        pm.registerEvents(new com.miracle.arcanesigils.listeners.ArmorChangeListener(this), this);
+
+        // Disable collision for all currently online players
+        collisionDisabler.disableForAll();
     }
 
     private void loadAddons() {
@@ -338,12 +415,28 @@ public class ArmorSetsPlugin extends JavaPlugin {
         return cooldownNotifier;
     }
 
+    public com.miracle.arcanesigils.variables.PlayerVariableManager getPlayerVariableManager() {
+        return playerVariableManager;
+    }
+    
+    public com.miracle.arcanesigils.variables.SigilVariableManager getSigilVariableManager() {
+        return sigilVariableManager;
+    }
+
     public SigilManager getSigilManager() {
         return sigilManager;
     }
 
     public SocketManager getSocketManager() {
         return socketManager;
+    }
+
+    public com.miracle.arcanesigils.sets.SetBonusManager getSetBonusManager() {
+        return setBonusManager;
+    }
+
+    public com.miracle.arcanesigils.notifications.NotificationManager getNotificationManager() {
+        return notificationManager;
     }
 
     public SignalHandler getSignalHandler() {
@@ -388,5 +481,55 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
     public PluginDebugger getPluginDebugger() {
         return pluginDebugger;
+    }
+
+    public BindsListener getBindsListener() {
+        return bindsListener;
+    }
+
+    public AITrainingManager getAITrainingManager() {
+        return aiTrainingManager;
+    }
+
+    public InterceptionManager getInterceptionManager() {
+        return interceptionManager;
+    }
+    
+    public com.miracle.arcanesigils.effects.AttributeModifierManager getAttributeModifierManager() {
+        return attributeModifierManager;
+    }
+
+    public com.miracle.arcanesigils.effects.PotionEffectTracker getPotionEffectTracker() {
+        return potionEffectTracker;
+    }
+
+    /**
+     * Register a player as having active Quicksand (no knockback mode).
+     * @param playerId Player UUID
+     * @param durationSeconds How long Quicksand is active
+     */
+    public void registerQuicksandActive(UUID playerId, int durationSeconds) {
+        long expiryTime = System.currentTimeMillis() + (durationSeconds * 1000L);
+        quicksandActivePlayers.put(playerId, expiryTime);
+    }
+    
+    /**
+     * Check if a player has active Quicksand (should give no knockback).
+     * @param playerId Player UUID
+     * @return true if Quicksand is active
+     */
+    public boolean hasActiveQuicksand(UUID playerId) {
+        Long expiryTime = quicksandActivePlayers.get(playerId);
+        if (expiryTime == null) {
+            return false;
+        }
+        
+        // Check if expired
+        if (System.currentTimeMillis() >= expiryTime) {
+            quicksandActivePlayers.remove(playerId);
+            return false;
+        }
+        
+        return true;
     }
 }

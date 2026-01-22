@@ -103,6 +103,15 @@ public class KnockbackModule extends AbstractCombatModule implements Listener {
             ));
         }
 
+        // Cap horizontal velocity to prevent excessive knockback
+        double hCap = config.getKbHorizontalCap();
+        double horizontalMag = Math.sqrt(velocity.getX() * velocity.getX() + velocity.getZ() * velocity.getZ());
+        if (horizontalMag > hCap) {
+            double scale = hCap / horizontalMag;
+            velocity.setX(velocity.getX() * scale);
+            velocity.setZ(velocity.getZ() * scale);
+        }
+
         queuedKnockback.put(victim, velocity);
         
         // Cancel sprint AFTER knockback is calculated (1.8 behavior)
@@ -168,6 +177,13 @@ public class KnockbackModule extends AbstractCombatModule implements Listener {
                 .range(0.2, 1.0)
                 .step(0.05)
                 .build(),
+            ModuleParam.builder("horizontal-cap")
+                .displayName("Horizontal Cap")
+                .description("Max horizontal velocity (0.5 = balanced)")
+                .doubleValue(config::getKbHorizontalCap, config::setKbHorizontalCap)
+                .range(0.3, 1.0)
+                .step(0.05)
+                .build(),
             ModuleParam.builder("extra-horizontal")
                 .displayName("Sprint/Enchant Horizontal")
                 .description("Per level bonus (0.425 = Kohi)")
@@ -177,7 +193,7 @@ public class KnockbackModule extends AbstractCombatModule implements Listener {
                 .build(),
             ModuleParam.builder("extra-vertical")
                 .displayName("Sprint/Enchant Vertical")
-                .description("Per level Y bonus (0.077 = Kohi)")
+                .description("Per level Y bonus (0.085 = Kohi)")
                 .doubleValue(config::getKbExtraVertical, config::setKbExtraVertical)
                 .range(0.0, 0.2)
                 .step(0.005)

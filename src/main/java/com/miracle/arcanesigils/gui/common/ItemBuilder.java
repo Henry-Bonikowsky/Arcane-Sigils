@@ -199,4 +199,39 @@ public final class ItemBuilder {
             info
         );
     }
+
+    /**
+     * Create a filter button with consistent styling.
+     */
+    public static ItemStack createFilterButton(Material material, String name, List<String> lore, boolean isActive) {
+        ItemStack item = createItem(material, name, lore);
+        if (isActive) {
+            addGlow(item);
+        }
+        return item;
+    }
+
+    /**
+     * Create a "Clear Filters" button.
+     */
+    public static ItemStack createClearFiltersButton() {
+        return createItem(
+            Material.BARRIER,
+            "§cClear All Filters",
+            "§7Reset all active filters",
+            "§7to show all sigils"
+        );
+    }
+
+    /**
+     * Create an "empty results" item shown when no sigils match filters.
+     */
+    public static ItemStack createEmptyResultsItem() {
+        return createItem(
+            Material.BARRIER,
+            "§cNo Matching Sigils",
+            "§7No sigils match your filters",
+            "§7Try clearing or adjusting filters"
+        );
+    }
 }

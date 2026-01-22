@@ -36,11 +36,11 @@ public class CombatSettingsHandler extends AbstractHandler {
     private static final int DEFAULTS_SLOT = 50;
     private static final int CLOSE_SLOT = 49;
 
-    // Module order (13 modules)
+    // Module order (14 modules)
     private static final String[] MODULE_ORDER = {
-        "attack-cooldown", "sword-blocking", "knockback", "regeneration",
-        "hitbox", "sweep-attack", "critical-hits", "fishing-rod",
-        "tool-damage", "golden-apple", "attack-indicator", "potions", "projectile-kb"
+        "global-damage-scaling", "attack-cooldown", "sword-blocking", "knockback",
+        "regeneration", "hitbox", "sweep-attack", "critical-hits",
+        "fishing-rod", "tool-damage", "golden-apple", "attack-indicator", "potions", "projectile-kb"
     };
 
     public CombatSettingsHandler(ArmorSetsPlugin plugin, GUIManager guiManager) {
@@ -207,6 +207,7 @@ public class CombatSettingsHandler extends AbstractHandler {
         boolean enabled = config.isModuleEnabled(module.getId());
 
         Material mat = switch (module.getId()) {
+            case "global-damage-scaling" -> Material.NETHER_STAR;
             case "attack-cooldown" -> Material.IRON_SWORD;
             case "sword-blocking" -> Material.SHIELD;
             case "knockback" -> Material.SLIME_BALL;
@@ -240,6 +241,10 @@ public class CombatSettingsHandler extends AbstractHandler {
 
     private static void addModuleDescription(List<String> lore, String moduleId) {
         switch (moduleId) {
+            case "global-damage-scaling" -> {
+                lore.add("&7Scale damage and resistance");
+                lore.add("&7Higher values = harder hits");
+            }
             case "attack-cooldown" -> lore.add("&7Removes 1.9+ attack cooldown");
             case "sword-blocking" -> {
                 lore.add("&7Restores sword blocking");

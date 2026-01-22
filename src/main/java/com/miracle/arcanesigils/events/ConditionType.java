@@ -233,6 +233,15 @@ public enum ConditionType {
         "Player is swimming",
         false
     ),
+    HAS_PLAYER_VARIABLE(
+        ConditionCategory.PLAYER_STATE,
+        Material.WRITABLE_BOOK,
+        "Has Player Variable",
+        "Check if player has a variable set (ability state, etc.)",
+        "HAS_PLAYER_VARIABLE:quicksand_active",
+        "Player has 'quicksand_active' variable set",
+        true
+    ),
 
     // ===== EQUIPMENT CONDITIONS =====
     MAIN_HAND(
@@ -270,6 +279,26 @@ public enum ConditionType {
         "DURABILITY_PERCENT:<20",
         "Durability below 20%",
         true
+    ),
+
+    // ===== SET BONUS CONDITIONS =====
+    HAS_SET_BONUS(
+        ConditionCategory.SET,
+        Material.DIAMOND_CHESTPLATE,
+        "Set Bonus Active",
+        "Check if player has active set bonus at minimum tier",
+        "HAS_SET_BONUS:ancient_set:2",
+        "Player has ancient_set tier 2+",
+        false
+    ),
+    IS_BLOCKING_SWORD(
+        ConditionCategory.COMBAT,
+        Material.IRON_SWORD,
+        "Blocking with Sword",
+        "Check if player is blocking with a sword (1.8 style)",
+        "IS_BLOCKING_SWORD",
+        "Player is blocking with sword",
+        false
     ),
 
     // ===== ADDITIONAL COMBAT CONDITIONS =====
@@ -339,6 +368,35 @@ public enum ConditionType {
         "EXPERIENCE_LEVEL:>30",
         "XP level above 30",
         true
+    ),
+
+    // ===== SIGNAL-SPECIFIC CONDITIONS =====
+    IS_NEGATIVE_EFFECT(
+        ConditionCategory.SIGNAL_SPECIFIC,
+        Material.SPLASH_POTION,
+        "Is Negative Effect",
+        "Check if potion effect is harmful (POTION_EFFECT_APPLY signal only)",
+        "IS_NEGATIVE_EFFECT",
+        "Effect is negative (Poison, Slowness, Weakness, etc.)",
+        false
+    ),
+    IS_NEGATIVE_MODIFIER(
+        ConditionCategory.SIGNAL_SPECIFIC,
+        Material.IRON_CHESTPLATE,
+        "Is Negative Modifier",
+        "Check if attribute modifier is harmful (ATTRIBUTE_MODIFY signal only)",
+        "IS_NEGATIVE_MODIFIER",
+        "Modifier reduces a stat (negative speed, damage, etc.)",
+        false
+    ),
+    IS_POTION_DAMAGE(
+        ConditionCategory.SIGNAL_SPECIFIC,
+        Material.WITHER_ROSE,
+        "Is Potion Damage",
+        "Check if damage is from poison or wither effect (DEFENSE signal only)",
+        "IS_POTION_DAMAGE",
+        "Damage from poison/wither DOT",
+        false
     );
 
     private final ConditionCategory category;
@@ -459,6 +517,7 @@ public enum ConditionType {
             case SPRINTING -> "Checks if the player is currently sprinting. Perfect for mobility-based abilities or speed builds.";
             case FLYING -> "Checks if player is flying (creative) or gliding (elytra). Enables aerial combat mechanics.";
             case SWIMMING -> "Checks if player is in swimming animation. More specific than IN_WATER for aquatic builds.";
+            case HAS_PLAYER_VARIABLE -> "Checks if player has a variable set using VariableNode with player scope. Perfect for tracking ability active states, cooldowns, or persistent flags across flows. Use with VariableNode (scope: player) to create duration-based state tracking.";
             case MAIN_HAND -> "Checks the item type in the player's main hand. Enables weapon-specific abilities.";
             case HAS_ENCHANT -> "Checks if the held item has a specific enchantment. Creates enchantment-synergy effects.";
             case HOLDING_SIGIL_ITEM -> "Checks if the player is currently holding (main or off hand) the item that has this sigil socketed. Useful for weapon-based sigils that only work when actively wielded.";
@@ -470,6 +529,11 @@ public enum ConditionType {
             case DIMENSION -> "Checks which dimension the player is in (OVERWORLD, NETHER, END). Dimension-specific abilities.";
             case Y_LEVEL -> "Checks the player's Y coordinate height. Mining bonuses or depth-based effects.";
             case EXPERIENCE_LEVEL -> "Checks the player's XP level. Enables level-gated abilities or XP cost mechanics.";
+            case IS_NEGATIVE_EFFECT -> "Checks if the potion effect being applied is harmful. Only works in POTION_EFFECT_APPLY signal flows. Returns true for negative effects like Poison, Slowness, Weakness, Wither, etc. Used by Ancient Crown to selectively reduce incoming debuffs.";
+            case IS_NEGATIVE_MODIFIER -> "Checks if the attribute modifier being applied is harmful (reduces a stat). Only works in ATTRIBUTE_MODIFY signal flows. Returns true for negative modifiers like movement speed reduction, damage reduction, etc. Used by Ancient Crown to selectively reduce incoming stat debuffs.";
+            case IS_POTION_DAMAGE -> "Checks if damage is from poison or wither damage-over-time effect. Only works in DEFENSE signal flows. Returns true for POISON and WITHER damage causes. Used by Ancient Crown to reduce DOT damage.";
+            case HAS_SET_BONUS -> "Checks if player has an active set bonus at minimum tier. Useful for abilities that synergize with set bonuses.";
+            case IS_BLOCKING_SWORD -> "Checks if player is blocking with a sword (1.8 style combat). Perfect for defensive sword abilities.";
         };
     }
 
@@ -499,6 +563,7 @@ public enum ConditionType {
             case SPRINTING -> "Charge attack: Extra impact damage while sprinting into combat";
             case FLYING -> "Aerial dive: Massive AoE damage when attacking while gliding";
             case SWIMMING -> "Aquatic fury: Speed and strength while swimming in water";
+            case HAS_PLAYER_VARIABLE -> "Quicksand activation: Only apply marks while 'quicksand_active' variable is set (6s duration)";
             case MAIN_HAND -> "Sword mastery: Bonus crit chance when holding any sword type";
             case HAS_ENCHANT -> "Enchanted warrior: Fire aspect weapons gain extra burn damage";
             case HOLDING_SIGIL_ITEM -> "Staff of Ra: Healing effect only works when holding the staff with the sigil";
@@ -510,6 +575,11 @@ public enum ConditionType {
             case DIMENSION -> "Nether walker: Fire immunity and strength while in the Nether";
             case Y_LEVEL -> "Deep miner: Fortune effect on ores below Y level 20";
             case EXPERIENCE_LEVEL -> "Veteran: Unlock ultimate ability at level 50+";
+            case IS_NEGATIVE_EFFECT -> "Ancient Crown immunity: Reduce only negative potion effects by X%, let positive effects through";
+            case IS_NEGATIVE_MODIFIER -> "Ancient Crown immunity: Reduce only negative attribute modifiers by X%, let positive buffs through";
+            case IS_POTION_DAMAGE -> "Ancient Crown immunity: Reduce poison/wither damage by X%";
+            case HAS_SET_BONUS -> "Set synergy: Extra effect when wearing 2+ Ancient set pieces at tier 3+";
+            case IS_BLOCKING_SWORD -> "Divine shield: While blocking with sword, chance to grant invulnerability";
         };
     }
 
@@ -539,6 +609,7 @@ public enum ConditionType {
             case SPRINTING -> new String[]{"SNEAKING", "IN_AIR"};
             case FLYING -> new String[]{"IN_AIR", "DIMENSION"};
             case SWIMMING -> new String[]{"IN_WATER", "BIOME"};
+            case HAS_PLAYER_VARIABLE -> new String[]{"SIGNAL", "WEARING_FULL_SET"};
             case MAIN_HAND -> new String[]{"HAS_ENCHANT", "SIGNAL"};
             case HAS_ENCHANT -> new String[]{"MAIN_HAND", "SIGNAL"};
             case HOLDING_SIGIL_ITEM -> new String[]{"MAIN_HAND", "SIGNAL"};
@@ -550,6 +621,11 @@ public enum ConditionType {
             case DIMENSION -> new String[]{"BIOME", "Y_LEVEL"};
             case Y_LEVEL -> new String[]{"DIMENSION", "LIGHT_LEVEL"};
             case EXPERIENCE_LEVEL -> new String[]{"HEALTH", "SIGNAL"};
+            case IS_NEGATIVE_EFFECT -> new String[]{"SIGNAL"};
+            case IS_NEGATIVE_MODIFIER -> new String[]{"SIGNAL"};
+            case IS_POTION_DAMAGE -> new String[]{"SIGNAL"};
+            case HAS_SET_BONUS -> new String[]{"HEALTH_PERCENT", "HAS_POTION"};
+            case IS_BLOCKING_SWORD -> new String[]{"MAIN_HAND", "SIGNAL"};
         };
     }
 
@@ -579,6 +655,7 @@ public enum ConditionType {
             case SPRINTING -> "Sprinting requires movement - standing still returns false";
             case FLYING -> "Works for both creative flight and elytra gliding";
             case SWIMMING -> "Requires underwater swimming animation, not just being in water";
+            case HAS_PLAYER_VARIABLE -> "Use with VariableNode (scope: player) to track persistent state. Variables expire automatically after duration. Format: HAS_PLAYER_VARIABLE:variable_name";
             case MAIN_HAND -> "Use material names like DIAMOND_SWORD or NETHERITE_AXE";
             case HAS_ENCHANT -> "Use enchantment names like SHARPNESS, FIRE_ASPECT, MENDING";
             case HOLDING_SIGIL_ITEM -> "Useful for weapon sigils that should only work when wielded, not just in inventory";
@@ -590,6 +667,11 @@ public enum ConditionType {
             case DIMENSION -> "Values: OVERWORLD, THE_NETHER, THE_END";
             case Y_LEVEL -> "Use < for underground, > for high altitude effects";
             case EXPERIENCE_LEVEL -> "Checks display level (0-max), not total XP points";
+            case IS_NEGATIVE_EFFECT -> "Only usable in POTION_EFFECT_APPLY signal flows. Checks the effect being applied to the player.";
+            case IS_NEGATIVE_MODIFIER -> "Only usable in ATTRIBUTE_MODIFY signal flows. Checks the modifier being applied to the player.";
+            case IS_POTION_DAMAGE -> "Only usable in DEFENSE signal flows. Checks if damage cause is POISON or WITHER.";
+            case HAS_SET_BONUS -> "Format: HAS_SET_BONUS:ancient_set:2 - Requires Ancient set at tier 2 or higher";
+            case IS_BLOCKING_SWORD -> "Requires 1.8 combat module enabled. Only works when blocking with a sword item.";
         };
     }
 

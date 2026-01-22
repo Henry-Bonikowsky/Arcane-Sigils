@@ -1917,20 +1917,7 @@ public class EffectParamHandler extends AbstractHandler {
                 config.addParam("random_max", "Random Max (0=fixed)", ParamType.NUMBER, 0, 0, 99999);
                 config.addCycleParam("target", "Target", "@Self", "@Self", "@Victim");
             }
-            case "SPAWN_AURA" -> {
-                // SPAWN_AURA:DURATION:RADIUS:EFFECT_TYPE:AMPLIFIER:SHOW_PARTICLES:AFFECTS @Target
-                config.addParam("duration", "Duration (seconds)", ParamType.NUMBER, 10, 0, 99999);
-                config.addParam("radius", "Radius", ParamType.NUMBER, 3, 0, 99999);
-                config.addParam("effect_type", "Potion Effect", ParamType.TEXT, "SLOWNESS");
-                config.addParam("amplifier", "Amplifier (0=I)", ParamType.NUMBER, 0, 0, 10);
-                config.addCycleParam("show_particles", "Show Particles", "true", "true", "false");
-                config.addCycleParam("affects", "Affects", "ENEMIES", "ENEMIES", "ALLIES", "ALL", "PLAYERS_ONLY", "ENEMIES_PLAYERS_ONLY", "MOBS_ONLY");
-                config.addCycleParam("follow_owner", "Follow Player", "false", "false", "true");
-                config.addCycleParam("pull_on_hit", "Pull When Hit", "false", "false", "true");
-                config.addCycleParam("pull_on_attack", "Pull When Attack", "false", "false", "true");
-                config.addParam("pull_strength", "Pull Strength", ParamType.NUMBER, 1.0, 0, 5);
-                config.addCycleParam("target", "Location", "@Self", "@Self", "@Victim");
-            }
+
             case "DAMAGE_REDUCTION_BUFF" -> {
                 // Flat damage reduction (not potion resistance) for X seconds
                 config.addParam("duration", "Duration (seconds)", ParamType.NUMBER, 5, 0, 60);

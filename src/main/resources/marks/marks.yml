@@ -1,0 +1,24 @@
+# Mark Configuration
+# Defines mark metadata and per-mark configuration overrides
+
+marks:
+  PHARAOH_MARK:
+    name: "&6Pharaoh's Mark"
+    description: "Marked by ancient pharaoh magic - slowed and vulnerable"
+    max_duration: 10.0
+    stack_increment: 1.0
+    stacking_enabled: true
+    
+  QUICKSAND_PULL:
+    name: "&6Quicksand Pull"
+    description: "Continuously pulled toward quicksand source"
+    max_duration: 3.0
+    stack_increment: 1.0
+    stacking_enabled: true
+    
+  QUICKSAND_ACTIVE:
+    name: "&6Quicksand Active"
+    description: "Your quicksand trap is active"
+    max_duration: 6.0
+    stack_increment: 0.0
+    stacking_enabled: false

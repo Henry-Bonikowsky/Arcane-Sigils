@@ -108,7 +108,7 @@ public class SwordBlockingModule extends AbstractCombatModule implements Listene
         }
     }
 
-    private boolean isPlayerBlocking(Player player) {
+    public boolean isPlayerBlocking(Player player) {
         if (!player.isHandRaised()) return false;
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         return isSword(mainHand);
@@ -242,10 +242,8 @@ public class SwordBlockingModule extends AbstractCombatModule implements Listene
                 .build();
 
             sword.setData(DataComponentTypes.CONSUMABLE, blocking);
-            plugin.getLogger().info("[SwordBlocking] Applied BLOCK animation to " + sword.getType());
         } catch (Exception e) {
             plugin.getLogger().warning("Failed to apply sword blocking: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

@@ -258,36 +258,17 @@ public class SigilEditorHandler extends AbstractHandler {
     }
 
     /**
-     * Handle flow button - open the visual Flow Builder.
-     * All settings (signal type, cooldown, chance) are configured in the START node.
-     *
-     * For BEHAVIOR type sigils, opens FlowListHandler to manage multiple flows.
-     * For regular sigils, opens FlowBuilder directly for single flow editing.
+     * Handle "View Flows" button - always opens FlowListHandler.
+     * FlowListHandler shows a list of all flows, where each flow can be:
+     *   - Left-clicked: Quick Param Editor (if has tier params) or Flow Builder
+     *   - Shift+Left-clicked: Flow Builder (advanced mode)
+     *   - Right-clicked: Delete flow
      */
     private void handleSignals(Player player, GUISession session, Sigil sigil, InventoryClickEvent event) {
         playSound(player, "click");
 
-        // Behaviors can have multiple flows - open FlowList to manage them
-        if (sigil.isBehavior()) {
-            com.miracle.arcanesigils.gui.flow.FlowListHandler.openGUI(guiManager, player, sigil);
-            return;
-        }
-
-        // Regular sigils - open FlowBuilder directly (single flow)
-        if (sigil.hasFlows()) {
-            // Sigil has a flow configured - open FlowBuilder with existing flow
-            com.miracle.arcanesigils.flow.FlowConfig flow = sigil.getFlows().get(0);
-            com.miracle.arcanesigils.gui.flow.FlowBuilderHandler.openGUI(
-                guiManager, player, sigil,
-                flow.getTrigger() != null ? flow.getTrigger() : "flow",
-                flow.getGraph(), flow  // Pass FlowConfig to preserve metadata
-            );
-        } else {
-            // No flow yet - open FlowBuilder with new flow (START node will configure signal type)
-            com.miracle.arcanesigils.gui.flow.FlowBuilderHandler.openGUI(
-                guiManager, player, sigil, "flow"
-            );
-        }
+        // Always open FlowListHandler to show all flows
+        com.miracle.arcanesigils.gui.flow.FlowListHandler.openGUI(guiManager, player, sigil);
     }
 
     /**
@@ -588,45 +569,38 @@ public class SigilEditorHandler extends AbstractHandler {
     private static ItemStack buildSignalsItem(Sigil sigil) {
         List<String> lore = new ArrayList<>();
 
-        // Check if sigil has a unified flow configured
+        // Check if sigil has flows configured
         if (sigil.hasFlows()) {
+            int flowCount = sigil.getFlows().size();
+
+            // Show flow count
+            lore.add("§7Flows: §f" + flowCount);
+            lore.add("");
+
+            // Show info about first flow as preview
             com.miracle.arcanesigils.flow.FlowConfig flow = sigil.getFlows().get(0);
             boolean isAbility = flow.isAbility();
-
             Material material = isAbility ? Material.WIND_CHARGE : Material.FIRE_CHARGE;
-            String typeLabel = isAbility ? "§dAbility" : "§6Signal";
-
-            lore.add("§7Type: " + typeLabel);
 
             if (flow.getTrigger() != null && !flow.getTrigger().isEmpty()) {
-                lore.add("§7Trigger: §f" + flow.getTrigger());
+                lore.add("§7First: §f" + flow.getTrigger());
             }
 
-            if (flow.getCooldown() > 0) {
-                lore.add("§7Cooldown: §f" + flow.getCooldown() + "s");
+            if (flowCount > 1) {
+                lore.add("§7... and " + (flowCount - 1) + " more");
             }
-
-            if (flow.getChance() < 100) {
-                lore.add("§7Chance: §f" + (int) flow.getChance() + "%");
-            }
-
-            // Show node count
-            int nodeCount = flow.getGraph() != null ? flow.getGraph().getNodeCount() : 0;
-            lore.add("§7Nodes: §f" + nodeCount);
 
             lore.add("");
-            lore.add("§aFlow configured");
-            lore.add("");
-            lore.add("§eClick to edit");
+            lore.add("§eClick to view all flows");
 
-            return ItemBuilder.createItem(material, "§bEdit Flow", lore);
+            return ItemBuilder.createItem(material, "§bView Flows", lore);
         } else {
             // No flow configured
-            lore.add("§7No flow configured");
+            lore.add("§7No flows configured");
             lore.add("");
-            lore.add("§7Click to configure");
+            lore.add("§7Click to add flow");
 
-            return ItemBuilder.createItem(Material.CARTOGRAPHY_TABLE, "§bEdit Flow", lore);
+            return ItemBuilder.createItem(Material.CARTOGRAPHY_TABLE, "§bView Flows", lore);
         }
     }
 

@@ -65,6 +65,18 @@ public class SigilManager {
                 if (sigil != null) {
                     sigil.setSourceFile(fileName);
                     sigils.put(key.toLowerCase(), sigil);
+
+                    // Debug: log flow details for ancient_crown
+                    if (key.equalsIgnoreCase("ancient_crown")) {
+                        int flowCount = sigil.hasFlows() ? sigil.getFlows().size() : 0;
+                        plugin.getLogger().info("[ANCIENT_CROWN] Loaded with " + flowCount + " flows");
+                        if (sigil.hasFlows()) {
+                            for (com.miracle.arcanesigils.flow.FlowConfig flow : sigil.getFlows()) {
+                                String flowId = flow.getGraph() != null ? flow.getGraph().getId() : "unknown";
+                                plugin.getLogger().info("[ANCIENT_CROWN] - Flow ID: " + flowId);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -164,9 +176,9 @@ public class SigilManager {
             clone.setTierXPConfig(original.getTierXPConfig().copy());
         }
 
-        // Copy flows (new unified system)
+        // Copy flows (new unified system) - MUST use deepCopy() to avoid shared state!
         for (FlowConfig flow : original.getFlows()) {
-            clone.addFlow(flow); // Flow graphs are not modified at runtime
+            clone.addFlow(flow.deepCopy()); // Deep copy to avoid sharing conditions/state between instances
         }
 
         return clone;
@@ -561,6 +573,16 @@ public class SigilManager {
                 java.util.List<java.util.Map<String, Object>> flowsList =
                     FlowSerializer.flowConfigsToMapList(sigil.getFlows());
                 LogHelper.debug("[SigilSave] Serialized %d flows for %s", flowsList.size(), sigilId);
+                
+                // AGGRESSIVE DEBUG - log serialized conditions
+                for (java.util.Map<String, Object> flowMap : flowsList) {
+                    Object conditions = flowMap.get("conditions");
+                    plugin.getLogger().severe(String.format(
+                        "[SigilSave] POST-SERIALIZE: flowId=%s, conditions=%s",
+                        flowMap.get("id"), conditions
+                    ));
+                }
+                
                 config.set(sigilId + ".flows", flowsList);
             } else {
                 LogHelper.warning("[SigilSave] Sigil %s has NO flows to save! Flows list: %s",

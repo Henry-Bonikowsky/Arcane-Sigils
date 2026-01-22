@@ -48,6 +48,10 @@ public class SkinChangeManager implements Listener {
 
     // Track USE_ENTITY packets for debug
     private final Map<UUID, Long> lastUseEntityPacket = new ConcurrentHashMap<>();
+    
+    // Preserve noDamageTicks and maxNoDamageTicks during skin change
+    private final Map<UUID, Integer> preservedNoDamageTicks = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> preservedMaxNoDamageTicks = new ConcurrentHashMap<>();
 
     public SkinChangeManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -259,6 +263,13 @@ public class SkinChangeManager implements Listener {
         try {
             // Track timing for debug
             skinChangeTimestamps.put(target.getUniqueId(), System.currentTimeMillis());
+            
+            // Store max immunity for restoration (we'll FORCE standard immunity after respawn)
+            int currentMaxNoDamageTicks = target.getMaximumNoDamageTicks();
+            preservedMaxNoDamageTicks.put(target.getUniqueId(), currentMaxNoDamageTicks);
+            
+            plugin.getLogger().info("[SkinChange] Storing max immunity for " + target.getName() + 
+                " (max=" + currentMaxNoDamageTicks + ") - will force to 10 ticks after respawn");
 
             // Get all online players who can see this player
             Collection<? extends Player> viewers = Bukkit.getOnlinePlayers();
@@ -274,6 +285,30 @@ public class SkinChangeManager implements Listener {
 
             // Step 3: Respawn entity for all viewers (so they see new skin)
             respawnPlayerEntity(target, viewers);
+            
+            // FORCE standard immunity (10 ticks) after respawn - try multiple times for reliability
+            for (long delay : new long[]{1L, 2L, 3L}) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (!target.isOnline()) return;
+                    
+                    Integer preservedMax = preservedMaxNoDamageTicks.get(target.getUniqueId());
+                    int maxImmunity = preservedMax != null ? preservedMax : 20;
+                    
+                    // FORCE standard immunity
+                    target.setMaximumNoDamageTicks(maxImmunity);
+                    target.setNoDamageTicks(10); // Standard immunity = 10 ticks
+                    
+                    plugin.getLogger().info(String.format(
+                        "[SkinChange] ✓ Forced immunity for %s: noDamageTicks=10, max=%d",
+                        target.getName(), maxImmunity
+                    ));
+                }, delay);
+            }
+            
+            // Cleanup after final attempt
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                preservedMaxNoDamageTicks.remove(target.getUniqueId());
+            }, 5L);
 
             plugin.getLogger().info("[SkinDebug] Applied skin change to " + target.getName() +
                     " (entityId=" + target.getEntityId() + ", viewers=" + (viewers.size() - 1) + ")");
@@ -662,23 +697,71 @@ public class SkinChangeManager implements Listener {
      *
      * Runs at HIGH priority to uncancell after AdvancedChat's NORMAL priority handler.
      */
+    /**
+     * Fix: Override damage cancellation when ANY involved party has recent skin change.
+     * This addresses issues where external plugins (AdvancedChat) or Minecraft itself
+     * incorrectly cancels damage events due to entity tracking desync from respawn packets.
+     */
     @EventHandler(priority = EventPriority.HIGH)
-    public void onDamageFixAdvancedChat(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player attacker)) return;
-
-        // Only intervene if the event was cancelled
+    public void onDamageFixSkinChangeDesync(EntityDamageByEntityEvent event) {
         if (!event.isCancelled()) return;
-
-        // Check if attacker has recent skin change (within 5 seconds)
-        long timeSince = getTimeSinceSkinChange(attacker);
-        if (timeSince >= 0 && timeSince < 5000) {
-            // AdvancedChat likely cancelled this due to skin change respawn packet
-            // Uncancell it so the attack goes through
+        
+        // Get involved parties
+        Player attacker = null;
+        Player victim = null;
+        
+        if (event.getDamager() instanceof Player p) {
+            attacker = p;
+        } else if (event.getDamager() instanceof org.bukkit.entity.Projectile proj) {
+            if (proj.getShooter() instanceof Player shooter) {
+                attacker = shooter;
+            }
+        }
+        
+        if (event.getEntity() instanceof Player p) {
+            victim = p;
+        }
+        
+        if (attacker == null) return;
+        
+        // Check if attacker has recent skin change
+        long attackerMs = getTimeSinceSkinChange(attacker);
+        if (attackerMs >= 0 && attackerMs < 5000) {
             event.setCancelled(false);
-            plugin.getLogger().info("[SkinFix] Uncancelled damage event for " + attacker.getName() +
-                " (skin changed " + timeSince + "ms ago - AdvancedChat fix)");
+            plugin.getLogger().info("[SkinFix] Uncancelled: attacker " + attacker.getName() + 
+                " had skin change " + attackerMs + "ms ago");
+            return;
+        }
+        
+        // NEW: Check if victim has recent skin change  
+        if (victim != null) {
+            long victimMs = getTimeSinceSkinChange(victim);
+            if (victimMs >= 0 && victimMs < 5000) {
+                event.setCancelled(false);
+                plugin.getLogger().info("[SkinFix] Uncancelled: victim " + victim.getName() + 
+                    " had skin change " + victimMs + "ms ago");
+                return;
+            }
+        }
+        
+        // NEW: Check if any player NEAR the victim had recent skin change
+        // (addresses the cross-player desync propagation issue)
+        if (victim != null) {
+            for (Player nearby : victim.getWorld().getPlayers()) {
+                if (nearby == attacker || nearby == victim) continue;
+                if (nearby.getLocation().distanceSquared(victim.getLocation()) > 2500) continue; // 50 block radius
+                
+                long nearbyMs = getTimeSinceSkinChange(nearby);
+                if (nearbyMs >= 0 && nearbyMs < 3000) {
+                    event.setCancelled(false);
+                    plugin.getLogger().info("[SkinFix] Uncancelled: nearby player " + nearby.getName() + 
+                        " had skin change " + nearbyMs + "ms ago (victim=" + victim.getName() + ")");
+                    return;
+                }
+            }
         }
     }
+
 
     /**
      * Clean up all active skin changes on shutdown.

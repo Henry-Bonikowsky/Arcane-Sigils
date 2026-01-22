@@ -43,7 +43,7 @@ public class FlowBuilderHandler extends AbstractHandler {
 
     // Top row buttons
     private static final int SLOT_CANCEL = 0;
-    // SLOT_SAVE removed - auto-save on modifications
+    private static final int SLOT_SAVE = 1;
     private static final int SLOT_TEST = 2;
     private static final int SLOT_HELP = 3;
     private static final int SLOT_TEMPLATES = 4;
@@ -87,16 +87,12 @@ public class FlowBuilderHandler extends AbstractHandler {
             return;
         }
 
-        // Auto-save when returning from node editor or param handler
-        autoSave(player, session);
-
         openGUIInternal(guiManager, player, sigil, signalKey, graph, flowConfig, session);
     }
 
     @Override
     public void handleClose(Player player, GUISession session, org.bukkit.event.inventory.InventoryCloseEvent event) {
-        // Auto-save when closing the Flow Builder GUI
-        autoSave(player, session);
+        // Manual save mode - no auto-save on close
     }
 
     @Override
@@ -105,7 +101,8 @@ public class FlowBuilderHandler extends AbstractHandler {
 
         switch (slot) {
             case SLOT_CANCEL -> handleCancel(player, session);
-            case SLOT_TEST -> handleTest(player, session);
+            case SLOT_SAVE -> handleSave(player, session, event);
+            case SLOT_TEST -> handleTest(player, session, event);
             case SLOT_HELP -> handleHelp(player);
             case SLOT_TEMPLATES -> handleTemplates(player, session);
             case SLOT_SETTINGS -> handleSettings(player, session);
@@ -151,6 +148,39 @@ public class FlowBuilderHandler extends AbstractHandler {
     }
 
     /**
+     * Handle manual save button click.
+     * Only saves if the flow is valid (no errors).
+     */
+    private void handleSave(Player player, GUISession session, InventoryClickEvent event) {
+        Sigil sigil = session.get("sigil", Sigil.class);
+        FlowGraph graph = session.get("flow", FlowGraph.class);
+
+        if (graph == null || sigil == null) {
+            player.sendMessage(TextUtil.colorize("§cNo flow to save!"));
+            playSound(player, "error");
+            return;
+        }
+
+        // Validate before saving
+        List<String> errors = graph.validate();
+        if (!errors.isEmpty()) {
+            player.sendMessage(TextUtil.colorize("§cCannot save flow with errors:"));
+            errors.forEach(e -> player.sendMessage(TextUtil.colorize("§c• " + e)));
+            playSound(player, "error");
+            return;
+        }
+
+        // Save using existing autoSave logic
+        autoSave(player, session);
+
+        player.sendMessage(TextUtil.colorize("§aFlow saved successfully!"));
+        playSound(player, "success");
+
+        // Refresh GUI to update save button state
+        refreshGUI(player, session);
+    }
+
+    /**
      * Auto-save the flow graph to the sigil's YAML file.
      * Only saves if the graph is valid (has start, end, and proper connections).
      * Notifies the player if validation fails.
@@ -167,9 +197,9 @@ public class FlowBuilderHandler extends AbstractHandler {
         // Only auto-save if the graph is valid
         List<String> errors = graph.validate();
         if (!errors.isEmpty()) {
-            // Notify user that save didn't happen (use action bar to be non-intrusive)
+            // Notify user that save didn't happen (use chat message)
             if (player != null) {
-                player.sendActionBar(net.kyori.adventure.text.Component.text(
+                player.sendMessage(net.kyori.adventure.text.Component.text(
                     TextUtil.colorize("&eFlow has errors - changes not saved")));
             }
             return;
@@ -263,7 +293,7 @@ public class FlowBuilderHandler extends AbstractHandler {
         List<String> errors = graph.validate();
         if (!errors.isEmpty()) {
             if (player != null) {
-                player.sendActionBar(net.kyori.adventure.text.Component.text(
+                player.sendMessage(net.kyori.adventure.text.Component.text(
                     TextUtil.colorize("&eFlow has errors - not saved")));
             }
             return;
@@ -300,9 +330,10 @@ public class FlowBuilderHandler extends AbstractHandler {
         plugin.getSigilManager().saveSigil(sigil);
     }
 
-    private void handleTest(Player player, GUISession session) {
+    private void handleTest(Player player, GUISession session, InventoryClickEvent event) {
         FlowGraph graph = session.get("flow", FlowGraph.class);
         Sigil sigil = session.get("sigil", Sigil.class);
+        Integer tier = session.get("tier", Integer.class);
 
         if (graph == null) {
             player.sendMessage(TextUtil.colorize("§cNo flow to test!"));
@@ -313,36 +344,55 @@ public class FlowBuilderHandler extends AbstractHandler {
         List<String> errors = graph.validate();
         if (!errors.isEmpty()) {
             player.sendMessage(TextUtil.colorize("§cFlow has errors - cannot test!"));
+            errors.forEach(e -> player.sendMessage(TextUtil.colorize("§c• " + e)));
             playSound(player, "error");
             return;
         }
 
         player.closeInventory();
-        player.sendMessage(TextUtil.colorize("§eTesting flow..."));
 
         // Create test context
         com.miracle.arcanesigils.effects.EffectContext effectContext =
                 com.miracle.arcanesigils.effects.EffectContext.builder(player, com.miracle.arcanesigils.events.SignalType.INTERACT)
                         .location(player.getLocation())
+                        .victim(player)
                         .build();
 
-        if (sigil != null) {
-            effectContext.setMetadata("sourceSigilTier", sigil.getTier());
+        if (sigil != null && tier != null) {
+            effectContext.setMetadata("sourceSigilTier", tier);
+        } else if (sigil != null) {
+            effectContext.setMetadata("sourceSigilTier", 1);
         }
 
-        // Execute
-        FlowExecutor executor = new FlowExecutor(plugin);
-        boolean success = executor.execute(graph, effectContext);
+        // Execute with test mode enabled
+        FlowContext flowContext = new FlowContext(effectContext);
+        flowContext.setTestMode(true);
 
-        if (success) {
-            player.sendMessage(TextUtil.colorize("§aFlow executed successfully!"));
-        } else {
-            player.sendMessage(TextUtil.colorize("§cFlow execution failed. Check console for errors."));
+        try {
+            FlowExecutor.executeWithContext(graph, flowContext);
+
+            // Display execution tree
+            player.sendMessage("");
+            player.sendMessage(TextUtil.colorize("§b§lFlow Test Execution:"));
+            List<String> trace = flowContext.getExecutionTrace();
+            if (!trace.isEmpty()) {
+                trace.forEach(line -> player.sendMessage(TextUtil.colorize(line)));
+                player.sendMessage(TextUtil.colorize("§7Flow completed - " + trace.size() + " nodes executed"));
+            } else {
+                player.sendMessage(TextUtil.colorize("§7No nodes executed (empty flow)"));
+            }
+            player.sendMessage("");
+
+            playSound(player, "success");
+        } catch (Exception e) {
+            player.sendMessage(TextUtil.colorize("§cFlow execution failed: " + e.getMessage()));
+            e.printStackTrace();
+            playSound(player, "error");
         }
 
-        // Reopen GUI after short delay
+        // Reopen GUI after delay
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            openGUI(guiManager, player, sigil, session.get("signalKey", String.class), graph);
+            reopen(player, session);
         }, 40L);
     }
 
@@ -474,7 +524,6 @@ public class FlowBuilderHandler extends AbstractHandler {
 
         graph.removeNode(selectedId);
         session.remove("selectedNode");
-        autoSave(player, session);  // Auto-save after modification
         player.sendMessage(TextUtil.colorize("§aNode deleted."));
         playSound(player, "click");
         refreshGUI(player, session);
@@ -501,7 +550,6 @@ public class FlowBuilderHandler extends AbstractHandler {
 
                 if (sourceId != null && port != null && !sourceId.equals(nodeAtPos.getId())) {
                     graph.connect(sourceId, port, nodeAtPos.getId());
-                    autoSave(player, session);  // Auto-save after connection
                     player.sendMessage(TextUtil.colorize("§aConnected " + port + " → " + nodeAtPos.getDisplayName()));
                 }
             }
@@ -654,11 +702,7 @@ public class FlowBuilderHandler extends AbstractHandler {
             }
         }
 
-        // AUTO-SAVE: Save flow to YAML whenever returning to Flow Builder from sub-GUIs
-        // This ensures node additions, param changes, etc. are persisted immediately
-        if (existingSession != null && graph != null && sigil != null) {
-            autoSaveStatic(player, sigil, signalKey, graph, flowConfig);
-        }
+        // Manual save mode - no auto-save on return from sub-GUIs
 
         Inventory inv = Bukkit.createInventory(null, INVENTORY_SIZE,
                 TextUtil.parseComponent("§7" + (sigil != null ? sigil.getName() : "New") + " > §fFlow Builder"));
@@ -723,7 +767,30 @@ public class FlowBuilderHandler extends AbstractHandler {
 
         // Top row buttons
         inv.setItem(SLOT_CANCEL, ItemBuilder.createItem(Material.BARRIER, "§c← Back", "§7Return to sigil editor"));
-        inv.setItem(1, ItemBuilder.createBackground());  // Save button removed - auto-save
+
+        // Save button - validates before saving
+        List<String> errors = graph != null ? graph.validate() : List.of("No flow graph");
+        if (errors.isEmpty()) {
+            inv.setItem(SLOT_SAVE, ItemBuilder.createItem(
+                Material.EMERALD_BLOCK, "§a§lSave Flow",
+                "§7Click to save this flow",
+                "",
+                "§aFlow is valid and ready to save"
+            ));
+        } else {
+            List<String> errorLore = new ArrayList<>();
+            errorLore.add("§7Fix errors before saving:");
+            errorLore.add("");
+            errors.stream().limit(5).forEach(e -> errorLore.add("§c• " + e));
+            if (errors.size() > 5) {
+                errorLore.add("§c• ... and " + (errors.size() - 5) + " more");
+            }
+            inv.setItem(SLOT_SAVE, ItemBuilder.createItem(
+                Material.BARRIER, "§c§lCannot Save",
+                errorLore.toArray(new String[0])
+            ));
+        }
+
         inv.setItem(SLOT_TEST, ItemBuilder.createItem(Material.EMERALD, "§bTest", "§7Run flow on yourself"));
         inv.setItem(SLOT_HELP, ItemBuilder.createItem(Material.BOOK, "§eHelp", "§7Show controls"));
         inv.setItem(SLOT_TEMPLATES, ItemBuilder.createItem(Material.CHEST, "§6Templates", "§7Load/save templates"));
@@ -872,7 +939,6 @@ public class FlowBuilderHandler extends AbstractHandler {
             case "CLEAVE" -> Material.NETHERITE_AXE;
             case "EXECUTE" -> Material.NETHERITE_SWORD;
             case "MARK" -> Material.TARGET;
-            case "SPAWN_AURA" -> Material.BEACON;
             case "SPAWN_DISPLAY" -> Material.ARMOR_STAND;
             case "GIVE_ITEM" -> Material.CHEST;
             case "CANCEL_EVENT" -> Material.BARRIER;

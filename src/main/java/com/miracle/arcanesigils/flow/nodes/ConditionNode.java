@@ -54,10 +54,25 @@ public class ConditionNode extends FlowNode {
             return "yes";
         }
 
+        // In test mode, randomly choose YES or NO to demonstrate both paths
+        if (context.isTestMode()) {
+            boolean result = Math.random() > 0.5;
+            String path = result ? "yes" : "no";
+            context.addTraceEntry("§a✓ CONDITION §7(" + condition + ") §e→ " + path.toUpperCase() + " path §7(test mode)");
+            LogHelper.debug("[ConditionNode] Test mode - randomly chose: %s", path);
+            return path;
+        }
+
+        // Normal execution with condition evaluation
         boolean result = context.evaluateCondition(condition);
         LogHelper.debug("[ConditionNode] Condition '%s' evaluated to: %b", condition, result);
 
-        return result ? "yes" : "no";
+        String path = result ? "yes" : "no";
+        if (context.isTestMode()) {
+            context.addTraceEntry("  §e→ " + path.toUpperCase() + " path");
+        }
+
+        return path;
     }
 
     @Override

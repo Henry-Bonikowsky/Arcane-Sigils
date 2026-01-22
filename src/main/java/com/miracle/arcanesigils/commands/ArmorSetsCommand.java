@@ -64,6 +64,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
             case "behaviors", "behavior" -> handleBehaviors(sender);
             case "combat" -> handleCombat(sender);
             case "debug" -> handleDebug(sender, args);
+            case "ai" -> handleAI(sender, args);
             default -> sender.sendMessage(TextUtil.colorize("§cUnknown command. Use §e/as help"));
         }
         return true;
@@ -78,6 +79,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(TextUtil.colorize("§a/as list sigils §8- §7Open sigil list GUI"));
         sender.sendMessage(TextUtil.colorize("§a/as socket <id> [tier] §8- §7Socket sigil to held item"));
         sender.sendMessage(TextUtil.colorize("§a/as unsocket §8- §7Open unsocket GUI"));
+        sender.sendMessage(TextUtil.colorize("§a/as ai [on|off] §8- §7Toggle AI training mode"));
         sender.sendMessage(TextUtil.colorize("§a/as progress §8- §7View sigil XP progress"));
         sender.sendMessage(TextUtil.colorize("§a/as behaviors §8- §7Open behaviors menu"));
         sender.sendMessage(TextUtil.colorize("§a/as combat §8- §7Open legacy combat settings"));
@@ -484,13 +486,55 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         return String.valueOf(tier);
     }
 
+    private void handleAI(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(TextUtil.colorize("§cPlayer only!"));
+            return;
+        }
+
+        var aiManager = plugin.getAITrainingManager();
+        if (aiManager == null) {
+            sender.sendMessage(TextUtil.colorize("§cAI training system not available!"));
+            return;
+        }
+
+        if (args.length == 1) {
+            // Toggle
+            boolean current = aiManager.isEnabledForPlayer(player);
+            aiManager.setEnabledForPlayer(player, !current);
+            String status = !current ? "§aENABLED" : "§cDISABLED";
+            sender.sendMessage(TextUtil.colorize("§eAI Training Mode: " + status));
+            if (!current) {
+                sender.sendMessage(TextUtil.colorize("§7Chat reward signals will now appear"));
+            } else {
+                sender.sendMessage(TextUtil.colorize("§7Chat messages disabled"));
+            }
+            return;
+        }
+
+        String mode = args[1].toLowerCase();
+        switch (mode) {
+            case "on" -> {
+                aiManager.setEnabledForPlayer(player, true);
+                sender.sendMessage(TextUtil.colorize("§aAI Training Mode ENABLED"));
+                sender.sendMessage(TextUtil.colorize("§7Chat reward signals will now appear"));
+            }
+            case "off" -> {
+                aiManager.setEnabledForPlayer(player, false);
+                sender.sendMessage(TextUtil.colorize("§cAI Training Mode DISABLED"));
+                sender.sendMessage(TextUtil.colorize("§7Chat messages disabled"));
+            }
+            default -> sender.sendMessage(TextUtil.colorize("§cUsage: /as ai [on|off]"));
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
             // /as <subcommand>
-            completions.addAll(Arrays.asList("help", "reload", "give", "list", "info", "socket", "unsocket", "progress", "behaviors", "combat", "debug"));
+            completions.addAll(Arrays.asList("help", "reload", "give", "list", "info", "socket", "unsocket", "progress", "behaviors", "combat", "debug", "ai"));
         } else if (args.length == 2) {
             switch (args[0].toLowerCase()) {
                 case "give" -> completions.add("sigil");
@@ -500,6 +544,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
                     plugin.getSigilManager().getAllSigils().forEach(s -> completions.add(s.getId()));
                 }
                 case "debug" -> completions.addAll(Arrays.asList("damage", "saturation", "list", "status"));
+                case "ai" -> completions.addAll(Arrays.asList("on", "off"));
             }
         } else if (args.length == 3) {
             switch (args[0].toLowerCase()) {

@@ -2,10 +2,12 @@ package com.miracle.arcanesigils.effects;
 
 import com.miracle.arcanesigils.events.SignalType;
 import org.bukkit.Location;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,17 @@ public class EffectContext {
     private boolean cancelled;
     private final String sigilId;
     private final String signalKey;
+    
+    // Signal-specific data for conditions
+    private PotionEffectType currentPotionEffect;
+    private Attribute currentAttribute;
+    private double currentModifierValue;
+    
+    // Interception system
+    private com.miracle.arcanesigils.interception.InterceptionEvent interceptionEvent;
+
+    // Flow context reference (for error handling)
+    private com.miracle.arcanesigils.flow.FlowContext flowContext;
 
     private EffectContext(Builder builder) {
         this.player = builder.player;
@@ -43,6 +56,7 @@ public class EffectContext {
         this.cancelled = false;
         this.sigilId = builder.sigilId;
         this.signalKey = builder.signalKey;
+        this.flowContext = builder.flowContext;
     }
 
     public Player getPlayer() {
@@ -87,6 +101,10 @@ public class EffectContext {
 
     public void setDamage(double damage) {
         this.damage = damage;
+    }
+
+    public com.miracle.arcanesigils.flow.FlowContext getFlowContext() {
+        return flowContext;
     }
 
     public EffectParams getParams() {
@@ -152,6 +170,40 @@ public class EffectContext {
 
     public String getSignalKey() {
         return signalKey;
+    }
+    
+    // ===== SIGNAL-SPECIFIC CONTEXT ACCESSORS =====
+    
+    public PotionEffectType getCurrentPotionEffect() {
+        return currentPotionEffect;
+    }
+    
+    public void setCurrentPotionEffect(PotionEffectType currentPotionEffect) {
+        this.currentPotionEffect = currentPotionEffect;
+    }
+    
+    public Attribute getCurrentAttribute() {
+        return currentAttribute;
+    }
+    
+    public void setCurrentAttribute(Attribute currentAttribute) {
+        this.currentAttribute = currentAttribute;
+    }
+    
+    public double getCurrentModifierValue() {
+        return currentModifierValue;
+    }
+    
+    public void setCurrentModifierValue(double currentModifierValue) {
+        this.currentModifierValue = currentModifierValue;
+    }
+    
+    public com.miracle.arcanesigils.interception.InterceptionEvent getInterceptionEvent() {
+        return interceptionEvent;
+    }
+    
+    public void setInterceptionEvent(com.miracle.arcanesigils.interception.InterceptionEvent interceptionEvent) {
+        this.interceptionEvent = interceptionEvent;
     }
 
     public boolean isCancelled() {
@@ -234,6 +286,7 @@ public class EffectContext {
         private final Map<String, Object> variables = new HashMap<>();
         private String sigilId;
         private String signalKey;
+        private com.miracle.arcanesigils.flow.FlowContext flowContext;
 
         public Builder(Player player, SignalType signalType) {
             this.player = player;
@@ -287,6 +340,11 @@ public class EffectContext {
 
         public Builder signalKey(String signalKey) {
             this.signalKey = signalKey;
+            return this;
+        }
+
+        public Builder flowContext(com.miracle.arcanesigils.flow.FlowContext flowContext) {
+            this.flowContext = flowContext;
             return this;
         }
 

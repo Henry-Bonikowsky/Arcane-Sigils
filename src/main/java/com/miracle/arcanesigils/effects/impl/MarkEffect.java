@@ -90,7 +90,11 @@ public class MarkEffect extends AbstractEffect {
         String targetStr = params.getTarget();
         if (targetStr != null && (targetStr.startsWith("@Nearby") || targetStr.startsWith("@NearbyEntities"))) {
             double radius = parseNearbyRadius(targetStr, 5);
-            for (LivingEntity entity : getNearbyEntities(context, radius)) {
+            java.util.List<LivingEntity> nearbyEntities = getNearbyEntities(context, radius);
+            getPlugin().getLogger().info("[MARK DEBUG] Found " + nearbyEntities.size() + " nearby entities within radius " + radius);
+            for (LivingEntity entity : nearbyEntities) {
+                boolean isPlayer = entity instanceof Player;
+                getPlugin().getLogger().info("[MARK DEBUG] Applying mark to: " + entity.getName() + " (" + entity.getType() + ", isPlayer=" + isPlayer + ")");
                 getPlugin().getMarkManager().applyMark(entity, markName, duration, behaviorId, owner);
             }
             debug("Applied mark " + markName + " to nearby entities for " + duration + "s" +
@@ -112,7 +116,7 @@ public class MarkEffect extends AbstractEffect {
             Component msg = Component.text("Inflicted ", NamedTextColor.GREEN)
                 .append(Component.text(displayName, NamedTextColor.WHITE))
                 .append(Component.text(" for " + duration + "s", NamedTextColor.GREEN));
-            attacker.sendActionBar(msg);
+            attacker.sendMessage(msg);
         }
 
         return true;

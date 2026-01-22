@@ -131,11 +131,14 @@ public class ActivateBindCommand implements CommandExecutor, TabCompleter {
         FlowConfig flow = sigil.getFlows().get(0);
 
         // Create effect context for manual activation
+        com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] Creating EffectContext for player: %s", player.getName());
         EffectContext context = EffectContext.builder(player, SignalType.EFFECT_STATIC).build();
+        com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] EffectContext created, player=%s", context.getPlayer());
 
         // Add sigil metadata
         context.setMetadata("sourceSigilId", sigil.getId());
         context.setMetadata("sourceSigilTier", sigil.getTier());
+        com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] Metadata set: sigilId=%s, tier=%d", sigil.getId(), sigil.getTier());
 
         // Add tier scaling config for {param} placeholder replacement
         if (sigil.getTierScalingConfig() != null) {
@@ -152,18 +155,11 @@ public class ActivateBindCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        // Check conditions
-        if (!flow.getConditions().isEmpty()) {
-            ConditionManager conditionManager = new ConditionManager();
-            if (!conditionManager.checkConditions(flow.getConditions(), context)) {
-                player.sendMessage(TextUtil.colorize("§cConditions not met for this ability!"));
-                return;
-            }
-        }
-
         // Execute the flow
+        com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] About to execute flow for sigil: %s", sigil.getId());
         FlowExecutor executor = new FlowExecutor(plugin);
-        executor.execute(flow.getGraph(), context);
+        boolean flowResult = executor.execute(flow.getGraph(), context);
+        com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] Flow execution result: %s", flowResult);
 
         // Apply cooldown with display name
         if (flow.getCooldown() > 0) {

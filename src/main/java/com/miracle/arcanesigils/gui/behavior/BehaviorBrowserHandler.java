@@ -84,7 +84,7 @@ public class BehaviorBrowserHandler extends AbstractHandler {
                     playSound(player, "error");
                 }
             }
-            case GUILayout.CREATE_SIGIL -> {
+            case 24 -> {
                 // Create new behavior
                 playSound(player, "click");
                 final int finalPage = page;
@@ -181,7 +181,7 @@ public class BehaviorBrowserHandler extends AbstractHandler {
 
         inv.setItem(GUILayout.PAGE_INDICATOR, ItemBuilder.createPageIndicator(page, maxPage, behaviors.size()));
 
-        inv.setItem(GUILayout.CREATE_SIGIL, ItemBuilder.createItem(
+        inv.setItem(24, ItemBuilder.createItem(
             Material.EMERALD,
             "&a&lCreate Behavior",
             "&7Click to create a new behavior"

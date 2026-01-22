@@ -354,6 +354,9 @@ public class SignalSelectorHandler extends AbstractHandler {
             case PROJECTILE_HIT -> Material.FIRE_CHARGE;
             case OWNER_ATTACK -> Material.DIAMOND_SWORD;
             case OWNER_DEFEND -> Material.IRON_CHESTPLATE;
+            case POTION_EFFECT_APPLY -> Material.POTION;
+            case ATTRIBUTE_MODIFY -> Material.GOLDEN_APPLE;
+            default -> Material.BARRIER;
         };
     }
 }
