@@ -11,12 +11,22 @@ tools/
 # Temp files
 *.log
 *.tmp
+hs_err_pid*.log
+replay_pid*.log
 
-# Deploy script (contains server credentials)
-deploy.sh
-tmpclaude-*
+# Build output text
+build*.txt
+
+# Backup files
 *.bak
+*.bak2
 *.broken
 *.old
 *.old2
 *.backup
+*-BACKUP.yml
+*-BACKUP.yaml
+
+# Deploy script (contains server credentials)
+deploy.sh
+tmpclaude-*
