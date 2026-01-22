@@ -16,8 +16,11 @@ legacy-combat:
     horizontal-base: 0.35
     vertical-base: 0.35
     vertical-cap: 0.4
+    horizontal-cap: 0.5
     extra-horizontal: 0.425
-    extra-vertical: 0.077
+    extra-vertical: 0.085
+  client-side-knockback:
+    enabled: true
   regeneration:
     enabled: false
     regen-amount: 1.0
@@ -66,3 +69,37 @@ legacy-combat:
   cps-limit:
     enabled: false
     max-cps: 20
+  global-damage-scaling:
+    enabled: true
+    damage-scalar: 1.0
+    resistance-descalar: 1.0
+
+  # Per-level enchantment scaling
+  enchantment-scaling:
+    enabled: true
+
+    # Sharpness damage multipliers (higher = more damage)
+    sharpness:
+      1: 1.0
+      2: 1.0
+      3: 1.0
+      4: 1.0
+      5: 1.0
+      6: 1.0
+      7: 1.0
+      8: 1.0
+      9: 1.0
+      10: 1.0
+
+    # Protection armor effectiveness multipliers (higher = better armor)
+    protection:
+      1: 1.0
+      2: 1.0
+      3: 1.0
+      4: 1.0
+      5: 1.0
+      6: 1.0
+      7: 1.0
+      8: 1.0
+      9: 1.0
+      10: 1.0
