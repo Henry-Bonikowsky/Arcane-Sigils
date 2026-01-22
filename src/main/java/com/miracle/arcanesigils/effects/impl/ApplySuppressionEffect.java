@@ -3,6 +3,7 @@ package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
+import com.miracle.arcanesigils.effects.PotionEffectTracker;
 import com.miracle.arcanesigils.interception.CleopatraSuppressionInterceptor;
 import com.miracle.arcanesigils.interception.InterceptionManager;
 import org.bukkit.Bukkit;
@@ -10,7 +11,10 @@ import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.List;
 
 /**
  * Apply a suppression mark that blocks defensive buffs from being reapplied.
@@ -91,13 +95,25 @@ public class ApplySuppressionEffect extends AbstractEffect {
         interceptionManager.registerInterceptor(player, interceptor);
         
         // Schedule removal after duration
+        final int suppressionTicks = durationSeconds * 20;
         new BukkitRunnable() {
             @Override
             public void run() {
                 interceptor.deactivate();
                 interceptionManager.unregisterInterceptor(player, interceptor);
-                
+
                 if (player.isOnline() && player.isValid()) {
+                    // Restore suppressed effects with remaining duration
+                    PotionEffectTracker tracker = plugin.getPotionEffectTracker();
+                    if (tracker != null) {
+                        List<PotionEffect> toRestore = tracker.popSuppressedEffects(player, suppressionTicks);
+                        for (PotionEffect effect : toRestore) {
+                            player.addPotionEffect(effect);
+                            debug("Restored " + effect.getType().getKey().getKey() +
+                                  " (dur=" + effect.getDuration() + ", amp=" + effect.getAmplifier() + ")");
+                        }
+                    }
+
                     // Visual feedback on expiration
                     player.getWorld().spawnParticle(
                         Particle.CLOUD,
@@ -106,7 +122,7 @@ public class ApplySuppressionEffect extends AbstractEffect {
                         0.4, 0.5, 0.4,
                         0.03
                     );
-                    
+
                     // Sound - relief
                     player.getWorld().playSound(
                         player.getLocation(),
@@ -114,11 +130,11 @@ public class ApplySuppressionEffect extends AbstractEffect {
                         0.6f,
                         1.0f
                     );
-                    
+
                     // Notification
                     player.sendMessage("§a§lSuppression Lifted!");
                 }
-                
+
                 debug("Suppression expired on " + player.getName());
             }
         }.runTaskLater(plugin, durationSeconds * 20L);

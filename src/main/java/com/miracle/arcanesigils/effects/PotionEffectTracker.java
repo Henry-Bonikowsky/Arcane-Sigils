@@ -11,10 +11,19 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.potion.PotionEffectType;
 
+import org.bukkit.potion.PotionEffect;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
+/**
+ * Represents a suppressed potion effect that should be restored after suppression ends.
+ */
+record SuppressedEffect(PotionEffectType type, int amplifier, int remainingDuration, long removalTime) {}
 
 /**
  * Tracks active potion effects and their associated counter-modifiers for Ancient Crown suppression.
@@ -26,6 +35,9 @@ public class PotionEffectTracker implements Listener {
 
     // Map: Player UUID -> (Potion Type -> Counter Modifier Name)
     private final Map<UUID, Map<PotionEffectType, String>> trackedEffects = new ConcurrentHashMap<>();
+
+    // Map: Player UUID -> List of suppressed effects awaiting restoration
+    private final Map<UUID, List<SuppressedEffect>> suppressedEffects = new ConcurrentHashMap<>();
 
     public PotionEffectTracker(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -86,6 +98,9 @@ public class PotionEffectTracker implements Listener {
      * @param player The player to clear
      */
     public void clearPlayer(Player player) {
+        // Clear suppressed effects (no restoration on death/quit)
+        suppressedEffects.remove(player.getUniqueId());
+
         Map<PotionEffectType, String> playerEffects = trackedEffects.remove(player.getUniqueId());
         if (playerEffects == null) return;
 
@@ -96,6 +111,70 @@ public class PotionEffectTracker implements Listener {
                 plugin.getAttributeModifierManager().removeNamedModifier(player, attribute, entry.getValue());
             }
         }
+    }
+
+    // ===== Suppressed Effect Storage (for Cleopatra restoration) =====
+
+    /**
+     * Stores a potion effect that was suppressed, to be restored later.
+     *
+     * @param player The affected player
+     * @param effect The potion effect that was removed
+     */
+    public void storeSuppressedEffect(Player player, PotionEffect effect) {
+        SuppressedEffect suppressed = new SuppressedEffect(
+            effect.getType(),
+            effect.getAmplifier(),
+            effect.getDuration(),
+            System.currentTimeMillis()
+        );
+        suppressedEffects.computeIfAbsent(player.getUniqueId(), k -> new ArrayList<>())
+                        .add(suppressed);
+    }
+
+    /**
+     * Retrieves and clears all suppressed effects for a player.
+     * Calculates remaining duration based on how long they were suppressed.
+     *
+     * @param player The player
+     * @param suppressionDurationTicks How long the suppression lasted (in ticks)
+     * @return List of PotionEffects to restore with adjusted durations, or empty list
+     */
+    public List<PotionEffect> popSuppressedEffects(Player player, int suppressionDurationTicks) {
+        List<SuppressedEffect> stored = suppressedEffects.remove(player.getUniqueId());
+        if (stored == null || stored.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<PotionEffect> toRestore = new ArrayList<>();
+        for (SuppressedEffect suppressed : stored) {
+            // Calculate remaining duration
+            int remainingDuration = suppressed.remainingDuration() - suppressionDurationTicks;
+
+            // Only restore if there's meaningful duration left (at least 1 second)
+            if (remainingDuration >= 20) {
+                PotionEffect restored = new PotionEffect(
+                    suppressed.type(),
+                    remainingDuration,
+                    suppressed.amplifier(),
+                    false,  // ambient
+                    true,   // particles
+                    true    // icon
+                );
+                toRestore.add(restored);
+            }
+        }
+
+        return toRestore;
+    }
+
+    /**
+     * Clears suppressed effects for a player without restoring them.
+     *
+     * @param player The player to clear
+     */
+    public void clearSuppressedEffects(Player player) {
+        suppressedEffects.remove(player.getUniqueId());
     }
 
     /**

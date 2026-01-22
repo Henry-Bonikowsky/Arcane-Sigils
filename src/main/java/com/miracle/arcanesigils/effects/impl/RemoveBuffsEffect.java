@@ -1,7 +1,9 @@
 package com.miracle.arcanesigils.effects.impl;
 
+import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
+import com.miracle.arcanesigils.effects.PotionEffectTracker;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -9,6 +11,7 @@ import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
@@ -65,17 +68,37 @@ public class RemoveBuffsEffect extends AbstractEffect {
                 removedCount++;
                 debug("Removed saturation from " + player.getName());
             }
+
+            // 1b. Remove absorption hearts (golden apple hearts)
+            if (player.getAbsorptionAmount() > 0) {
+                player.setAbsorptionAmount(0);
+                removedCount++;
+                debug("Removed absorption from " + player.getName());
+            }
         }
 
-        // 2. Remove RESISTANCE potion effects
+        // Get tracker for storing effects (for restoration after suppression)
+        PotionEffectTracker tracker = ArmorSetsPlugin.getInstance().getPotionEffectTracker();
+
+        // 2. Remove RESISTANCE potion effects (store for restoration)
         if (target.hasPotionEffect(PotionEffectType.RESISTANCE)) {
+            PotionEffect resistance = target.getPotionEffect(PotionEffectType.RESISTANCE);
+            if (resistance != null && tracker != null && target instanceof Player p) {
+                tracker.storeSuppressedEffect(p, resistance);
+                debug("Stored RESISTANCE (dur=" + resistance.getDuration() + ", amp=" + resistance.getAmplifier() + ") for restoration");
+            }
             target.removePotionEffect(PotionEffectType.RESISTANCE);
             removedCount++;
             debug("Removed RESISTANCE from " + target.getName());
         }
 
-        // 3. Remove REGENERATION potion effects
+        // 3. Remove REGENERATION potion effects (store for restoration)
         if (target.hasPotionEffect(PotionEffectType.REGENERATION)) {
+            PotionEffect regen = target.getPotionEffect(PotionEffectType.REGENERATION);
+            if (regen != null && tracker != null && target instanceof Player p) {
+                tracker.storeSuppressedEffect(p, regen);
+                debug("Stored REGENERATION (dur=" + regen.getDuration() + ", amp=" + regen.getAmplifier() + ") for restoration");
+            }
             target.removePotionEffect(PotionEffectType.REGENERATION);
             removedCount++;
             debug("Removed REGENERATION from " + target.getName());
