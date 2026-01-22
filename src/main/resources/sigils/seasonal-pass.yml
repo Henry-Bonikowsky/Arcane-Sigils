@@ -8,12 +8,20 @@
 # ============================================
 # ANCIENT CROWN - Helmet (Exclusive)
 # ============================================
+# ANCIENT CROWN - Helmet (Exclusive)
+# ============================================
+# DESIGN: Passive immunity to negative effects
+# - Reduces ALL negative potion effects by tier% (20-100%)
+# - Reduces ALL negative attribute modifiers by tier% (20-100%)
+# - At 100% (T5): completely blocks negative effects
+# - Always active, no trigger, no cooldown
+# ============================================
 ancient_crown:
   name: "<gradient:#9400D3:#4B0082>Ancient Crown</gradient>"
   description:
-    - "&7When hit, has a chance to"
-    - "&7completely resist all negative"
-    - "&7effects for a short duration."
+    - "&7Passive &520-100% immunity"
+    - "&7to negative status effects"
+    - "&7and attribute modifiers"
   rarity: MYTHIC
   exclusive: true
   exclusive_type: HELMET
@@ -26,18 +34,12 @@ ancient_crown:
   tier:
     mode: PARAMETER
     params:
-      immunity_chance:
-        - 20
-        - 40
-        - 60
-        - 80
-        - 100
-      immunity_duration:
-        - 2
-        - 3
-        - 4
-        - 5
-        - 6
+      immunity_percent:
+        - 20   # T1: 20% immunity
+        - 40   # T2: 40% immunity
+        - 60   # T3: 60% immunity
+        - 80   # T4: 80% immunity
+        - 100  # T5: 100% immunity (complete block)
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -46,67 +48,48 @@ ancient_crown:
       growth_rate: 1.5
   socketables:
     - helmet
-  flow:
-    type: SIGNAL
-    trigger: DEFENSE
-    chance: "{immunity_chance}"
-    cooldown: 15
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: cleanse
-      - id: cleanse
-        type: EFFECT
-        effect: CLEAR_NEGATIVE_EFFECTS
-        x: 0
-        y: 1
-        next: resistance
-      - id: resistance
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 2
-        params:
-          potion_type: RESISTANCE
-          duration: "{immunity_duration}"
-          amplifier: 0
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 3
-        params:
-          sound: BLOCK_ENCHANTMENT_TABLE_USE
-          volume: 1.0
-          pitch: 1.5
-        next: msg
-      - id: msg
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 4
-        params:
-          type: ACTIONBAR
-          message: "&5&lAncient Crown! &7Immunity granted!"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 5
+  flows:
+    # EFFECT_STATIC: Registers immunity interceptor while equipped
+    - type: SIGNAL
+      trigger: EFFECT_STATIC
+      id: ancient_crown_passive
+      cooldown: 0
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: register_immunity
+        - id: register_immunity
+          type: EFFECT
+          effect: REGISTER_ANCIENT_CROWN_IMMUNITY
+          x: 0
+          y: 1
+          params:
+            immunity_percent: "{immunity_percent}"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 2
 
 # ============================================
 # KING'S BRACE - Chestplate (Exclusive)
 # ============================================
+# DESIGN: Charge-based defensive sigil
+# - Take damage → gain 1 charge (max 100, persist forever)
+# - Each charge grants passive DR (0.05% to 0.20% per charge)
+# - At 100 charges: activate ability to consume all for Resistance burst
+# - If <100 charges: show message "X charges left until ability is ready"
+# ============================================
 kings_brace:
   name: "<gradient:#9400D3:#4B0082>King's Brace</gradient>"
   description:
-    - "&7Activate to gain powerful"
-    - "&7damage reduction and absorption"
-    - "&7hearts for a short time."
+    - "&7Gain &51 charge &7when taking damage"
+    - "&7Each charge grants &50.05-0.20% DR"
+    - "&7At &5100 charges&7: Activate for burst"
+    - "&7&5Resistance &7effect!"
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CHESTPLATE
@@ -119,30 +102,32 @@ kings_brace:
   tier:
     mode: PARAMETER
     params:
-      damage_reduction:
-        - 15
-        - 20
-        - 25
-        - 30
-        - 35
-      absorption_hearts:
-        - 1
-        - 2
-        - 2
-        - 3
-        - 4
-      buff_duration:
-        - 4
-        - 5
-        - 6
-        - 7
-        - 8
+      # Passive DR per charge (0.05% to 0.20% per charge)
+      charge_dr_percent:
+        - 0.0005  # Tier 1: 0.05% per charge = 5% DR at 100
+        - 0.00075 # Tier 2: 0.075% per charge = 7.5% DR at 100
+        - 0.001   # Tier 3: 0.10% per charge = 10% DR at 100
+        - 0.0015  # Tier 4: 0.15% per charge = 15% DR at 100
+        - 0.002   # Tier 5: 0.20% per charge = 20% DR at 100
+      # Burst Resistance effect
+      resistance_amp:
+        - 0  # Tier 1: Resistance I
+        - 1  # Tier 2: Resistance II
+        - 2  # Tier 3: Resistance III
+        - 3  # Tier 4: Resistance IV
+        - 4  # Tier 5: Resistance V
+      resistance_duration:
+        - 2  # Tier 1: 2 seconds
+        - 4  # Tier 2: 4 seconds
+        - 6  # Tier 3: 6 seconds
+        - 8  # Tier 4: 8 seconds
+        - 10 # Tier 5: 10 seconds
       cooldown:
-        - 60
-        - 55
-        - 50
-        - 45
-        - 40
+        - 60  # Tier 1: 60 seconds
+        - 55  # Tier 2: 55 seconds
+        - 50  # Tier 3: 50 seconds
+        - 45  # Tier 4: 45 seconds
+        - 40  # Tier 5: 40 seconds
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -152,6 +137,48 @@ kings_brace:
   socketables:
     - chestplate
   flows:
+    # Flow 1: DEFENSE - Charge Accumulation + Update DR
+    - type: SIGNAL
+      trigger: DEFENSE
+      id: kings_brace_charge_gain
+      cooldown: 0
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: add_charge
+        - id: add_charge
+          type: VARIABLE
+          x: 0
+          y: 1
+          params:
+            scope: SIGIL
+            operation: ADD
+            name: charge
+            value: 1
+            sigilId: kings_brace
+            slot: CHESTPLATE
+            duration: -1
+          next: update_dr
+        - id: update_dr
+          type: EFFECT
+          effect: UPDATE_CHARGE_DR
+          x: 0
+          y: 2
+          params:
+            modifier_name: kings_brace_dr
+            sigilId: kings_brace
+            slot: CHESTPLATE
+            charge_dr_percent: "{charge_dr_percent}"
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3
+
+    # Flow 2: ABILITY - Charge Consumption and Burst
     - type: ABILITY
       cooldown: "{cooldown}"
       id: kings_brace_ability
@@ -161,68 +188,121 @@ kings_brace:
           type: START
           x: 0
           y: 0
-          next: absorption
-        - id: absorption
-          type: EFFECT
-          effect: ABSORBTION
+          next: check_charge
+
+        # Check if 100 charges available
+        - id: check_charge
+          type: CONDITION
           x: 0
           y: 1
-          params:
-            duration: "{buff_duration}"
-            value: "{absorption_hearts}"
-          next: dr
-        - id: dr
-          type: EFFECT
-          effect: DAMAGE_REDUCTION_BUFF
-          x: 0
+          condition: "{sigil.charge} >= 100"
+          connections:
+            'yes': consume_charges
+            'no': not_ready_msg
+
+        # YES path: 100 charges - consume and activate
+        - id: consume_charges
+          type: VARIABLE
+          x: 1
           y: 2
           params:
-            duration: "{buff_duration}"
-            percent: "{damage_reduction}"
-          next: sound1
-        - id: sound1
+            scope: SIGIL
+            operation: SET
+            name: charge
+            value: 0
+            sigilId: kings_brace
+            slot: CHESTPLATE
+            duration: -1
+          next: apply_resistance
+
+        - id: apply_resistance
+          type: EFFECT
+          effect: POTION
+          x: 1
+          y: 3
+          params:
+            potion_type: RESISTANCE
+            duration: "{resistance_duration}"
+            amplifier: "{resistance_amp}"
+          next: sound_activate
+
+        - id: sound_activate
           type: EFFECT
           effect: SOUND
-          x: 0
-          y: 3
+          x: 1
+          y: 4
           params:
             sound: ITEM_ARMOR_EQUIP_NETHERITE
             volume: 1.0
             pitch: 0.8
-          next: sound2
-        - id: sound2
+          next: sound_beacon
+
+        - id: sound_beacon
           type: EFFECT
           effect: SOUND
-          x: 0
-          y: 4
+          x: 1
+          y: 5
           params:
             sound: BLOCK_BEACON_ACTIVATE
             volume: 0.8
             pitch: 1.2
-          next: msg
-        - id: msg
+          next: msg_activated
+
+        - id: msg_activated
           type: EFFECT
           effect: MESSAGE
-          x: 0
-          y: 5
+          x: 1
+          y: 6
           params:
-            type: ACTIONBAR
+            type: CHAT
             message: "&5&lKing's Brace! &7Royal protection activated!"
+            target: "@Self"
           next: end
+
+        # NO path: <100 charges - show feedback
+        - id: not_ready_msg
+          type: EFFECT
+          effect: MESSAGE
+          x: 2
+          y: 2
+          params:
+            type: CHAT
+            message: "&7{charges_needed} charges left until ability is ready &8(Current DR: {current_dr}%)"
+            target: "@Self"
+          next: sound_fail
+
+        - id: sound_fail
+          type: EFFECT
+          effect: SOUND
+          x: 2
+          y: 3
+          params:
+            sound: BLOCK_NOTE_BLOCK_BASS
+            volume: 0.5
+            pitch: 0.5
+          next: end
+
         - id: end
           type: END
           x: 0
-          y: 6
+          y: 7
 
 # ============================================
 # CLEOPATRA - Leggings (Exclusive)
 # ============================================
+# DESIGN: Suppression ability
+# - Removes all saturation, Resistance, Regeneration, and DR modifiers
+# - Prevents re-application via interception for 2-5 seconds
+# - Target takes 2.5-20% more damage during suppression
+# - 3 minute cooldown
+# ============================================
 cleopatra:
   name: "<gradient:#9400D3:#4B0082>Cleopatra</gradient>"
   description:
-    - "&7On attack, has a chance to"
-    - "&7steal buffs from your target"
-    - "&7and apply weakness."
+    - "&7Activate to suppress your target:"
+    - "&7Remove all defensive buffs"
+    - "&7Target takes &c+2.5-20% damage"
+    - "&7for 2-5 seconds"
   rarity: MYTHIC
   exclusive: true
   exclusive_type: LEGGINGS
@@ -235,24 +315,18 @@ cleopatra:
   tier:
     mode: PARAMETER
     params:
-      steal_chance:
-        - 5
-        - 8
-        - 12
-        - 16
-        - 20
-      weakness_duration:
-        - 2
-        - 3
-        - 4
-        - 5
-        - 6
-      weakness_amp:
-        - 0
-        - 0
-        - 1
-        - 1
-        - 2
+      suppression_duration:
+        - 2   # T1: 2 seconds
+        - 2   # T2: 2 seconds
+        - 3   # T3: 3 seconds
+        - 4   # T4: 4 seconds
+        - 5   # T5: 5 seconds
+      damage_amp_percent:
+        - 2.5   # T1: +2.5% damage
+        - 5     # T2: +5% damage
+        - 10    # T3: +10% damage
+        - 15    # T4: +15% damage
+        - 20    # T5: +20% damage
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -261,68 +335,687 @@ cleopatra:
       growth_rate: 1.5
   socketables:
     - leggings
-  flow:
-    type: SIGNAL
-    trigger: ATTACK
-    chance: "{steal_chance}"
-    cooldown: 10
-    startNodeId: start
-    nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        next: steal
-      - id: steal
-        type: EFFECT
-        effect: STEAL_BUFFS
-        x: 0
-        y: 1
-        params:
-          target: "@Victim"
-          max_buffs: 2
-        next: weakness
-      - id: weakness
-        type: EFFECT
-        effect: POTION
-        x: 0
-        y: 2
-        params:
-          potion_type: WEAKNESS
-          duration: "{weakness_duration}"
-          amplifier: "{weakness_amp}"
-          target: "@Victim"
-        next: sound
-      - id: sound
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 3
-        params:
-          sound: ENTITY_ILLUSIONER_CAST_SPELL
-          volume: 1.0
-          pitch: 1.2
-        next: msg_self
-      - id: msg_self
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 4
-        params:
-          type: ACTIONBAR
-          message: "&5&lCleopatra! &7Buffs stolen!"
-        next: msg_victim
-      - id: msg_victim
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 5
-        params:
-          type: ACTIONBAR
-          message: "&5&lCleopatra! &7Your power was stolen!"
-          target: "@Victim"
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 6
+  flows:
+    - type: ABILITY
+      cooldown: 180  # 3 minutes
+      id: cleopatra_ability
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: remove_buffs
+
+        # Remove all defensive buffs
+        - id: remove_buffs
+          type: EFFECT
+          effect: REMOVE_BUFFS
+          x: 0
+          y: 1
+          params:
+            target: "@Target"
+          next: apply_suppression
+
+        # Apply suppression (blocks buff re-application)
+        - id: apply_suppression
+          type: EFFECT
+          effect: APPLY_SUPPRESSION
+          x: 0
+          y: 2
+          params:
+            duration: "{suppression_duration}"
+            target: "@Target"
+          next: damage_amplification
+
+        # Make target take more damage
+        - id: damage_amplification
+          type: EFFECT
+          effect: DAMAGE_AMPLIFICATION
+          x: 0
+          y: 3
+          params:
+            amplification_percent: "{damage_amp_percent}"
+            duration: "{suppression_duration}"
+            target: "@Target"
+          next: sound
+
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 4
+          params:
+            sound: ENTITY_ILLUSIONER_CAST_SPELL
+            volume: 1.0
+            pitch: 1.2
+          next: msg_self
+
+        - id: msg_self
+          type: EFFECT
+          effect: MESSAGE
+          x: 0
+          y: 5
+          params:
+            type: CHAT
+            message: "&5&lCleopatra! &7Target suppressed for {suppression_duration}s!"
+            target: "@Self"
+          next: end
+
+        - id: end
+          type: END
+          x: 0
+          y: 6
+
+# ============================================
+# DIVINE INTERVENTION - Sword (Exclusive)
+# ============================================
+divine_intervention:
+  name: "<gradient:#4169E1:#1E90FF>Divine Intervention</gradient>"
+  description:
+    - "&7When taking damage while blocking,"
+    - "&7gain invulnerability for the"
+    - "&7next 3 incoming hits."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: SWORD
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3010
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      cooldown:
+        - 60
+        - 50
+        - 40
+        - 30
+        - 20
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - sword
+  flows:
+    - type: SIGNAL
+      trigger: DEFENSE
+      chance: "{chance}"
+      cooldown: "{cooldown}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: check_blocking
+        - id: check_blocking
+          type: CONDITION
+          condition: IS_BLOCKING_SWORD
+          x: 0
+          y: 1
+          connections:
+            'yes': invuln
+            'no': end
+        - id: invuln
+          type: EFFECT
+          effect: INVULNERABILITY_HITS
+          x: 1
+          y: 2
+          params:
+            hits: 3
+          next: sound_activate
+        - id: sound_activate
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 3
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 1.5
+            pitch: 1.8
+          next: sound_anvil
+        - id: sound_anvil
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 4
+          params:
+            sound: BLOCK_ANVIL_LAND
+            volume: 0.8
+            pitch: 2.0
+          next: end
+        - id: end
+          type: END
+          x: 1
+          y: 5
+
+# ============================================
+# NILE'S GRACE - Axe (Exclusive)
+# ============================================
+niles_grace:
+  name: "<gradient:#32CD32:#228B22>Nile's Grace</gradient>"
+  description:
+    - "&7Activate to grant yourself and"
+    - "&7nearby allies Regeneration III"
+    - "&7and Resistance III."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: AXE
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3011
+  max_tier: 10
+  tier:
+    mode: PARAMETER
+    params:
+      duration:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - axe
+  flows:
+    - type: ABILITY
+      cooldown: 180
+      id: niles_grace_ability
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: regen_self
+        - id: regen_self
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: REGENERATION
+            duration: "{duration}"
+            amplifier: 2
+            target: "@Self"
+          next: resist_self
+        - id: resist_self
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 2
+          params:
+            potion_type: RESISTANCE
+            duration: "{duration}"
+            amplifier: 2
+            target: "@Self"
+          next: regen_nearby
+        - id: regen_nearby
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 3
+          params:
+            potion_type: REGENERATION
+            duration: "{duration}"
+            amplifier: 2
+            target: "@NearbyEntities:10"
+          next: resist_nearby
+        - id: resist_nearby
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 4
+          params:
+            potion_type: RESISTANCE
+            duration: "{duration}"
+            amplifier: 2
+            target: "@NearbyEntities:10"
+          next: burst_particles
+        - id: burst_particles
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 5
+          params:
+            particle_type: FALLING_DUST
+            material: GOLD_BLOCK
+            count: 100
+            shape: burst
+            waves: 2
+            start_radius: 0.5
+            end_radius: 10
+            wave_delay: 10
+            y_offset: 1.5
+          next: burst_red_sand
+        - id: burst_red_sand
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 6
+          params:
+            particle_type: FALLING_DUST
+            material: RED_SAND
+            count: 100
+            shape: burst
+            waves: 2
+            start_radius: 0.5
+            end_radius: 10
+            wave_delay: 10
+            y_offset: 1.5
+          next: sound_heal
+        - id: sound_heal
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 7
+          params:
+            sound: ENTITY_PLAYER_LEVELUP
+            volume: 1.5
+            pitch: 1.2
+          next: sound_beacon
+        - id: sound_beacon
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 8
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 1.0
+            pitch: 0.8
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 9
+
+# ============================================
+# ANCIENT BREAK - Pickaxe (Exclusive)
+# ============================================
+ancient_break:
+  name: "<gradient:#FFD700:#CD853F>Ancient Break</gradient>"
+  description:
+    - "&7When mining, chance to"
+    - "&7grant Haste effect."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: PICKAXE
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3012
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+      haste_amp:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - pickaxe
+  flows:
+    - type: SIGNAL
+      trigger: BLOCK_BREAK
+      chance: "{chance}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: haste
+        - id: haste
+          type: EFFECT
+          effect: POTION
+          x: 0
+          y: 1
+          params:
+            potion_type: HASTE
+            duration: 10
+            amplifier: "{haste_amp}"
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 2
+          params:
+            sound: BLOCK_BEACON_POWER_SELECT
+            volume: 0.5
+            pitch: 1.5
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 3
+
+# ============================================
+# HORUS'S ARROW - Bow (Exclusive)
+# ============================================
+horus_arrow_stun:
+  name: "<gradient:#FFD700:#CD853F>Horus's Arrow</gradient>"
+  description:
+    - "&7When shooting a player,"
+    - "&7chance to stun them."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: BOW
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3013
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 5
+        - 10
+        - 15
+        - 20
+        - 25
+      stun_duration:
+        - 0.5
+        - 1.0
+        - 1.5
+        - 2.0
+        - 2.5
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - bow
+  flows:
+    - type: SIGNAL
+      trigger: BOW_HIT
+      chance: "{chance}"
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: stun
+        - id: stun
+          type: EFFECT
+          effect: STUN
+          x: 0
+          y: 1
+          params:
+            duration: "{stun_duration}"
+            target: "@Victim"
+          next: change_skin
+        - id: change_skin
+          type: EFFECT
+          effect: CHANGE_SKIN
+          x: 0
+          y: 2
+          params:
+            skin: SandOfSand
+            duration: "{stun_duration}"
+            target: "@Victim"
+          next: sand_burst
+        - id: sand_burst
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 3
+          params:
+            particle_type: FALLING_DUST
+            material: SAND
+            count: 50
+            spread: 0.5
+            target: "@Victim"
+          next: sound_curse
+        - id: sound_curse
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 4
+          params:
+            sound: ENTITY_VEX_CHARGE
+            volume: 1.0
+            pitch: 0.5
+          next: sound_sand
+        - id: sound_sand
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 5
+          params:
+            sound: BLOCK_SAND_BREAK
+            volume: 1.2
+            pitch: 0.4
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 6
+
+# ============================================
+# MAELSTROM - Crossbow (Exclusive)
+# ============================================
+maelstrom:
+  name: "<gradient:#4682B4:#00BFFF>Maelstrom</gradient>"
+  description:
+    - "&7When shooting a player,"
+    - "&7pulls them toward you."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: CROSSBOW
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3014
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      pull_strength:
+        - 1.5
+        - 2.0
+        - 2.5
+        - 3.0
+        - 3.5
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - crossbow
+  flows:
+    - type: SIGNAL
+      trigger: BOW_HIT
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          next: pull
+        - id: pull
+          type: EFFECT
+          effect: PULL
+          x: 0
+          y: 1
+          params:
+            force: "{pull_strength}"
+            cooldown: 120
+            target: "@Victim"
+          next: water_spiral
+        - id: water_spiral
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 2
+          params:
+            particle_type: WATER_SPLASH
+            count: 40
+            spread: 1.0
+            target: "@Victim"
+          next: sound_splash
+        - id: sound_splash
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 3
+          params:
+            sound: ENTITY_PLAYER_SPLASH
+            volume: 1.5
+            pitch: 0.7
+          next: end
+        - id: end
+          type: END
+          x: 0
+          y: 4
+
+# ============================================
+# SANDWALKER - Boots (Exclusive)
+# ============================================
+sandwalker:
+  name: "<gradient:#9400D3:#4B0082>Sandwalker</gradient>"
+  description:
+    - "&7When on sand, has a chance"
+    - "&7to grant Speed effect."
+  rarity: MYTHIC
+  exclusive: true
+  exclusive_type: BOOTS
+  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
+  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  item:
+    material: AMETHYST_SHARD
+    custom_model_data: 3004
+  max_tier: 5
+  tier:
+    mode: PARAMETER
+    params:
+      chance:
+        - 0.5
+        - 1.0
+        - 1.5
+        - 2.0
+        - 2.5
+      speed_amp:
+        - 2
+        - 2
+        - 3
+        - 3
+        - 4
+      duration:
+        - 2
+        - 4
+        - 6
+        - 8
+        - 10
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
+  socketables:
+    - boots
+  flows:
+    - type: SIGNAL
+      trigger: EFFECT_STATIC
+      startNodeId: start
+      nodes:
+        - id: start
+          type: START
+          x: 0
+          y: 0
+          params:
+            signal_type: EFFECT_STATIC
+            flow_type: SIGNAL
+            chance: "{chance}"
+          next: check_sand
+        - id: check_sand
+          type: CONDITION
+          x: 0
+          y: 1
+          condition: "BLOCK_BELOW:SAND,RED_SAND"
+          connections:
+            'yes': speed
+            'no': end
+        - id: speed
+          type: EFFECT
+          effect: POTION
+          x: 1
+          y: 2
+          params:
+            potion_type: SPEED
+            duration: "{duration}"
+            amplifier: "{speed_amp}"
+          next: particles
+        - id: particles
+          type: EFFECT
+          effect: PARTICLE
+          x: 1
+          y: 3
+          params:
+            particle_type: FALLING_DUST
+            material: SAND
+            count: 20
+            spread: 0.5
+          next: sound
+        - id: sound
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 4
+          params:
+            sound: BLOCK_SAND_BREAK
+            volume: 0.8
+            pitch: 1.5
+          next: end
+        - id: end
+          type: END
+          x: 1
+          y: 5
