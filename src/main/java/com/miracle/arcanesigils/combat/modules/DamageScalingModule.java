@@ -78,35 +78,39 @@ public class DamageScalingModule extends AbstractCombatModule implements Listene
     public void onDamageHighest(EntityDamageByEntityEvent event) {
         if (!isEnabled()) return;
         if (!(event.getDamager() instanceof Player)) return;
+        if (!(event.getEntity() instanceof Player victim)) return;
 
-        double resistanceDescalar = config.getResistanceDescalar();
-        if (resistanceDescalar == 1.0) {
-            // Clean up map even if no descalar
-            rawDamageMap.remove(event.getEntity().getUniqueId());
-            return;
+        // Check if enchantment scaling is enabled
+        if (!config.isEnchantmentScalingEnabled()) return;
+
+        // Calculate scaled Protection from victim's armor
+        ItemStack[] armor = victim.getInventory().getArmorContents();
+        double vanillaReduction = 0.0;
+        double scaledReduction = 0.0;
+
+        for (ItemStack piece : armor) {
+            if (piece == null || piece.getType().isAir()) continue;
+
+            int protectionLevel = piece.getEnchantmentLevel(Enchantment.PROTECTION);
+            if (protectionLevel > 0) {
+                // Vanilla: each Protection level = 4% damage reduction per piece
+                double vanillaPieceReduction = protectionLevel * 0.04;
+                vanillaReduction += vanillaPieceReduction;
+
+                // Scaled: apply our scalar to this piece's contribution
+                double scalar = config.getProtectionScalar(protectionLevel);
+                double scaledPieceReduction = vanillaPieceReduction * scalar;
+                scaledReduction += scaledPieceReduction;
+            }
         }
 
-        // Get raw damage stored earlier
-        Double rawDamage = rawDamageMap.remove(event.getEntity().getUniqueId());
-        if (rawDamage == null) {
-            // Fallback: use current damage if somehow not tracked
-            rawDamage = event.getDamage(EntityDamageEvent.DamageModifier.BASE);
-        }
+        if (vanillaReduction == 0.0) return; // No Protection enchants
 
-        // Current damage after armor/protection
+        // Calculate additional reduction (difference between scaled and vanilla)
+        // Vanilla already applied its reduction, we add the extra from scaling
+        double additionalReduction = scaledReduction - vanillaReduction;
         double currentDamage = event.getDamage();
-
-        // Calculate how much damage was blocked by armor/protection
-        double damageBlocked = rawDamage - currentDamage;
-
-        // Apply resistance descalar to reduce armor effectiveness
-        // Higher descalar = less effective armor = more damage blocked is restored
-        double reducedBlock = damageBlocked / resistanceDescalar;
-
-        // Final damage = raw damage - reduced armor blocking
-        double finalDamage = rawDamage - reducedBlock;
-
-        event.setDamage(finalDamage);
+        event.setDamage(currentDamage * (1.0 - additionalReduction));
     }
 
     /**
