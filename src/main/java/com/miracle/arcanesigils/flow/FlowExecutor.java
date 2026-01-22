@@ -183,6 +183,14 @@ public class FlowExecutor {
             }
         }
 
+        // If flow was cancelled with an error message (e.g., missing target), show it to player
+        if (context.isCancelled() && context.getErrorMessage() != null) {
+            Player player = context.getPlayer();
+            if (player != null && player.isOnline()) {
+                player.sendMessage(Component.text("\u00a7c" + context.getErrorMessage()));
+            }
+        }
+
         return !context.isCancelled();
     }
 
@@ -284,6 +292,14 @@ public class FlowExecutor {
                         "[Flow] Error executing node " + currentNode.getId() + ": " + e.getMessage(), e);
                 handleError(context, "Error in node '" + currentNode.getDisplayName() + "': " + e.getMessage());
                 return false;
+            }
+        }
+
+        // If flow was cancelled with an error message (e.g., missing target), show it to player
+        if (context.isCancelled() && context.getErrorMessage() != null) {
+            Player player = context.getPlayer();
+            if (player != null && player.isOnline()) {
+                player.sendMessage(Component.text("\u00a7c" + context.getErrorMessage()));
             }
         }
 
