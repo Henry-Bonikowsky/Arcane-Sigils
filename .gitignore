@@ -30,3 +30,13 @@ build*.txt
 # Deploy script (contains server credentials)
 deploy.sh
 tmpclaude-*
+
+# Server temp files
+logs/
+server-files/
+server-*.yml
+*-FROM-SERVER.yml
+*-SERVER.yml
+
+# Build artifacts
+*.jar
