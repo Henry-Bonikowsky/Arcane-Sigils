@@ -10,6 +10,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,21 +124,56 @@ public class DamageScalingModule extends AbstractCombatModule implements Listene
 
     @Override
     public List<ModuleParam> getConfigParams() {
-        return List.of(
-            ModuleParam.builder("damage-scalar")
-                .displayName("Damage Scalar")
-                .description("Multiplies all outgoing player damage (before armor)")
-                .doubleValue(config::getDamageScalar, config::setDamageScalar)
-                .range(0.1, 5.0)
-                .step(0.1)
-                .build(),
-            ModuleParam.builder("resistance-descalar")
-                .displayName("Resistance De-scalar")
-                .description("Reduces armor effectiveness (2.0 = half armor protection)")
-                .doubleValue(config::getResistanceDescalar, config::setResistanceDescalar)
-                .range(0.1, 5.0)
-                .step(0.1)
-                .build()
-        );
+        List<ModuleParam> params = new ArrayList<>();
+
+        // Base damage scaling params
+        params.add(ModuleParam.builder("damage-scalar")
+            .displayName("Damage Scalar")
+            .description("Multiplies all outgoing player damage (before armor)")
+            .doubleValue(config::getDamageScalar, config::setDamageScalar)
+            .range(0.1, 5.0)
+            .step(0.1)
+            .build());
+
+        params.add(ModuleParam.builder("resistance-descalar")
+            .displayName("Resistance De-scalar")
+            .description("Reduces armor effectiveness (2.0 = half armor protection)")
+            .doubleValue(config::getResistanceDescalar, config::setResistanceDescalar)
+            .range(0.1, 5.0)
+            .step(0.1)
+            .build());
+
+        // Enchantment scaling toggle
+        params.add(ModuleParam.builder("enchant-scaling")
+            .displayName("Enchant Scaling")
+            .description("Enable per-level Sharpness/Protection scaling")
+            .boolValue(config::isEnchantmentScalingEnabled, config::setEnchantmentScalingEnabled)
+            .build());
+
+        // Sharpness levels 5-10 (extended levels beyond vanilla)
+        for (int level = 5; level <= 10; level++) {
+            final int lvl = level;
+            params.add(ModuleParam.builder("sharpness-" + level)
+                .displayName("Sharp " + level)
+                .description("Sharpness " + level + " damage multiplier")
+                .doubleValue(() -> config.getSharpnessScalar(lvl), v -> config.setSharpnessScalar(lvl, v))
+                .range(0.5, 3.0)
+                .step(0.05)
+                .build());
+        }
+
+        // Protection levels 5-10 (extended levels beyond vanilla)
+        for (int level = 5; level <= 10; level++) {
+            final int lvl = level;
+            params.add(ModuleParam.builder("protection-" + level)
+                .displayName("Prot " + level)
+                .description("Protection " + level + " effectiveness multiplier")
+                .doubleValue(() -> config.getProtectionScalar(lvl), v -> config.setProtectionScalar(lvl, v))
+                .range(0.5, 3.0)
+                .step(0.05)
+                .build());
+        }
+
+        return params;
     }
 }

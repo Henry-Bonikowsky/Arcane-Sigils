@@ -385,6 +385,18 @@ public class LegacyCombatConfig {
         gds.set("damage-scalar", damageScalar);
         gds.set("resistance-descalar", resistanceDescalar);
 
+        // Enchantment Scaling
+        ConfigurationSection ench = root.createSection("enchantment-scaling");
+        ench.set("enabled", enchantmentScalingEnabled);
+        ConfigurationSection sharp = ench.createSection("sharpness");
+        for (Map.Entry<Integer, Double> entry : sharpnessScaling.entrySet()) {
+            sharp.set(String.valueOf(entry.getKey()), entry.getValue());
+        }
+        ConfigurationSection prot = ench.createSection("protection");
+        for (Map.Entry<Integer, Double> entry : protectionScaling.entrySet()) {
+            prot.set(String.valueOf(entry.getKey()), entry.getValue());
+        }
+
         try {
             config.save(configFile);
         } catch (IOException e) {
@@ -588,11 +600,23 @@ public class LegacyCombatConfig {
         return enchantmentScalingEnabled;
     }
 
+    public void setEnchantmentScalingEnabled(boolean v) {
+        this.enchantmentScalingEnabled = v;
+    }
+
     public double getSharpnessScalar(int level) {
         return sharpnessScaling.getOrDefault(level, 1.0);
     }
 
+    public void setSharpnessScalar(int level, double value) {
+        sharpnessScaling.put(level, value);
+    }
+
     public double getProtectionScalar(int level) {
         return protectionScaling.getOrDefault(level, 1.0);
+    }
+
+    public void setProtectionScalar(int level, double value) {
+        protectionScaling.put(level, value);
     }
 }
