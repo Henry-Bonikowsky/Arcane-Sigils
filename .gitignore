@@ -40,3 +40,4 @@ server-*.yml
 
 # Build artifacts
 *.jar
+dependency-reduced-pom.xml
