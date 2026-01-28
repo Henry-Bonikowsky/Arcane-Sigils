@@ -329,13 +329,37 @@ public class SignalHandler implements Listener {
             }
         }
 
-        // Apply damage reduction buff BEFORE processing sigil effects
-        double originalDamage = event.getDamage();
+        // Apply damage modifiers BEFORE processing sigil effects
+        double currentDamage = event.getDamage();
+
+        // 1. Apply damage amplification (Cleopatra debuff - target takes MORE damage)
+        double amplificationPercent = com.miracle.arcanesigils.effects.impl.DamageAmplificationEffect.getDamageAmplification(player.getUniqueId());
+        if (amplificationPercent > 0) {
+            currentDamage = currentDamage * (1 + amplificationPercent / 100.0);
+        }
+
+        // 2. Apply damage reduction buff (temporary buff effect)
         double reductionPercent = com.miracle.arcanesigils.effects.impl.DamageReductionBuffEffect.getDamageReduction(player.getUniqueId());
         if (reductionPercent > 0) {
-            double reducedDamage = originalDamage * (1 - reductionPercent / 100.0);
-            event.setDamage(Math.max(0, reducedDamage));
+            currentDamage = currentDamage * (1 - reductionPercent / 100.0);
         }
+
+        // 3. Apply charge-based DR (King's Brace passive)
+        double chargeDR = com.miracle.arcanesigils.effects.impl.UpdateChargeDREffect.getChargeDR(player.getUniqueId());
+        if (chargeDR > 0) {
+            currentDamage = currentDamage * (1 - chargeDR / 100.0);
+        }
+
+        // 4. Apply mark-based damage multipliers (Cleopatra debuff, King's Brace marks, etc.)
+        double markMultiplier = plugin.getMarkManager().getDamageMultiplier(player);
+        if (markMultiplier != 1.0) {
+            currentDamage = currentDamage * markMultiplier;
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SignalHandler] Applied mark multiplier %.3f to %s: %.2f -> %.2f",
+                markMultiplier, player.getName(), event.getDamage(), currentDamage);
+        }
+
+        event.setDamage(Math.max(0, currentDamage));
 
         // Notify AuraManager of owner hit (triggers pull-on-hit auras)
         if (plugin.getAuraManager() != null) {
@@ -386,6 +410,7 @@ public class SignalHandler implements Listener {
         if (!event.isSneaking()) return;
 
         Player player = event.getPlayer();
+
         EffectContext context = EffectContext.builder(player, SignalType.SHIFT)
                 .event(event)
                 .build();
@@ -587,7 +612,7 @@ public class SignalHandler implements Listener {
             List<Sigil> sigils = plugin.getSocketManager().getSocketedSigils(armor);
             
             for (Sigil sigil : sigils) {
-                collectFlowsForSignal(sigil, signalType, armor, allFlows);
+                collectFlowsForSignal(sigil, signalType, armor, allFlows, player);
             }
         }
 
@@ -598,7 +623,7 @@ public class SignalHandler implements Listener {
                 && !plugin.getSocketManager().isArmor(mainHand.getType())) {
             List<Sigil> heldSigils = plugin.getSocketManager().getSocketedSigils(mainHand);
             for (Sigil sigil : heldSigils) {
-                collectFlowsForSignal(sigil, signalType, mainHand, allFlows);
+                collectFlowsForSignal(sigil, signalType, mainHand, allFlows, player);
             }
         }
 
@@ -609,7 +634,7 @@ public class SignalHandler implements Listener {
                 && !plugin.getSocketManager().isArmor(offHand.getType())) {
             List<Sigil> offHandSigils = plugin.getSocketManager().getSocketedSigils(offHand);
             for (Sigil sigil : offHandSigils) {
-                collectFlowsForSignal(sigil, signalType, offHand, allFlows);
+                collectFlowsForSignal(sigil, signalType, offHand, allFlows, player);
             }
         }
 
@@ -625,19 +650,8 @@ public class SignalHandler implements Listener {
             allFlows.sort((a, b) -> Integer.compare(b.flow.getPriority(), a.flow.getPriority()));
         }
 
-        // For active signals, find highest priority and only execute flows at that tier
-        int highestPriority = -1;
-        if (!isPassiveSignal && !allFlows.isEmpty()) {
-            highestPriority = allFlows.get(0).flow.getPriority();
-        }
-
         // Execute flows
         for (FlowEntry entry : allFlows) {
-            // For active signals, skip flows below highest priority tier
-            if (!isPassiveSignal && entry.flow.getPriority() < highestPriority) {
-                continue; // Skip lower priority flows
-            }
-
             context.setMetadata("sourceSigilId", entry.sigil.getId());
             context.setMetadata("sourceSigilTier", entry.sigil.getTier());
             context.setMetadata("sourceItem", entry.sourceItem);
@@ -655,8 +669,10 @@ public class SignalHandler implements Listener {
                 if (entry.sourceItem != null) {
                     plugin.getTierProgressionManager().awardXP(player, entry.sourceItem, entry.sigil.getId(), entry.sigil.getTier());
                 }
-                // For passive signals, continue to next flow
-                // For active signals, continue only if same priority tier
+                // For active signals, stop after first activation (only ONE flow activates)
+                if (!isPassiveSignal) {
+                    break;
+                }
             }
         }
     }
@@ -678,14 +694,30 @@ public class SignalHandler implements Listener {
 
     /**
      * Collect flows from a sigil for a signal type.
+     * Filters out flows that are on cooldown before adding to the list.
      */
-    private void collectFlowsForSignal(Sigil sigil, SignalType signalType, ItemStack sourceItem, List<FlowEntry> allFlows) {
+    private void collectFlowsForSignal(Sigil sigil, SignalType signalType, ItemStack sourceItem, List<FlowEntry> allFlows, Player player) {
         List<FlowConfig> flows = sigil.getFlowsForTrigger(signalType.getConfigKey());
         if (flows.isEmpty()) {
             flows = sigil.getFlowsForTrigger(signalType.name());
         }
-        
+
         for (FlowConfig flow : flows) {
+            // Check cooldown BEFORE adding to list
+            String flowId = flow.getGraph() != null ? flow.getGraph().getId() : "unknown";
+            String cooldownKey = "sigil_" + sigil.getId() + "_" + signalType.getConfigKey() + "_" + flowId;
+
+            // Get cooldown value from flow
+            double cooldown = flow.getCooldown();
+            if (flow.getGraph() != null && flow.getGraph().getStartNode() != null) {
+                cooldown = flow.getGraph().getStartNode().getDoubleParam("cooldown", cooldown);
+            }
+
+            // Skip if on cooldown
+            if (cooldown > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
+                continue;
+            }
+
             allFlows.add(new FlowEntry(flow, sigil, sourceItem));
         }
     }
