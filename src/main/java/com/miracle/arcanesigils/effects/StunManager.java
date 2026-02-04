@@ -3,6 +3,7 @@ package com.miracle.arcanesigils.effects;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.ai.AITrainingManager;
 import com.miracle.arcanesigils.ai.RewardSignal;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -26,10 +27,6 @@ public class StunManager implements Listener {
 
     private final ArmorSetsPlugin plugin;
     private final Map<UUID, StunData> stunnedPlayers = new ConcurrentHashMap<>();
-    
-    // Track last damage time for stunned players to enforce immunity (10 ticks = 500ms)
-    private final Map<UUID, Long> lastDamageTime = new ConcurrentHashMap<>();
-    private static final long IMMUNITY_DURATION_MS = 500; // 10 ticks
 
     public StunManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -105,8 +102,6 @@ public class StunManager implements Listener {
         if (data != null) {
             data.cancel();
         }
-        // Clean up damage tracking
-        lastDamageTime.remove(uuid);
     }
 
     /**
@@ -125,8 +120,6 @@ public class StunManager implements Listener {
         return data.getRemainingTime();
     }
 
-    // Immunity is now handled by SkinChangeManager forcing noDamageTicks=10 after respawn
-    
     /**
      * Cancel movement for stunned players.
      * Note: We just cancel the event, we don't use setTo() which causes hitbox desync.
@@ -145,9 +138,7 @@ public class StunManager implements Listener {
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        UUID uuid = event.getPlayer().getUniqueId();
         unstunPlayer(event.getPlayer());
-        lastDamageTime.remove(uuid);
     }
 
     /**
