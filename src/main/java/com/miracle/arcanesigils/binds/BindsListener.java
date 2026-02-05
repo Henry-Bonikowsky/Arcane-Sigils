@@ -62,9 +62,9 @@ public class BindsListener implements Listener {
     private final Map<UUID, Long> lastActivationTime = new HashMap<>();
 
     // Activation delays
-    private static final long DOUBLE_TAP_WINDOW = 300; // ms - quick double-tap detection
+    private static final long DOUBLE_TAP_WINDOW = 300; // ms - double-tap detection window (balanced for reliability)
     private static final long SIMULTANEOUS_WINDOW = 200; // ms for ATTACK+USE detection
-    private static final long SIGIL_ACTIVATION_DELAY = 20L; // ticks (1 second)
+    private static final long SIGIL_ACTIVATION_DELAY = 5L; // ticks (0.25 seconds - reduced from 20 ticks for faster ability execution)
 
     public BindsListener(ArmorSetsPlugin plugin, BindsManager bindsManager, BindsBossBarManager bossBarManager, TargetGlowManager targetGlowManager) {
         this.plugin = plugin;
@@ -84,6 +84,10 @@ public class BindsListener implements Listener {
         if (event.isCancelled()) return;
 
         Player player = event.getPlayer();
+
+        // ALWAYS cancel to prevent item swapping (F key repurposed for ability UI)
+        event.setCancelled(true);
+
         UUID uuid = player.getUniqueId();
         PlayerBindData data = bindsManager.getPlayerData(uuid);
         long now = System.currentTimeMillis();
@@ -121,6 +125,7 @@ public class BindsListener implements Listener {
                 Integer existingTask = pendingSwapTasks.remove(uuid);
                 if (existingTask != null) {
                     Bukkit.getScheduler().cancelTask(existingTask);
+                    LogHelper.debug("[Binds] Cancelled pending swap task for " + player.getName());
                 }
 
                 if (uiIsOn) {
@@ -135,9 +140,29 @@ public class BindsListener implements Listener {
                     final ItemStack mainHand = player.getInventory().getItemInMainHand().clone();
                     final ItemStack offHand = player.getInventory().getItemInOffHand().clone();
 
+                    // TOTEM PROTECTION: Never swap if totem is in offhand
+                    if (offHand != null && offHand.getType() == org.bukkit.Material.TOTEM_OF_UNDYING) {
+                        LogHelper.debug("[Binds] Swap blocked - totem in offhand for " + player.getName());
+                        // Don't schedule swap, but keep timing tracked for potential double-tap toggle
+                        return;
+                    }
+
                     // Schedule delayed swap (after double-tap window expires)
                     int taskId = Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         pendingSwapTasks.remove(uuid);
+
+                        // CRITICAL FIX: Only swap if UI is STILL OFF
+                        PlayerBindData currentData = bindsManager.getPlayerData(uuid);
+                        if (currentData.isToggled()) {
+                            LogHelper.debug("[Binds] Cancelled delayed swap - UI is now ON for " + player.getName());
+                            return;
+                        }
+
+                        // Verify player still online
+                        if (!player.isOnline()) {
+                            return;
+                        }
+
                         // Perform the swap manually
                         player.getInventory().setItemInMainHand(offHand);
                         player.getInventory().setItemInOffHand(mainHand);
@@ -339,9 +364,17 @@ public class BindsListener implements Listener {
      */
     private void toggleBinds(Player player) {
         boolean newState = bindsManager.toggle(player.getUniqueId());
+        UUID uuid = player.getUniqueId();
 
         if (newState) {
-            // Toggled ON - show boss bars and start target glow
+            // Toggled ON - cancel any pending swap tasks
+            Integer pendingTask = pendingSwapTasks.remove(uuid);
+            if (pendingTask != null) {
+                Bukkit.getScheduler().cancelTask(pendingTask);
+                LogHelper.debug("[Binds] Cancelled pending swap on toggle ON for " + player.getName());
+            }
+
+            // Show boss bars and start target glow
             LogHelper.debug("[Binds] Binds toggled ON for " + player.getName());
 
             // Show boss bars with bound abilities
@@ -394,13 +427,9 @@ public class BindsListener implements Listener {
 
         if (sigilIds.isEmpty()) {
             LogHelper.debug("[Binds] No bind at slot " + slotOrId + " for " + player.getName());
-            // Still close the UI even for unbound slots (with small delay for consistency)
+            // Still close the UI even for unbound slots (immediate)
             if (data.isToggled()) {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (bindsManager.getPlayerData(uuid).isToggled()) {
-                        toggleBinds(player);
-                    }
-                }, 2L);
+                toggleBinds(player);
             }
             return;
         }
@@ -446,15 +475,18 @@ public class BindsListener implements Listener {
             }, delay);
         }
 
-        // Auto-close the ability UI after activating a bind (with small delay so abilities fire first)
+        // Auto-close the ability UI after activating a bind (immediate - abilities already scheduled)
         // User must re-open the UI to activate another ability
         if (data.isToggled()) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                // Check again in case something changed
-                if (bindsManager.getPlayerData(uuid).isToggled()) {
-                    toggleBinds(player);
-                }
-            }, 2L); // 2 ticks delay
+            // Cancel any pending swaps before toggling off
+            Integer pendingTask = pendingSwapTasks.remove(uuid);
+            if (pendingTask != null) {
+                Bukkit.getScheduler().cancelTask(pendingTask);
+                LogHelper.debug("[Binds] Cancelled pending swap on ability activation for " + player.getName());
+            }
+
+            // Close UI immediately
+            toggleBinds(player);
         }
     }
 
