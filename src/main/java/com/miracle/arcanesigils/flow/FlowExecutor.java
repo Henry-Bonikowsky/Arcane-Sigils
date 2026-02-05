@@ -59,26 +59,23 @@ public class FlowExecutor {
      */
     public FlowContext executeWithContext(FlowGraph graph, EffectContext effectContext) {
         if (graph == null) {
-            LogHelper.debug("[Flow] Cannot execute null flow graph");
+            LogHelper.info("[Flow] ERROR: Cannot execute null flow graph");
             return null;
         }
 
         FlowNode startNode = graph.getStartNode();
         if (startNode == null) {
-            LogHelper.debug("[Flow] Flow '%s' has no start node", graph.getId());
+            LogHelper.info("[Flow] ERROR: Flow '%s' has no start node", graph.getId());
             return null;
         }
 
         // Create flow context
-        LogHelper.debug("[FlowExecutor] Creating FlowContext from EffectContext");
         FlowContext context = new FlowContext(effectContext);
-        LogHelper.debug("[FlowExecutor] FlowContext created, player=%s",
-            context.getPlayer() != null ? context.getPlayer().getName() : "NULL");
 
         // Execute the flow
-        LogHelper.debug("[FlowExecutor] Starting executeFromNode from START");
+        LogHelper.info("[FlowExecutor] Starting flow execution from START");
         executeFromNode(graph, startNode, context, 0);
-        LogHelper.debug("[FlowExecutor] executeFromNode completed");
+        LogHelper.info("[FlowExecutor] Flow execution completed");
 
         return context;
     }
@@ -139,7 +136,7 @@ public class FlowExecutor {
                 visitedInCycle.add(currentNode.getId());
             }
 
-            LogHelper.debug("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
+            LogHelper.info("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
 
             try {
                 // Execute the node and get the output port to follow
@@ -231,11 +228,12 @@ public class FlowExecutor {
                 visitedInCycle.add(currentNode.getId());
             }
 
-            LogHelper.debug("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
+            LogHelper.info("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
 
             try {
                 // Execute the node and get the output port to follow
                 String outputPort = currentNode.execute(context);
+                LogHelper.info("[FlowExecutor] Node %s executed, output port: %s", currentNode.getId(), outputPort);
 
                 // Add trace entry in test mode (for non-condition nodes)
                 if (context.isTestMode() && currentNode.getType() != NodeType.CONDITION) {
@@ -279,6 +277,16 @@ public class FlowExecutor {
                     currentNode = null;
                 } else {
                     String nextNodeId = currentNode.getConnection(outputPort);
+                    LogHelper.info("[FlowExecutor] Looking for connection '%s' from node %s, found: %s",
+                        outputPort, currentNode.getId(), nextNodeId);
+
+                    if (nextNodeId == null) {
+                        LogHelper.warning("[FlowExecutor] No connection found for port '%s' from node %s - flow will terminate",
+                            outputPort, currentNode.getId());
+                        LogHelper.warning("[FlowExecutor] Available connections: %s",
+                            currentNode.getConnections().keySet());
+                    }
+
                     currentNode = nextNodeId != null ? graph.getNode(nextNodeId) : null;
 
                     if (nextNodeId != null && currentNode == null) {
