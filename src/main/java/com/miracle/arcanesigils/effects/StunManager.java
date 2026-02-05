@@ -11,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
@@ -139,6 +140,15 @@ public class StunManager implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         unstunPlayer(event.getPlayer());
+    }
+
+    /**
+     * Clean up when player dies.
+     * Prevents stun data from persisting on respawn.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        unstunPlayer(event.getEntity());
     }
 
     /**

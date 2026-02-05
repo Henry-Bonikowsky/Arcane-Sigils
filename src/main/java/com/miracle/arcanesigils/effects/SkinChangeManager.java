@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -697,6 +698,16 @@ public class SkinChangeManager implements Listener {
         originalSkins.remove(uuid);
         skinChangeTimestamps.remove(uuid);
         lastUseEntityPacket.remove(uuid);
+    }
+
+    /**
+     * Clean up skin changes when player dies.
+     * Restores original skin immediately to prevent it persisting on respawn.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        restoreSkin(player);  // Restore original skin immediately on death
     }
 
     /**

@@ -7,6 +7,13 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
@@ -37,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *   // Check if modifier exists
  *   boolean has = manager.hasNamedModifier(player, Attribute.ARMOR, "kings_brace_dr");
  */
-public class AttributeModifierManager {
+public class AttributeModifierManager implements Listener {
 
     private final ArmorSetsPlugin plugin;
     
@@ -372,7 +379,34 @@ public class AttributeModifierManager {
             });
         }, 100L, 100L); // Run every 5 seconds (100 ticks)
     }
-    
+
+    /**
+     * Clean up attribute modifiers when player dies.
+     * Prevents orphaned modifiers from persisting on respawn.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        removeAllModifiers(event.getEntity().getUniqueId());
+    }
+
+    /**
+     * Clean up attribute modifiers when player disconnects.
+     * Prevents memory leaks and stale data on reconnect.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        removeAllModifiers(event.getPlayer().getUniqueId());
+    }
+
+    /**
+     * Clean up attribute modifiers when entity dies.
+     * Handles non-player entities (mobs, pets, etc).
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityDeath(EntityDeathEvent event) {
+        removeAllModifiers(event.getEntity().getUniqueId());
+    }
+
     /**
      * Shutdown the manager and cancel all tasks.
      */

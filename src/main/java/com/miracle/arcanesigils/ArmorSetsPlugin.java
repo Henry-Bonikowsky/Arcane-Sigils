@@ -7,11 +7,15 @@ import com.miracle.arcanesigils.binds.BindsBossBarManager;
 import com.miracle.arcanesigils.binds.BindsListener;
 import com.miracle.arcanesigils.binds.BindsManager;
 import com.miracle.arcanesigils.binds.TargetGlowManager;
+import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.combat.LegacyCombatManager;
 import com.miracle.arcanesigils.commands.ActivateBindCommand;
 import com.miracle.arcanesigils.commands.ArmorSetsCommand;
 import com.miracle.arcanesigils.commands.BindsCommand;
 import com.miracle.arcanesigils.config.ConfigManager;
+import com.miracle.arcanesigils.enchanter.EnchanterManager;
+import com.miracle.arcanesigils.enchanter.commands.EnchanterCommand;
+import com.miracle.arcanesigils.enchanter.listeners.EnchanterBlockListener;
 import com.miracle.arcanesigils.core.SigilManager;
 import com.miracle.arcanesigils.core.SocketManager;
 import com.miracle.arcanesigils.effects.AuraManager;
@@ -64,6 +68,7 @@ public class ArmorSetsPlugin extends JavaPlugin {
     private BindsManager bindsManager;
     private BindsBossBarManager bindsBossBarManager;
     private TargetGlowManager targetGlowManager;
+    private LastVictimManager lastVictimManager;
     private ShapeEngine shapeEngine;
     private ProjectileManager projectileManager;
     private LegacyCombatManager legacyCombatManager;
@@ -73,6 +78,7 @@ public class ArmorSetsPlugin extends JavaPlugin {
     private InterceptionManager interceptionManager;
     private com.miracle.arcanesigils.effects.AttributeModifierManager attributeModifierManager;
     private com.miracle.arcanesigils.effects.PotionEffectTracker potionEffectTracker;
+    private EnchanterManager enchanterManager;
 
     // Track players with active Quicksand (no knockback mode)
     private final Map<UUID, Long> quicksandActivePlayers = new ConcurrentHashMap<>();
@@ -123,6 +129,9 @@ public class ArmorSetsPlugin extends JavaPlugin {
         }
         if (targetGlowManager != null) {
             targetGlowManager.cleanup();
+        }
+        if (lastVictimManager != null) {
+            lastVictimManager.cleanup();
         }
         if (stunManager != null) {
             stunManager.shutdown();
@@ -246,6 +255,10 @@ public class ArmorSetsPlugin extends JavaPlugin {
             // Tier progression manager (XP system)
             tierProgressionManager = new TierProgressionManager(this);
 
+            // Last victim manager (tracks last combat-relevant entity hit by player)
+            // MUST be created before SignalHandler since SignalHandler depends on it
+            lastVictimManager = new LastVictimManager(this);
+
             // Signal handler
             signalHandler = new SignalHandler(this);
 
@@ -271,13 +284,16 @@ public class ArmorSetsPlugin extends JavaPlugin {
             pluginDebugger = new PluginDebugger(this);
 
             // Collision disabler (prevent player collisions for effects like quicksand)
-            collisionDisabler = new com.miracle.arcanesigils.listeners.CollisionDisabler(this);
+            collisionDisabler = new com.miracle.arcanesigils.listeners.CollisionDisabler();
 
             // AI Training Manager (reward signals for AI training)
             aiTrainingManager = new AITrainingManager(this);
 
             // Interception Manager (effect interception system for Ancient Crown, Cleopatra, etc.)
             interceptionManager = new InterceptionManager();
+
+            // Enchanter Manager (tier upgrade system)
+            enchanterManager = new EnchanterManager(this);
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to initialize managers!", e);
@@ -309,6 +325,14 @@ public class ArmorSetsPlugin extends JavaPlugin {
             activateBindCommand.setExecutor(activateCmd);
             activateBindCommand.setTabCompleter(activateCmd);
         }
+
+        // Enchanter command
+        var ceCommand = getCommand("ce");
+        if (ceCommand != null) {
+            EnchanterCommand enchanterCmd = new EnchanterCommand(this);
+            ceCommand.setExecutor(enchanterCmd);
+            ceCommand.setTabCompleter(enchanterCmd);
+        }
     }
 
     private void registerListeners() {
@@ -323,12 +347,15 @@ public class ArmorSetsPlugin extends JavaPlugin {
         pm.registerEvents(new EnchantCapRemover(), this);
         pm.registerEvents(collisionDisabler, this);
         pm.registerEvents(new com.miracle.arcanesigils.listeners.QuicksandKnockbackListener(this), this);
+        pm.registerEvents(new com.miracle.arcanesigils.listeners.ItemCooldownListener(this), this);
 
         pm.registerEvents(new PotionEffectInterceptionListener(this), this);
 
         pm.registerEvents(potionEffectTracker, this);
         pm.registerEvents(new com.miracle.arcanesigils.listeners.PotionDamageReductionListener(this), this);
         pm.registerEvents(new com.miracle.arcanesigils.listeners.ArmorChangeListener(this), this);
+        pm.registerEvents(new EnchanterBlockListener(this), this);
+        pm.registerEvents(attributeModifierManager, this);
 
         // Disable collision for all currently online players
         collisionDisabler.disableForAll();
@@ -359,6 +386,11 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
         // Reload shape engine
         shapeEngine.loadAll();
+
+        // Reload set bonuses
+        if (setBonusManager != null) {
+            setBonusManager.reload();
+        }
 
         // Reload addons
         addonManager.reloadAddons();
@@ -467,6 +499,10 @@ public class ArmorSetsPlugin extends JavaPlugin {
         return targetGlowManager;
     }
 
+    public LastVictimManager getLastVictimManager() {
+        return lastVictimManager;
+    }
+
     public ShapeEngine getShapeEngine() {
         return shapeEngine;
     }
@@ -501,6 +537,10 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
     public com.miracle.arcanesigils.effects.PotionEffectTracker getPotionEffectTracker() {
         return potionEffectTracker;
+    }
+
+    public EnchanterManager getEnchanterManager() {
+        return enchanterManager;
     }
 
     /**
