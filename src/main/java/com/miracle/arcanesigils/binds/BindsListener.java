@@ -13,6 +13,7 @@ import com.miracle.arcanesigils.utils.LogHelper;
 import com.miracle.arcanesigils.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -698,13 +699,29 @@ public class BindsListener implements Listener {
 
         // If we get here, no flow activated - give specific feedback via chat
         String sigilName = TextUtil.stripColors(sigil.getName());
+        boolean isSeasonal = sigil.isExclusive(); // Seasonal/exclusive sigils get special formatting
         Component feedback;
+
         if (anyOnCooldown && !anyConditionsFailed) {
             // Only cooldown issue
             String time = String.format("%.1fs", longestRemainingCooldown);
-            feedback = Component.text(sigilName + " ", NamedTextColor.RED)
-                .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
-                .append(Component.text(time, NamedTextColor.WHITE));
+
+            if (isSeasonal) {
+                // Seasonal sigil: more prominent formatting
+                feedback = Component.text("✦ ", NamedTextColor.GOLD)
+                    .append(Component.text("[SEASONAL] ", NamedTextColor.LIGHT_PURPLE)
+                        .decorate(TextDecoration.BOLD))
+                    .append(Component.text(sigilName + " ", NamedTextColor.LIGHT_PURPLE))
+                    .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
+                    .append(Component.text(time, NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" ✦", NamedTextColor.GOLD));
+            } else {
+                // Regular sigil: standard formatting
+                feedback = Component.text(sigilName + " ", NamedTextColor.RED)
+                    .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
+                    .append(Component.text(time, NamedTextColor.WHITE));
+            }
         } else if (anyConditionsFailed && !anyOnCooldown) {
             // Only conditions issue
             feedback = Component.text("Conditions not met: ", NamedTextColor.RED)
@@ -712,9 +729,23 @@ public class BindsListener implements Listener {
         } else if (anyOnCooldown && anyConditionsFailed) {
             // Both issues - prioritize cooldown message (more actionable)
             String time = String.format("%.1fs", longestRemainingCooldown);
-            feedback = Component.text(sigilName + " ", NamedTextColor.RED)
-                .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
-                .append(Component.text(time, NamedTextColor.WHITE));
+
+            if (isSeasonal) {
+                // Seasonal sigil: more prominent formatting
+                feedback = Component.text("✦ ", NamedTextColor.GOLD)
+                    .append(Component.text("[SEASONAL] ", NamedTextColor.LIGHT_PURPLE)
+                        .decorate(TextDecoration.BOLD))
+                    .append(Component.text(sigilName + " ", NamedTextColor.LIGHT_PURPLE))
+                    .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
+                    .append(Component.text(time, NamedTextColor.GOLD)
+                        .decorate(TextDecoration.BOLD))
+                    .append(Component.text(" ✦", NamedTextColor.GOLD));
+            } else {
+                // Regular sigil: standard formatting
+                feedback = Component.text(sigilName + " ", NamedTextColor.RED)
+                    .append(Component.text("on cooldown: ", NamedTextColor.GRAY))
+                    .append(Component.text(time, NamedTextColor.WHITE));
+            }
         } else {
             // No specific reason found
             feedback = Component.text("Cannot activate ", NamedTextColor.RED)

@@ -263,13 +263,17 @@ public class SkinChangeManager implements Listener {
         try {
             // Track timing for debug
             skinChangeTimestamps.put(target.getUniqueId(), System.currentTimeMillis());
-            
-            // Store max immunity for restoration (we'll FORCE standard immunity after respawn)
+
+            // Store current immunity state for restoration (preserve existing immunity, don't force reset)
             int currentMaxNoDamageTicks = target.getMaximumNoDamageTicks();
+            int currentNoDamageTicks = target.getNoDamageTicks();
             preservedMaxNoDamageTicks.put(target.getUniqueId(), currentMaxNoDamageTicks);
-            
-            plugin.getLogger().info("[SkinChange] Storing max immunity for " + target.getName() + 
-                " (max=" + currentMaxNoDamageTicks + ") - will force to 10 ticks after respawn");
+            preservedNoDamageTicks.put(target.getUniqueId(), currentNoDamageTicks);
+
+            plugin.getLogger().info(String.format(
+                "[SkinChange] Preserving immunity for %s: noDamageTicks=%d, max=%d",
+                target.getName(), currentNoDamageTicks, currentMaxNoDamageTicks
+            ));
 
             // Get all online players who can see this player
             Collection<? extends Player> viewers = Bukkit.getOnlinePlayers();
@@ -290,17 +294,20 @@ public class SkinChangeManager implements Listener {
             for (long delay : new long[]{1L, 2L, 3L}) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     if (!target.isOnline()) return;
-                    
+
+                    // Restore preserved immunity values (don't force reset to 10)
                     Integer preservedMax = preservedMaxNoDamageTicks.get(target.getUniqueId());
+                    Integer preservedCurrent = preservedNoDamageTicks.get(target.getUniqueId());
+
                     int maxImmunity = preservedMax != null ? preservedMax : 20;
-                    
-                    // FORCE standard immunity
+                    int currentImmunity = preservedCurrent != null ? preservedCurrent : 10;
+
                     target.setMaximumNoDamageTicks(maxImmunity);
-                    target.setNoDamageTicks(10); // Standard immunity = 10 ticks
-                    
+                    target.setNoDamageTicks(currentImmunity); // Restore original, don't force
+
                     plugin.getLogger().info(String.format(
-                        "[SkinChange] ✓ Forced immunity for %s: noDamageTicks=10, max=%d",
-                        target.getName(), maxImmunity
+                        "[SkinChange] ✓ Restored immunity for %s: noDamageTicks=%d, max=%d",
+                        target.getName(), currentImmunity, maxImmunity
                     ));
                 }, delay);
             }
@@ -308,6 +315,7 @@ public class SkinChangeManager implements Listener {
             // Cleanup after final attempt
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 preservedMaxNoDamageTicks.remove(target.getUniqueId());
+                preservedNoDamageTicks.remove(target.getUniqueId());
             }, 5L);
 
             plugin.getLogger().info("[SkinDebug] Applied skin change to " + target.getName() +
@@ -727,18 +735,42 @@ public class SkinChangeManager implements Listener {
         // Check if attacker has recent skin change
         long attackerMs = getTimeSinceSkinChange(attacker);
         if (attackerMs >= 0 && attackerMs < 5000) {
+            // Respect immunity - don't uncancel immunity-based cancellations
+            if (victim != null) {
+                var combatManager = plugin.getLegacyCombatManager();
+                if (combatManager != null) {
+                    var immunityModule = combatManager.getModule("custom-immunity");
+                    if (immunityModule != null &&
+                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                        return;
+                    }
+                }
+            }
+
             event.setCancelled(false);
-            plugin.getLogger().info("[SkinFix] Uncancelled: attacker " + attacker.getName() + 
+            plugin.getLogger().info("[SkinFix] Uncancelled: attacker " + attacker.getName() +
                 " had skin change " + attackerMs + "ms ago");
             return;
         }
         
-        // NEW: Check if victim has recent skin change  
+        // NEW: Check if victim has recent skin change
         if (victim != null) {
             long victimMs = getTimeSinceSkinChange(victim);
             if (victimMs >= 0 && victimMs < 5000) {
+                // Respect immunity - don't uncancel immunity-based cancellations
+                var combatManager = plugin.getLegacyCombatManager();
+                if (combatManager != null) {
+                    var immunityModule = combatManager.getModule("custom-immunity");
+                    if (immunityModule != null &&
+                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                        return;
+                    }
+                }
+
                 event.setCancelled(false);
-                plugin.getLogger().info("[SkinFix] Uncancelled: victim " + victim.getName() + 
+                plugin.getLogger().info("[SkinFix] Uncancelled: victim " + victim.getName() +
                     " had skin change " + victimMs + "ms ago");
                 return;
             }
@@ -750,11 +782,22 @@ public class SkinChangeManager implements Listener {
             for (Player nearby : victim.getWorld().getPlayers()) {
                 if (nearby == attacker || nearby == victim) continue;
                 if (nearby.getLocation().distanceSquared(victim.getLocation()) > 2500) continue; // 50 block radius
-                
+
                 long nearbyMs = getTimeSinceSkinChange(nearby);
                 if (nearbyMs >= 0 && nearbyMs < 3000) {
+                    // Respect immunity - don't uncancel immunity-based cancellations
+                    var combatManager = plugin.getLegacyCombatManager();
+                    if (combatManager != null) {
+                        var immunityModule = combatManager.getModule("custom-immunity");
+                        if (immunityModule != null &&
+                            ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                            plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                            return;
+                        }
+                    }
+
                     event.setCancelled(false);
-                    plugin.getLogger().info("[SkinFix] Uncancelled: nearby player " + nearby.getName() + 
+                    plugin.getLogger().info("[SkinFix] Uncancelled: nearby player " + nearby.getName() +
                         " had skin change " + nearbyMs + "ms ago (victim=" + victim.getName() + ")");
                     return;
                 }
