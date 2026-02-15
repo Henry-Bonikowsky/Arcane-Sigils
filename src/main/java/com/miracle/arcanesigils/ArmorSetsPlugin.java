@@ -213,6 +213,9 @@ public class ArmorSetsPlugin extends JavaPlugin {
             // Plugin debugger (for identifying external plugin issues)
             pluginDebugger = new PluginDebugger(this);
 
+            // Initialize optional hooks
+            com.miracle.arcanesigils.hooks.FactionsHook.init();
+
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to initialize managers!", e);
             getServer().getPluginManager().disablePlugin(this);
