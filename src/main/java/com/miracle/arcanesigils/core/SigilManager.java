@@ -9,7 +9,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -290,12 +289,8 @@ public class SigilManager {
         if (itemForm.getModelData() > 0) {
             meta.setCustomModelData(itemForm.getModelData());
         }
-
-        // Add glow effect
-        if (itemForm.isGlow()) {
-            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        }
+        // Disable enchantment glint on sigil items
+        meta.setEnchantmentGlintOverride(false);
 
         // Store sigil ID and tier in PDC
         meta.getPersistentDataContainer().set(SIGIL_ID_KEY, PersistentDataType.STRING, sigil.getId());

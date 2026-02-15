@@ -193,6 +193,7 @@ public class SocketManager implements Listener {
 
         updateItemLore(meta, currentSigils);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        meta.setEnchantmentGlintOverride(false);
         item.setItemMeta(meta);
         return SocketResult.SUCCESS;
     }
@@ -234,6 +235,7 @@ public class SocketManager implements Listener {
         }
         updateItemLore(meta, sigilData);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        meta.setEnchantmentGlintOverride(false);
         armor.setItemMeta(meta);
         return sigilToRemove;
     }
@@ -273,6 +275,7 @@ public class SocketManager implements Listener {
         }
         updateItemLore(meta, sigilData);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        meta.setEnchantmentGlintOverride(false);
         armor.setItemMeta(meta);
         return sigilToRemove;
     }
