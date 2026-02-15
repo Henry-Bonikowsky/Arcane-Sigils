@@ -253,7 +253,7 @@ sandstorm:
       params:
         mark_name: PHARAOH_MARK
         duration: 5
-        target: '@NearbyEntities:{radius}'
+        target: '@NearbyEnemies:{radius}'
       next: slowness
     - id: slowness
       type: EFFECT
@@ -265,7 +265,7 @@ sandstorm:
         operation: MULTIPLY_SCALAR_1
         value: -0.25
         duration: 5
-        target: '@NearbyEntities:{radius}'
+        target: '@NearbyEnemies:{radius}'
       next: glowing
     - id: glowing
       type: EFFECT
@@ -276,7 +276,7 @@ sandstorm:
         potion_type: GLOWING
         duration: 5
         amplifier: 0
-        target: '@NearbyEntities:{radius}'
+        target: '@NearbyEnemies:{radius}'
       next: msg
     - id: msg
       type: EFFECT
