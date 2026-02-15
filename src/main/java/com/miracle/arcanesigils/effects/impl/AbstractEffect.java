@@ -238,6 +238,46 @@ public abstract class AbstractEffect implements Effect {
     }
 
     /**
+     * Get nearby allies (faction members/allies) within a radius.
+     * Falls back to all nearby entities if Factions is not available.
+     */
+    protected List<LivingEntity> getNearbyAllies(EffectContext context, double radius) {
+        List<LivingEntity> nearby = getNearbyEntities(context, radius);
+        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+            return nearby;
+        }
+        Player player = context.getPlayer();
+        return nearby.stream()
+            .filter(entity -> {
+                if (entity instanceof Player target) {
+                    return com.miracle.arcanesigils.hooks.FactionsHook.isAlly(player, target);
+                }
+                return false;
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Get nearby enemies within a radius.
+     * Falls back to all nearby entities if Factions is not available.
+     */
+    protected List<LivingEntity> getNearbyEnemies(EffectContext context, double radius) {
+        List<LivingEntity> nearby = getNearbyEntities(context, radius);
+        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+            return nearby;
+        }
+        Player player = context.getPlayer();
+        return nearby.stream()
+            .filter(entity -> {
+                if (entity instanceof Player target) {
+                    return com.miracle.arcanesigils.hooks.FactionsHook.isEnemy(player, target);
+                }
+                return true; // Non-players (mobs) count as enemies
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
      * Parse radius from @Nearby:X or @NearbyEntities:X target selector.
      */
     protected double parseNearbyRadius(String target, double defaultRadius) {
@@ -256,6 +296,24 @@ public abstract class AbstractEffect implements Effect {
         if (target.startsWith("@Nearby:")) {
             try {
                 return Double.parseDouble(target.substring(8));
+            } catch (NumberFormatException e) {
+                return defaultRadius;
+            }
+        }
+
+        // Handle @NearbyAllies:X format
+        if (target.startsWith("@NearbyAllies:")) {
+            try {
+                return Double.parseDouble(target.substring(14));
+            } catch (NumberFormatException e) {
+                return defaultRadius;
+            }
+        }
+
+        // Handle @NearbyEnemies:X format
+        if (target.startsWith("@NearbyEnemies:")) {
+            try {
+                return Double.parseDouble(target.substring(15));
             } catch (NumberFormatException e) {
                 return defaultRadius;
             }

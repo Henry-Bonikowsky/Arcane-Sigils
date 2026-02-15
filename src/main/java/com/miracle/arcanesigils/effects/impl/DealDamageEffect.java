@@ -4,6 +4,8 @@ import com.miracle.arcanesigils.effects.EffectContext;
 import org.bukkit.Location;
 import org.bukkit.entity.LivingEntity;
 
+import java.util.List;
+
 public class DealDamageEffect extends AbstractEffect {
 
     public DealDamageEffect() {
@@ -17,11 +19,22 @@ public class DealDamageEffect extends AbstractEffect {
 
         String targetSpec = context.getParams() != null ? context.getParams().getTarget() : "@Victim";
 
-        // Check if @Nearby:X format is specified (e.g., @Nearby:10)
-        if (targetSpec != null && targetSpec.startsWith("@Nearby:")) {
+        // Check if @Nearby target is specified (e.g., @Nearby:10, @NearbyAllies:10, @NearbyEnemies:10)
+        if (targetSpec != null && targetSpec.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetSpec);
             if (radius > 0) {
-                damageEntitiesInRadius(context, radius, damage);
+                java.util.List<LivingEntity> nearbyEntities;
+                if (targetSpec.startsWith("@NearbyAllies")) {
+                    nearbyEntities = getNearbyAllies(context, radius);
+                } else if (targetSpec.startsWith("@NearbyEnemies")) {
+                    nearbyEntities = getNearbyEnemies(context, radius);
+                } else {
+                    nearbyEntities = getNearbyEntities(context, radius);
+                }
+                for (LivingEntity entity : nearbyEntities) {
+                    entity.damage(damage, context.getPlayer());
+                }
+                debug("Dealt " + damage + " damage to " + nearbyEntities.size() + " entities within " + radius + " blocks");
                 return true;
             }
         }
@@ -51,6 +64,20 @@ public class DealDamageEffect extends AbstractEffect {
     }
 
     private double parseNearbyRadius(String targetSpec) {
+        if (targetSpec.startsWith("@NearbyAllies:")) {
+            try {
+                return Double.parseDouble(targetSpec.substring(14));
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
+        if (targetSpec.startsWith("@NearbyEnemies:")) {
+            try {
+                return Double.parseDouble(targetSpec.substring(15));
+            } catch (NumberFormatException e) {
+                return 0;
+            }
+        }
         // Parse format: @Nearby:10
         if (targetSpec.startsWith("@Nearby:")) {
             try {

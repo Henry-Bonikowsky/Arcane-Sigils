@@ -5,6 +5,8 @@ import com.miracle.arcanesigils.effects.EffectParams;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.LivingEntity;
+
+import java.util.List;
 import org.bukkit.entity.Player;
 
 /**
@@ -88,9 +90,17 @@ public class MarkEffect extends AbstractEffect {
 
         // Handle @Nearby targets
         String targetStr = params.getTarget();
-        if (targetStr != null && (targetStr.startsWith("@Nearby") || targetStr.startsWith("@NearbyEntities"))) {
+        if (targetStr != null && targetStr.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetStr, 5);
-            for (LivingEntity entity : getNearbyEntities(context, radius)) {
+            List<LivingEntity> nearbyEntities;
+            if (targetStr.startsWith("@NearbyAllies")) {
+                nearbyEntities = getNearbyAllies(context, radius);
+            } else if (targetStr.startsWith("@NearbyEnemies")) {
+                nearbyEntities = getNearbyEnemies(context, radius);
+            } else {
+                nearbyEntities = getNearbyEntities(context, radius);
+            }
+            for (LivingEntity entity : nearbyEntities) {
                 getPlugin().getMarkManager().applyMark(entity, markName, duration, behaviorId, owner);
             }
             debug("Applied mark " + markName + " to nearby entities for " + duration + "s" +

@@ -88,8 +88,16 @@ public class ModifyAttributeEffect extends AbstractEffect {
         String targetStr = params.getTarget();
         if (targetStr != null && targetStr.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetStr, 5);
+            java.util.List<LivingEntity> nearbyEntities;
+            if (targetStr.startsWith("@NearbyAllies")) {
+                nearbyEntities = getNearbyAllies(context, radius);
+            } else if (targetStr.startsWith("@NearbyEnemies")) {
+                nearbyEntities = getNearbyEnemies(context, radius);
+            } else {
+                nearbyEntities = getNearbyEntities(context, radius);
+            }
             boolean anySuccess = false;
-            for (LivingEntity entity : getNearbyEntities(context, radius)) {
+            for (LivingEntity entity : nearbyEntities) {
                 if (applyToTarget(entity, params, context)) {
                     anySuccess = true;
                 }

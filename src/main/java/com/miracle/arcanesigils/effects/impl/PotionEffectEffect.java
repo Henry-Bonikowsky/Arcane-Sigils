@@ -90,7 +90,15 @@ public class PotionEffectEffect extends AbstractEffect {
         // Handle @Nearby targets
         if (targetStr != null && targetStr.startsWith("@Nearby")) {
             double radius = parseNearbyRadius(targetStr, 5);
-            for (LivingEntity entity : getNearbyEntities(context, radius)) {
+            java.util.List<LivingEntity> nearbyEntities;
+            if (targetStr.startsWith("@NearbyAllies")) {
+                nearbyEntities = getNearbyAllies(context, radius);
+            } else if (targetStr.startsWith("@NearbyEnemies")) {
+                nearbyEntities = getNearbyEnemies(context, radius);
+            } else {
+                nearbyEntities = getNearbyEntities(context, radius);
+            }
+            for (LivingEntity entity : nearbyEntities) {
                 // Use force=true to ensure effect is always applied/refreshed
                 entity.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true), true);
             }
