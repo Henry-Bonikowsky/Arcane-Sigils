@@ -240,7 +240,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
                 String exclusive = s.isExclusive() ? " §6[Exclusive]" : "";
                 sender.sendMessage(TextUtil.colorize("§7- §f" + s.getName() + " §7T" + s.getTier() + exclusive));
             }
-        } else if (plugin.getSocketManager().isSocketable(item.getType())) {
+        } else if (plugin.getSocketManager().isSocketable(item)) {
             sender.sendMessage(TextUtil.colorize("§7This item has no socketed sigils."));
         } else {
             sender.sendMessage(TextUtil.colorize("§7No Arcane Sigils data on this item."));
@@ -264,7 +264,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         }
 
         ItemStack item = p.getInventory().getItemInMainHand();
-        if (!plugin.getSocketManager().isSocketable(item.getType())) {
+        if (!plugin.getSocketManager().isSocketable(item)) {
             sender.sendMessage(TextUtil.colorize("§cHold an item (armor, tool, or weapon) to socket!"));
             return;
         }
@@ -352,7 +352,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
 
         // Also check held items
         ItemStack mainHand = p.getInventory().getItemInMainHand();
-        if (!mainHand.getType().isAir() && plugin.getSocketManager().isSocketable(mainHand.getType())) {
+        if (!mainHand.getType().isAir() && plugin.getSocketManager().isSocketable(mainHand)) {
             List<Sigil> heldSigils = plugin.getSocketManager().getSocketedSigils(mainHand);
             if (!heldSigils.isEmpty()) {
                 foundAny = true;

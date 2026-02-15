@@ -706,8 +706,8 @@ public class SignalHandler implements Listener {
         // Check main hand item for socketed sigils
         ItemStack mainHand = player.getInventory().getItemInMainHand();
         if (!mainHand.getType().isAir()
-                && plugin.getSocketManager().isSocketable(mainHand.getType())
-                && !plugin.getSocketManager().isArmor(mainHand.getType())) {
+                && plugin.getSocketManager().isSocketable(mainHand)
+                && !plugin.getSocketManager().isArmor(mainHand)) {
             List<Sigil> heldSigils = plugin.getSocketManager().getSocketedSigils(mainHand);
             for (Sigil sigil : heldSigils) {
                 collectFlowsForSignal(sigil, signalType, mainHand, allFlows);
@@ -717,8 +717,8 @@ public class SignalHandler implements Listener {
         // Check off-hand item
         ItemStack offHand = player.getInventory().getItemInOffHand();
         if (!offHand.getType().isAir()
-                && plugin.getSocketManager().isSocketable(offHand.getType())
-                && !plugin.getSocketManager().isArmor(offHand.getType())) {
+                && plugin.getSocketManager().isSocketable(offHand)
+                && !plugin.getSocketManager().isArmor(offHand)) {
             List<Sigil> offHandSigils = plugin.getSocketManager().getSocketedSigils(offHand);
             for (Sigil sigil : offHandSigils) {
                 collectFlowsForSignal(sigil, signalType, offHand, allFlows);

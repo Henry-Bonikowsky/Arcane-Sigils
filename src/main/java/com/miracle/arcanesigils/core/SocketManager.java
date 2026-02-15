@@ -78,9 +78,9 @@ public class SocketManager implements Listener {
         if (socketable.contains("tool") || socketable.contains("weapon") ||
             socketable.contains("axe") || socketable.contains("sword") || socketable.contains("bow")) {
             ItemStack offHand = player.getInventory().getItemInOffHand();
-            if (offHand != null && !offHand.getType().isAir() && isSocketable(offHand.getType())) {
+            if (offHand != null && !offHand.getType().isAir() && isSocketable(offHand)) {
                 // Use the unified canSigilSocketInto method for consistency
-                if (canSigilSocketInto(sigil, offHand.getType())) {
+                if (canSigilSocketInto(sigil, offHand)) {
                     targetItem = offHand;
                     isOffHandTarget = true;
                 }
@@ -142,7 +142,7 @@ public class SocketManager implements Listener {
 
         // Check if cursor has sigil and clicked is socketable item
         if (cursor != null && !cursor.getType().isAir() && plugin.getSigilManager().isSigilItem(cursor)) {
-            if (clicked != null && !clicked.getType().isAir() && isSocketable(clicked.getType())) {
+            if (clicked != null && !clicked.getType().isAir() && isSocketable(clicked)) {
                 Sigil sigil = plugin.getSigilManager().getSigilFromItem(cursor);
                 if (sigil == null) return;
 
@@ -180,10 +180,10 @@ public class SocketManager implements Listener {
 
     public SocketResult socketSigil(Player player, ItemStack item, Sigil sigil) {
         if (item == null || item.getType().isAir()) return SocketResult.INVALID_ITEM;
-        if (!isSocketable(item.getType())) return SocketResult.INVALID_ITEM;
+        if (!isSocketable(item)) return SocketResult.INVALID_ITEM;
 
         // Check if sigil can be socketed into this item type
-        if (!canSigilSocketInto(sigil, item.getType())) {
+        if (!canSigilSocketInto(sigil, item)) {
             return SocketResult.WRONG_SLOT;
         }
 
@@ -688,6 +688,61 @@ public class SocketManager implements Listener {
         }
 
         return false;
+    }
+
+    // --- ItemStack-based overloads for custom item support (e.g., ItemsAdder hats) ---
+
+    public boolean isArmor(ItemStack item) {
+        if (item == null) return false;
+        if (isArmor(item.getType())) return true;
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && meta.hasEquippable()) {
+            EquipmentSlot slot = meta.getEquippable().getSlot();
+            return slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST
+                || slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET;
+        }
+        return false;
+    }
+
+    public String getArmorSlot(ItemStack item) {
+        if (item == null) return "UNKNOWN";
+        String materialSlot = getArmorSlot(item.getType());
+        if (!materialSlot.equals("UNKNOWN")) return materialSlot;
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && meta.hasEquippable()) {
+            EquipmentSlot slot = meta.getEquippable().getSlot();
+            return switch (slot) {
+                case HEAD -> "HELMET";
+                case CHEST -> "CHESTPLATE";
+                case LEGS -> "LEGGINGS";
+                case FEET -> "BOOTS";
+                default -> "UNKNOWN";
+            };
+        }
+        return "UNKNOWN";
+    }
+
+    public boolean isSocketable(ItemStack item) {
+        if (item == null) return false;
+        if (isSocketable(item.getType())) return true;
+        return isArmor(item);
+    }
+
+    public String getItemType(ItemStack item) {
+        if (item == null) return "unknown";
+        String materialType = getItemType(item.getType());
+        if (!materialType.equals("unknown")) return materialType;
+        if (isArmor(item)) return getArmorSlot(item).toLowerCase();
+        return "unknown";
+    }
+
+    public boolean canSigilSocketInto(Sigil sigil, ItemStack item) {
+        if (sigil == null || item == null) return false;
+        if (!getItemType(item.getType()).equals("unknown")) {
+            return canSigilSocketInto(sigil, item.getType());
+        }
+        String itemType = getItemType(item);
+        return sigil.getSocketables().contains(itemType);
     }
 
     private void handleSocketResult(Player player, SocketResult result, Sigil sigil) {

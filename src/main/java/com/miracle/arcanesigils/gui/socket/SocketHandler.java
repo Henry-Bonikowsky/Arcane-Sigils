@@ -64,7 +64,7 @@ public class SocketHandler extends AbstractHandler {
                     if (currentInSlot == null || currentInSlot.getType().isAir()) {
                         targetSlot = SIGIL_SLOT;
                     }
-                } else if (plugin.getSocketManager().isSocketable(clickedItem.getType())) {
+                } else if (plugin.getSocketManager().isSocketable(clickedItem)) {
                     // It's equipment - put in ITEM_SLOT if empty
                     ItemStack currentInSlot = inv.getItem(ITEM_SLOT);
                     if (currentInSlot == null || currentInSlot.getType().isAir()) {
@@ -141,7 +141,7 @@ public class SocketHandler extends AbstractHandler {
 
                 // Validate equipment is socketable
                 SocketManager socketManager = plugin.getSocketManager();
-                if (!socketManager.isSocketable(equipmentItem.getType())) {
+                if (!socketManager.isSocketable(equipmentItem)) {
                     player.sendMessage(TextUtil.colorize("§cThat item cannot have sigils socketed!"));
                     playSound(player, "error");
                     return;
@@ -249,12 +249,12 @@ public class SocketHandler extends AbstractHandler {
         if (hasEquipment && hasSigil) {
             // Both items present - enable confirm
             boolean isValidSigil = plugin.getSigilManager().isSigilItem(sigilItem);
-            boolean isSocketable = plugin.getSocketManager().isSocketable(equipmentItem.getType());
+            boolean isSocketable = plugin.getSocketManager().isSocketable(equipmentItem);
 
             if (isValidSigil && isSocketable) {
                 Sigil sigil = plugin.getSigilManager().getSigilFromItem(sigilItem);
 
-                if (sigil != null && plugin.getSocketManager().canSigilSocketInto(sigil, equipmentItem.getType())) {
+                if (sigil != null && plugin.getSocketManager().canSigilSocketInto(sigil, equipmentItem)) {
                     inv.setItem(CONFIRM_SLOT, ItemBuilder.createItem(
                         Material.LIME_DYE,
                         "§a✓ Confirm",

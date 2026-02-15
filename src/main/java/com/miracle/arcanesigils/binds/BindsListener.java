@@ -674,7 +674,7 @@ public class BindsListener implements Listener {
             ItemStack item = player.getInventory().getItem(i);
             if (item == null || item.getType().isAir()) continue;
 
-            if (!plugin.getSocketManager().isSocketable(item.getType())) continue;
+            if (!plugin.getSocketManager().isSocketable(item)) continue;
 
             List<Sigil> sigils = plugin.getSocketManager().getSocketedSigils(item);
             for (Sigil sigil : sigils) {
@@ -686,7 +686,7 @@ public class BindsListener implements Listener {
 
         // Also check off-hand
         ItemStack offHand = player.getInventory().getItemInOffHand();
-        if (offHand != null && !offHand.getType().isAir() && plugin.getSocketManager().isSocketable(offHand.getType())) {
+        if (offHand != null && !offHand.getType().isAir() && plugin.getSocketManager().isSocketable(offHand)) {
             List<Sigil> sigils = plugin.getSocketManager().getSocketedSigils(offHand);
             for (Sigil sigil : sigils) {
                 if (sigil.getId().equalsIgnoreCase(sigilId)) {
