@@ -17,8 +17,8 @@ ancient_crown:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: HELMET
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3001
@@ -110,8 +110,8 @@ kings_brace:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CHESTPLATE
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3002
@@ -226,8 +226,8 @@ cleopatra:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: LEGGINGS
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3003

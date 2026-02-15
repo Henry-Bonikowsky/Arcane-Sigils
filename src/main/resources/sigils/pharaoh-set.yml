@@ -17,8 +17,8 @@ pharaoh_curse:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: HELMET
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1001
@@ -128,8 +128,8 @@ sandstorm:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1002
@@ -304,8 +304,8 @@ royal_bolster:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1003
@@ -484,8 +484,8 @@ quick_sand:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1006
@@ -771,8 +771,8 @@ rulers_hand:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: SWORD
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1004
@@ -935,8 +935,8 @@ royal_guard:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: AXE
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1005
@@ -1183,8 +1183,8 @@ ancient_break:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: PICKAXE
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1007
@@ -1279,8 +1279,8 @@ ras_blessing:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: SHOVEL
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1008
@@ -1374,8 +1374,8 @@ kings_jewel:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: FISHING_ROD
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1009
@@ -1497,8 +1497,8 @@ horus_arrow:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: BOW
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1010
@@ -1599,8 +1599,8 @@ cursed_pillar:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CROSSBOW
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
+  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
+  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1011
