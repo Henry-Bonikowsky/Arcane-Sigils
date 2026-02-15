@@ -67,14 +67,6 @@ public class VanillaImmunityModule extends AbstractCombatModule implements Liste
         if (noDamageTicks > maxNoDamageTicks / 2) {
             event.setCancelled(true);
             
-            // Notify sound filter if this was a player attack
-            if (event instanceof EntityDamageByEntityEvent byEntityEvent) {
-                Player attacker = getAttacker(byEntityEvent);
-                if (attacker != null) {
-                    notifyHitCancelled(attacker, victim);
-                }
-            }
-            
             // DEBUG
             if (victim instanceof Player p) {
                 plugin.getLogger().info(String.format("[VanillaImmunity] Blocked hit on %s (immune: %d/%d)",
@@ -118,7 +110,7 @@ public class VanillaImmunityModule extends AbstractCombatModule implements Liste
             ModuleParam.builder("immunity-ticks")
                 .displayName("Immunity Duration")
                 .description("Ticks of immunity after taking damage (10 = 0.5s, 20 = 1s)")
-                .intValue(config::getVanillaImmunityTicks, config::setVanillaImmunityTicks)
+                .intValue(config::getDamageImmunityTicks, config::setDamageImmunityTicks)
                 .range(0, 20)
                 .step(1)
                 .build()

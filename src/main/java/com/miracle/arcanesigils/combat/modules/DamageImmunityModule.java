@@ -181,13 +181,6 @@ public class DamageImmunityModule extends AbstractCombatModule implements Listen
                 victim.setMaximumNoDamageTicks(immunityTicks);
                 
                 
-                // Notify sound filter to block hit sound
-                if (event instanceof org.bukkit.event.entity.EntityDamageByEntityEvent byEntityEvent) {
-                    org.bukkit.entity.Player attacker = getAttacker(byEntityEvent);
-                    if (attacker != null) {
-                        notifyHitCancelled(attacker, victim);
-                    }
-                }
                 event.setCancelled(true);
                 return;
             } else {
