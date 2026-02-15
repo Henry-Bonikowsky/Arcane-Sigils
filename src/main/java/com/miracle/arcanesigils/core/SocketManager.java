@@ -35,6 +35,22 @@ public class SocketManager implements Listener {
     // Roman numerals for display
     private static final String[] ROMAN_NUMERALS = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
 
+    // Enchantment display order per item type
+    private static final Map<Enchantment, Integer> SWORD_ENCHANT_ORDER = Map.of(
+        Enchantment.SHARPNESS, 0,
+        Enchantment.FIRE_ASPECT, 1,
+        Enchantment.LOOTING, 2,
+        Enchantment.UNBREAKING, 3
+    );
+
+    private static final Map<Enchantment, Integer> ARMOR_ENCHANT_ORDER = Map.of(
+        Enchantment.PROTECTION, 0,
+        Enchantment.FIRE_PROTECTION, 1,
+        Enchantment.PROJECTILE_PROTECTION, 2,
+        Enchantment.UNBREAKING, 3
+    );
+
+
     public SocketManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         this.SOCKETED_SIGILS_KEY = new NamespacedKey(plugin, "socketed_sigils");
@@ -191,7 +207,7 @@ public class SocketManager implements Listener {
         String sigilData = String.join(",", currentSigils);
         meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, sigilData);
 
-        updateItemLore(meta, currentSigils);
+        updateItemLore(meta, currentSigils, item.getType());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         meta.setEnchantmentGlintOverride(false);
         item.setItemMeta(meta);
@@ -233,7 +249,7 @@ public class SocketManager implements Listener {
         } else {
             meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, String.join(",", sigilData));
         }
-        updateItemLore(meta, sigilData);
+        updateItemLore(meta, sigilData, armor.getType());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         meta.setEnchantmentGlintOverride(false);
         armor.setItemMeta(meta);
@@ -273,7 +289,7 @@ public class SocketManager implements Listener {
         } else {
             meta.getPersistentDataContainer().set(SOCKETED_SIGILS_KEY, PersistentDataType.STRING, String.join(",", sigilData));
         }
-        updateItemLore(meta, sigilData);
+        updateItemLore(meta, sigilData, armor.getType());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         meta.setEnchantmentGlintOverride(false);
         armor.setItemMeta(meta);
@@ -319,7 +335,7 @@ public class SocketManager implements Listener {
         return !getSocketedSigilData(armor).isEmpty();
     }
 
-    private void updateItemLore(ItemMeta meta, List<String> sigilIds) {
+    private void updateItemLore(ItemMeta meta, List<String> sigilIds, Material material) {
         List<Component> sigilLore = new ArrayList<>();
         List<Component> enchantLore = new ArrayList<>();
         List<Component> otherLore = new ArrayList<>();
@@ -415,14 +431,23 @@ public class SocketManager implements Listener {
             sigilLore.add(TextUtil.parseComponent(rarityColor + "➤ " + baseName + " " + tierFormat));
         }
 
-        // Build enchantment lore from item's actual enchantments
+        // Build enchantment lore from item's actual enchantments (custom order)
         if (meta.hasEnchants()) {
-            for (var entry : meta.getEnchants().entrySet()) {
+            List<Map.Entry<Enchantment, Integer>> sortedEnchants = new ArrayList<>(meta.getEnchants().entrySet());
+            Map<Enchantment, Integer> orderMap = isSword(material) ? SWORD_ENCHANT_ORDER : ARMOR_ENCHANT_ORDER;
+
+            sortedEnchants.sort((a, b) -> {
+                int orderA = orderMap.getOrDefault(a.getKey(), 100);
+                int orderB = orderMap.getOrDefault(b.getKey(), 100);
+                if (orderA != orderB) return Integer.compare(orderA, orderB);
+                return a.getKey().getKey().getKey().compareTo(b.getKey().getKey().getKey());
+            });
+
+            for (var entry : sortedEnchants) {
                 Enchantment enchant = entry.getKey();
                 int level = entry.getValue();
                 String enchantName = formatEnchantmentName(enchant);
                 String roman = toRomanNumeral(level);
-                // Format: §8➤ §7<name> §b<tier> (dark gray prefix, light gray name, blue level)
                 enchantLore.add(TextUtil.parseComponent("§8➤ §7" + enchantName + " §b" + roman));
             }
             // Hide vanilla enchantment display
@@ -678,8 +703,8 @@ public class SocketManager implements Listener {
      * Public wrapper to update item lore with sigil entries.
      * Used by effects like DECREASE_SIGIL_TIER that modify sigil data directly.
      */
-    public void updateItemLorePublic(ItemMeta meta, List<String> sigilIds) {
-        updateItemLore(meta, sigilIds);
+    public void updateItemLorePublic(ItemMeta meta, List<String> sigilIds, Material material) {
+        updateItemLore(meta, sigilIds, material);
     }
 
     /**
@@ -724,7 +749,7 @@ public class SocketManager implements Listener {
         if (sigilData.isEmpty()) return;
 
         ItemMeta meta = armor.getItemMeta();
-        updateItemLore(meta, sigilData);
+        updateItemLore(meta, sigilData, armor.getType());
         armor.setItemMeta(meta);
     }
 
@@ -804,7 +829,7 @@ public class SocketManager implements Listener {
         }
 
         ItemMeta meta = item.getItemMeta();
-        updateItemLore(meta, sigilData);
+        updateItemLore(meta, sigilData, item.getType());
         item.setItemMeta(meta);
         return true;
     }

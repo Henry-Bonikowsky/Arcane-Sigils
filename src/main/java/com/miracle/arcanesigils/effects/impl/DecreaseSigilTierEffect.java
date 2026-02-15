@@ -3,6 +3,7 @@ package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -106,7 +107,7 @@ public class DecreaseSigilTierEffect extends AbstractEffect {
         }
 
         // Update lore
-        plugin.getSocketManager().updateItemLorePublic(meta, sigilEntries);
+        plugin.getSocketManager().updateItemLorePublic(meta, sigilEntries, sourceItem.getType());
         sourceItem.setItemMeta(meta);
 
         // Visual effects
