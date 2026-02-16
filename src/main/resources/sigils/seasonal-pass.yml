@@ -161,22 +161,96 @@ kings_brace:
             sigilId: kings_brace
             slot: CHESTPLATE
             duration: -1
-          next: update_dr
-        - id: update_dr
-          type: EFFECT
-          effect: UPDATE_CHARGE_DR
+          next: check_100
+        # Check if we just hit exactly 100 charges
+        - id: check_100
+          type: CONDITION
           x: 0
           y: 2
+          condition: "{sigil.charge} == 100"
+          connections:
+            'yes': msg_100_charges
+            'no': update_dr
+        # Send notification when reaching 100 charges
+        - id: msg_100_charges
+          type: EFFECT
+          effect: MESSAGE
+          x: 1
+          y: 2
           params:
-            modifier_name: kings_brace_dr
-            sigilId: kings_brace
-            slot: CHESTPLATE
-            charge_dr_percent: "{charge_dr_percent}"
+            type: CHAT
+            message: "&5&lKing's Brace! &a100 charges reached! &7Ability is ready!"
+            target: "@Self"
+          next: sound_100
+        - id: sound_100
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 3
+          params:
+            sound: BLOCK_NOTE_BLOCK_CHIME
+            volume: 1.0
+            pitch: 1.5
+          next: calc_dr_percent
+
+        # Calculate DR percent: charge * charge_dr_percent * 100
+        - id: calc_dr_percent
+          type: VARIABLE
+          x: 0
+          y: 4
+          params:
+            scope: TEMP
+            operation: SET
+            name: dr_percent
+            value: "{sigil.charge} * {charge_dr_percent} * 100"
+          next: apply_universal_dr
+
+        # Apply universal damage reduction mark
+        - id: apply_universal_dr
+          type: EFFECT
+          effect: APPLY_UNIVERSAL_MARK
+          x: 0
+          y: 5
+          params:
+            mark_type: DAMAGE_REDUCTION
+            sigil_id: kings_brace
+            percent: "{temp.dr_percent}"
+            duration: -1  # Permanent until next update
+            target: "@Self"
+          next: proc_visual
+
+        # Visual feedback when DR procs
+        - id: proc_visual
+          type: EFFECT
+          effect: PARTICLE
+          x: 0
+          y: 6
+          params:
+            particle: SHIELD
+            count: 10
+            offset_x: 0.5
+            offset_y: 1.0
+            offset_z: 0.5
+            target: "@Self"
+          next: proc_sound
+
+        # Audio feedback when DR procs
+        - id: proc_sound
+          type: EFFECT
+          effect: SOUND
+          x: 0
+          y: 7
+          params:
+            sound: BLOCK_ANVIL_LAND
+            volume: 0.5
+            pitch: 1.5
+            target: "@Self"
           next: end
+
         - id: end
           type: END
           x: 0
-          y: 3
+          y: 8
 
     # Flow 2: ABILITY - Charge Consumption and Burst
     - type: ABILITY
@@ -299,10 +373,10 @@ kings_brace:
 cleopatra:
   name: "<gradient:#9400D3:#4B0082>Cleopatra</gradient>"
   description:
-    - "&7Activate to suppress your target:"
+    - "&7Activate to strip your target:"
     - "&7Remove all defensive buffs"
     - "&7Target takes &c+2.5-20% damage"
-    - "&7for 2-5 seconds"
+    - "&7for {suppression_duration}s"
   rarity: MYTHIC
   exclusive: true
   exclusive_type: LEGGINGS
@@ -354,37 +428,28 @@ cleopatra:
           x: 0
           y: 1
           params:
-            target: "@Target"
-          next: apply_suppression
+            target: "@Victim"
+          next: apply_universal_mark
 
-        # Apply suppression (blocks buff re-application)
-        - id: apply_suppression
+        # Apply universal damage amplification mark
+        - id: apply_universal_mark
           type: EFFECT
-          effect: APPLY_SUPPRESSION
-          x: 0
-          y: 2
-          params:
-            duration: "{suppression_duration}"
-            target: "@Target"
-          next: damage_amplification
-
-        # Make target take more damage
-        - id: damage_amplification
-          type: EFFECT
-          effect: DAMAGE_AMPLIFICATION
+          effect: APPLY_UNIVERSAL_MARK
           x: 0
           y: 3
           params:
-            amplification_percent: "{damage_amp_percent}"
+            mark_type: DAMAGE_AMPLIFICATION
+            sigil_id: cleopatra
+            percent: "{damage_amp_percent}"
             duration: "{suppression_duration}"
-            target: "@Target"
+            target: "@Victim"
           next: sound
 
         - id: sound
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 4
+          y: 5
           params:
             sound: ENTITY_ILLUSIONER_CAST_SPELL
             volume: 1.0
@@ -395,10 +460,10 @@ cleopatra:
           type: EFFECT
           effect: MESSAGE
           x: 0
-          y: 5
+          y: 6
           params:
             type: CHAT
-            message: "&5&lCleopatra! &7Target suppressed for {suppression_duration}s!"
+            message: "&5&lCleopatra! &7Buffs stripped!"
             target: "@Self"
           next: end
 
@@ -501,6 +566,59 @@ divine_intervention:
           x: 1
           y: 5
 
+    # Flow 2: ATTACK - Blockhit proc (blocking while attacking)
+    - type: SIGNAL
+      trigger: ATTACK
+      chance: "{chance}"
+      cooldown: "{cooldown}"
+      startNodeId: attack_start
+      nodes:
+        - id: attack_start
+          type: START
+          x: 0
+          y: 0
+          next: attack_check_blocking
+        - id: attack_check_blocking
+          type: CONDITION
+          condition: IS_BLOCKING_SWORD
+          x: 0
+          y: 1
+          connections:
+            'yes': attack_invuln
+            'no': attack_end
+        - id: attack_invuln
+          type: EFFECT
+          effect: INVULNERABILITY_HITS
+          x: 1
+          y: 2
+          params:
+            hits: 3
+          next: attack_sound_activate
+        - id: attack_sound_activate
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 3
+          params:
+            sound: BLOCK_BEACON_ACTIVATE
+            volume: 1.5
+            pitch: 1.8
+          next: attack_sound_anvil
+        - id: attack_sound_anvil
+          type: EFFECT
+          effect: SOUND
+          x: 1
+          y: 4
+          params:
+            sound: BLOCK_ANVIL_LAND
+            volume: 0.8
+            pitch: 2.0
+          next: attack_end
+        - id: attack_end
+          type: END
+          x: 1
+          y: 5
+
 # ============================================
 # NILE'S GRACE - Axe (Exclusive)
 # ============================================
@@ -595,8 +713,8 @@ niles_grace:
             duration: "{duration}"
             amplifier: 2
             target: "@NearbyEntities:10"
-          next: burst_particles
-        - id: burst_particles
+          next: pulse_particles
+        - id: pulse_particles
           type: EFFECT
           effect: PARTICLE
           x: 0
@@ -604,39 +722,34 @@ niles_grace:
           params:
             particle_type: FALLING_DUST
             material: GOLD_BLOCK
-            count: 100
-            shape: burst
-            waves: 2
+            shape: pulse
+            waves: 5
             start_radius: 0.5
             end_radius: 10
-            wave_delay: 10
-            y_offset: 1.5
-          next: burst_red_sand
-        - id: burst_red_sand
+            wave_delay: 4
+            fade: true
+            pulse_shape: sphere
+            points: 80
+            y_offset: 1.0
+          next: pulse_red_sand
+        - id: pulse_red_sand
           type: EFFECT
           effect: PARTICLE
-          x: 0
-          y: 6
+          x: 1
+          y: 5
           params:
             particle_type: FALLING_DUST
             material: RED_SAND
-            count: 100
-            shape: burst
-            waves: 2
-            start_radius: 0.5
+            shape: pulse
+            waves: 5
+            start_radius: 0.8
             end_radius: 10
-            wave_delay: 10
-            y_offset: 1.5
-          next: sound_heal
-        - id: sound_heal
-          type: EFFECT
-          effect: SOUND
-          x: 0
-          y: 7
-          params:
-            sound: ENTITY_PLAYER_LEVELUP
-            volume: 1.5
-            pitch: 1.2
+            wave_delay: 4
+            delay: 2
+            fade: true
+            pulse_shape: sphere
+            points: 60
+            y_offset: 1.0
           next: sound_beacon
         - id: sound_beacon
           type: EFFECT

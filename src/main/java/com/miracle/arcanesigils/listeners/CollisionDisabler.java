@@ -3,64 +3,62 @@ package com.miracle.arcanesigils.listeners;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 /**
- * Disables player collision globally using the modern setCollidable API.
- * This is cleaner and doesn't conflict with scoreboards or other plugins.
+ * Disables player collision globally using a scoreboard Team with COLLISION_RULE set to NEVER.
+ * All players are added to the same team on the main scoreboard.
+ * Collision is evaluated server-side using the main scoreboard regardless of player display scoreboards.
  */
 public class CollisionDisabler implements Listener {
 
-    private final Plugin plugin;
+    private static final String TEAM_NAME = "as_nocollide";
+    private Team noCollisionTeam;
 
-    public CollisionDisabler(Plugin plugin) {
-        this.plugin = plugin;
+    public CollisionDisabler() {
+        setupTeam();
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    private void setupTeam() {
+        Scoreboard mainScoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+        noCollisionTeam = mainScoreboard.getTeam(TEAM_NAME);
+
+        if (noCollisionTeam == null) {
+            noCollisionTeam = mainScoreboard.registerNewTeam(TEAM_NAME);
+        }
+        noCollisionTeam.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
+    }
+
+    @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        disableCollision(player);
+        addToTeam(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onPlayerQuit(PlayerQuitEvent event) {
-        // Re-enable on quit for cleanup (optional)
-        Player player = event.getPlayer();
-        player.setCollidable(true);
-    }
-
-    /**
-     * Disable collision for a specific player
-     */
-    private void disableCollision(Player player) {
-        player.setCollidable(false);
-        plugin.getLogger().info("[CollisionDisabler] Disabled collision for " + player.getName());
+    private void addToTeam(Player player) {
+        if (noCollisionTeam != null && !noCollisionTeam.hasEntry(player.getName())) {
+            noCollisionTeam.addEntry(player.getName());
+        }
     }
 
     /**
-     * Disable collision for all currently online players
+     * Add all currently online players to the no-collision team
      */
     public void disableForAll() {
-        int count = 0;
+        if (noCollisionTeam == null) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.setCollidable(false);
-            count++;
+            if (!noCollisionTeam.hasEntry(player.getName())) {
+                noCollisionTeam.addEntry(player.getName());
+            }
         }
-        plugin.getLogger().info("[CollisionDisabler] Disabled collision for " + count + " online players");
     }
 
     /**
-     * Clean up on shutdown (re-enable collision)
+     * Clean up on shutdown
      */
     public void shutdown() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            player.setCollidable(true);
-        }
-        plugin.getLogger().info("[CollisionDisabler] Re-enabled collision for all players");
+        // Team persists in scoreboard, no cleanup needed
     }
 }

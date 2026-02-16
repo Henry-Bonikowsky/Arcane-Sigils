@@ -221,6 +221,7 @@ public class FlowConfig {
         copy.trigger = this.trigger;
         copy.cooldown = this.cooldown;
         copy.chance = this.chance;
+        copy.priority = this.priority;
         copy.graph = this.graph != null ? this.graph.deepCopy() : null;
         return copy;
     }

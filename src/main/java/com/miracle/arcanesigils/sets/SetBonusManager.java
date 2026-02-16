@@ -3,7 +3,9 @@ package com.miracle.arcanesigils.sets;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.flow.FlowConfig;
+import com.miracle.arcanesigils.flow.FlowNode;
 import com.miracle.arcanesigils.flow.FlowSerializer;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -78,6 +80,16 @@ public class SetBonusManager {
             FlowConfig flow = null;
             if (flowSection != null) {
                 flow = FlowSerializer.deserializeFlowConfig(flowSection);
+                if (flow != null && flow.getGraph() != null) {
+                    FlowNode startNode = flow.getGraph().getStartNode();
+                    if (startNode != null) {
+                        String nextConn = startNode.getConnection("next");
+                        LogHelper.info("[SetBonus] Loaded flow for %s: START node 'next' -> %s",
+                            setKey, nextConn);
+                        LogHelper.info("[SetBonus] Flow has %d nodes",
+                            flow.getGraph().getNodes().size());
+                    }
+                }
             }
 
             // Load tier params
@@ -275,6 +287,14 @@ public class SetBonusManager {
             case 10 -> "X";
             default -> String.valueOf(tier);
         };
+    }
+
+    /**
+     * Reload all set bonuses from disk.
+     */
+    public void reload() {
+        loadedSets.clear();
+        loadSetBonuses();
     }
 
     /**

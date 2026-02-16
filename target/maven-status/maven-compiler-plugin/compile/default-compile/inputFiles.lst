@@ -23,6 +23,7 @@ C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\bin
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\gui\BindsGUIHelper.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\gui\BindsHotbarHandler.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\HeldSlotHotkey.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\LastVictimManager.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\PlayerBindData.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\TargetGlowManager.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\binds\ToggleHotkey.java
@@ -74,7 +75,9 @@ C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\eff
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\AbsorbtionEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\AbstractEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\AllureEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\ApplyDamageMarkEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\ApplySuppressionEffect.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\ApplyUniversalMarkEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\BleedingEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\CancelEventEffect.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\impl\ChangeSkinEffect.java
@@ -144,6 +147,18 @@ C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\eff
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\SkinChangeManager.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\SkinData.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\effects\StunManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\commands\EnchanterCommand.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\config\UpgradeCost.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\config\UpgradeCostConfig.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\EnchanterManager.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\BrowseAllSigilsHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\BrowseExclusiveSigilsHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\EnchanterMainHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\EquipmentSigilsHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\TierComparisonHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\gui\UpgradeScreenHandler.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\listeners\EnchanterBlockListener.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\enchanter\UpgradeTransaction.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\events\ConditionBuilder.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\events\ConditionCategory.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\events\ConditionManager.java
@@ -226,6 +241,7 @@ C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\int
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\ArmorChangeListener.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\CollisionDisabler.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\EnchantCapRemover.java
+C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\ItemCooldownListener.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\PotionDamageReductionListener.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\listeners\QuicksandKnockbackListener.java
 C:\Users\henry\Projects\Arcane Sigils\src\main\java\com\miracle\arcanesigils\menu\BuildMainMenuComponent.java

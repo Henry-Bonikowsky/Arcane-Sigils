@@ -18,7 +18,20 @@
       "Bash(python deploy.py deploy:*)",
       "Skill(using-superpowers)",
       "Skill(using-superpowers:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(\"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\" compile -q)",
+      "Bash(\"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\" clean package -DskipTests -q)",
+      "Bash(\"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\" clean package -DskipTests)",
+      "Bash(JAVA_HOME=\"/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.0.1.8-hotspot\" \"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\":*)",
+      "Bash(powershell -Command \"cd ''C:\\\\Users\\\\henry\\\\Projects\\\\Arcane Sigils''; $env:JAVA_HOME=''C:\\\\Users\\\\henry\\\\AppData\\\\Local\\\\Programs\\\\Eclipse Adoptium\\\\jdk-25.0.1.8-hotspot''; & ''C:\\\\Users\\\\henry\\\\.m2\\\\wrapper\\\\dists\\\\apache-maven-3.9.6-bin\\\\3311e1d4\\\\apache-maven-3.9.6\\\\bin\\\\mvn.cmd'' compile -q\")",
+      "Bash(JAVA_HOME=\"/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.0.1.8-hotspot\" \"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\" compile:*)",
+      "Bash(powershell -Command \"cd ''C:\\\\Users\\\\henry\\\\Projects\\\\Arcane Sigils''; $env:JAVA_HOME=''C:\\\\Users\\\\henry\\\\AppData\\\\Local\\\\Programs\\\\Eclipse Adoptium\\\\jdk-25.0.1.8-hotspot''; & ''C:\\\\Users\\\\henry\\\\.m2\\\\wrapper\\\\dists\\\\apache-maven-3.9.6-bin\\\\3311e1d4\\\\apache-maven-3.9.6\\\\bin\\\\mvn.cmd'' clean package -DskipTests -q\")",
+      "Bash(powershell -Command:*)",
+      "Bash(git restore:*)",
+      "Bash(export JAVA_HOME=\"/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.0.1.8-hotspot\")",
+      "Bash(\"/c/Users/henry/.m2/wrapper/dists/apache-maven-3.9.6-bin/3311e1d4/apache-maven-3.9.6/bin/mvn\" -f \"/c/Users/henry/Projects/Arcane Sigils/pom.xml\" clean package -DskipTests -q)",
+      "Bash(python host/deploy.py deploy:*)"
     ],
     "deny": []
   }

@@ -17,9 +17,6 @@ public class CooldownManager {
     // Map of player UUID -> ability ID -> expiry time
     private final Map<UUID, Map<String, Long>> cooldowns = new ConcurrentHashMap<>();
 
-    // Global cooldown tracking
-    private final Map<UUID, Long> globalCooldowns = new ConcurrentHashMap<>();
-
     public CooldownManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
     }
@@ -34,16 +31,6 @@ public class CooldownManager {
     public boolean isOnCooldown(Player player, String abilityId) {
         UUID uuid = player.getUniqueId();
 
-        // Check global cooldown first
-        Long globalExpiry = globalCooldowns.get(uuid);
-        if (globalExpiry != null && System.currentTimeMillis() < globalExpiry) {
-            long remaining = globalExpiry - System.currentTimeMillis();
-            com.miracle.arcanesigils.utils.LogHelper.debug("[Cooldown] Global cooldown active for %s: %.1fs remaining",
-                player.getName(), remaining / 1000.0);
-            return true;
-        }
-
-        // Check specific ability cooldown
         Map<String, Long> playerCooldowns = cooldowns.get(uuid);
         if (playerCooldowns == null) return false;
 
@@ -98,14 +85,6 @@ public class CooldownManager {
             cooldownNotifier.trackCooldown(player, abilityId, displayName,
                 System.currentTimeMillis() + (long)(cooldownSeconds * 1000));
         }
-
-        // Also set global cooldown
-        int globalCooldownTicks = plugin.getConfigManager().getMainConfig()
-                .getInt("cooldowns.global-cooldown", 10);
-        if (globalCooldownTicks > 0) {
-            long globalExpiry = System.currentTimeMillis() + (globalCooldownTicks * 50L);
-            globalCooldowns.put(uuid, globalExpiry);
-        }
     }
 
     /**
@@ -125,7 +104,37 @@ public class CooldownManager {
         if (expiry == null) return 0;
 
         long remaining = expiry - System.currentTimeMillis();
-        return remaining > 0 ? remaining / 1000.0 : 0;
+        if (remaining <= 0) {
+            playerCooldowns.remove(abilityId);
+            return 0;
+        }
+
+        return remaining / 1000.0;
+    }
+
+    /**
+     * Get remaining ability cooldown for display purposes.
+     *
+     * @param player The player
+     * @param abilityId The ability identifier
+     * @return Ability cooldown in seconds, or 0 if not on cooldown
+     */
+    public double getAbilityCooldownForDisplay(Player player, String abilityId) {
+        UUID uuid = player.getUniqueId();
+
+        Map<String, Long> playerCooldowns = cooldowns.get(uuid);
+        if (playerCooldowns == null) return 0;
+
+        Long expiry = playerCooldowns.get(abilityId);
+        if (expiry == null) return 0;
+
+        long remaining = expiry - System.currentTimeMillis();
+        if (remaining <= 0) {
+            playerCooldowns.remove(abilityId);
+            return 0;
+        }
+
+        return remaining / 1000.0;
     }
 
     /**
@@ -134,7 +143,6 @@ public class CooldownManager {
     public void clearCooldowns(Player player) {
         UUID uuid = player.getUniqueId();
         cooldowns.remove(uuid);
-        globalCooldowns.remove(uuid);
     }
 
     /**
@@ -142,7 +150,6 @@ public class CooldownManager {
      */
     public void clearAll() {
         cooldowns.clear();
-        globalCooldowns.clear();
     }
 
     /**
@@ -153,7 +160,7 @@ public class CooldownManager {
             return;
         }
 
-        double remaining = getRemainingCooldown(player, abilityName);
+        double remaining = getAbilityCooldownForDisplay(player, abilityName);
         if (remaining <= 0) return;
 
         String message = plugin.getConfigManager().getMessage("cooldown-active")

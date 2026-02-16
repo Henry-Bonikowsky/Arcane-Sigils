@@ -20,29 +20,32 @@ public class PotionEffectInterceptionListener implements Listener {
 
     private final ArmorSetsPlugin plugin;
     private final SignalHandler signalHandler;
+    private final InterceptionManager interceptionManager;
+
+    // Prevent infinite recursion when re-applying modified effects
+    private static final ThreadLocal<Boolean> APPLYING_MODIFIED_EFFECT = ThreadLocal.withInitial(() -> false);
 
     public PotionEffectInterceptionListener(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         this.signalHandler = plugin.getSignalHandler();
-        LogHelper.info("[PotionInterception] ===== LISTENER INITIALIZED =====");
-        LogHelper.info("[PotionInterception] SignalHandler: " + (signalHandler != null ? "OK" : "NULL"));
+        this.interceptionManager = plugin.getInterceptionManager();
     }
-    
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onPotionEffectApply(EntityPotionEffectEvent event) {
-        LogHelper.info("[PotionInterception] ===== EVENT FIRED =====");
-        LogHelper.info("[PotionInterception] Entity: " + event.getEntity().getType() + ", Action: " + event.getAction());
+        // Skip if we're currently re-applying a modified effect (prevent infinite loop)
+        if (APPLYING_MODIFIED_EFFECT.get()) {
+            return;
+        }
 
         // Only intercept effects being applied to players
         if (!(event.getEntity() instanceof Player player)) {
-            LogHelper.info("[PotionInterception] Not a player, skipping");
             return;
         }
 
         // Intercept when effect is being added OR changed (reapplied/modified)
         if (event.getAction() != EntityPotionEffectEvent.Action.ADDED &&
             event.getAction() != EntityPotionEffectEvent.Action.CHANGED) {
-            LogHelper.info("[PotionInterception] Action is " + event.getAction() + ", skipping");
             return;
         }
 
@@ -51,9 +54,6 @@ public class PotionEffectInterceptionListener implements Listener {
         if (effect == null) {
             return;
         }
-
-        LogHelper.debug("[PotionInterception] Player %s receiving effect: %s (amp %d, duration %d ticks)",
-            player.getName(), effect.getType().getName(), effect.getAmplifier(), effect.getDuration());
 
         // Create interception event
         InterceptionEvent intercept = new InterceptionEvent(
@@ -65,6 +65,18 @@ public class PotionEffectInterceptionListener implements Listener {
             effect.getDuration()
         );
 
+        // CRITICAL: Fire interceptors FIRST (e.g., Ancient Crown immunity)
+        // This allows registered interceptors to cancel/modify the effect before flows run
+        if (interceptionManager != null) {
+            interceptionManager.fireIntercept(intercept);
+
+            // Check if interceptor cancelled the effect
+            if (intercept.isCancelled()) {
+                event.setCancelled(true);
+                return;
+            }
+        }
+
         // Create context and pass interception event
         EffectContext context = EffectContext.builder(player, SignalType.POTION_EFFECT_APPLY)
             .event(event)
@@ -72,35 +84,35 @@ public class PotionEffectInterceptionListener implements Listener {
         context.setInterceptionEvent(intercept);
         context.setCurrentPotionEffect(effect.getType());
 
-        LogHelper.debug("[PotionInterception] Firing POTION_EFFECT_APPLY signal...");
-
         // Fire signal to execute flows
         signalHandler.processArmorEffects(player, SignalType.POTION_EFFECT_APPLY, context);
 
         // Check if flows modified the event
         if (intercept.isCancelled()) {
-            LogHelper.debug("[PotionInterception] Effect cancelled by flow");
             event.setCancelled(true);
             return;
         }
 
         // If modified, cancel original and apply modified version
         if (intercept.wasModified()) {
-            LogHelper.debug("[PotionInterception] Effect modified by flow: %s (amp %d, duration %d)",
-                intercept.getPotionType().getName(), intercept.getAmplifier(), intercept.getDuration());
             event.setCancelled(true);
 
-            // Apply the modified effect
-            player.addPotionEffect(new PotionEffect(
-                intercept.getPotionType(),
-                intercept.getDuration(),
-                intercept.getAmplifier(),
-                effect.isAmbient(),
-                effect.hasParticles(),
-                effect.hasIcon()
-            ));
-        } else {
-            LogHelper.debug("[PotionInterception] Effect not modified, allowing normal application");
+            // Set flag to prevent re-interception
+            APPLYING_MODIFIED_EFFECT.set(true);
+            try {
+                // Apply the modified effect
+                player.addPotionEffect(new PotionEffect(
+                    intercept.getPotionType(),
+                    intercept.getDuration(),
+                    intercept.getAmplifier(),
+                    effect.isAmbient(),
+                    effect.hasParticles(),
+                    effect.hasIcon()
+                ));
+            } finally {
+                // Always clear flag
+                APPLYING_MODIFIED_EFFECT.set(false);
+            }
         }
     }
 }

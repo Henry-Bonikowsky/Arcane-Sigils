@@ -27,7 +27,7 @@ Integrated Cleopatra's suppression system with the interception framework. When 
 New effect type: `APPLY_SUPPRESSION`
 
 **Parameters**:
-- `target`: Who to suppress (default: @Victim, used as @Target in Cleopatra)
+- `target`: Who to suppress (default: @Victim)
 - `duration`: How long to suppress (2-5 seconds, tier-based)
 
 **Behavior**:

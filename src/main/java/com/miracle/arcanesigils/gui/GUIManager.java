@@ -102,6 +102,14 @@ public class GUIManager implements Listener {
         // Register combat settings handlers
         registerHandler(GUIType.COMBAT_SETTINGS, new com.miracle.arcanesigils.combat.gui.CombatSettingsHandler(plugin, this));
         registerHandler(GUIType.COMBAT_MODULE_CONFIG, new com.miracle.arcanesigils.combat.gui.ModuleConfigHandler(plugin, this));
+
+        // Register enchanter handlers
+        registerHandler(GUIType.ENCHANTER_MAIN, new com.miracle.arcanesigils.enchanter.gui.EnchanterMainHandler(plugin, this));
+        registerHandler(GUIType.ENCHANTER_EQUIPMENT, new com.miracle.arcanesigils.enchanter.gui.EquipmentSigilsHandler(plugin, this));
+        registerHandler(GUIType.ENCHANTER_UPGRADE, new com.miracle.arcanesigils.enchanter.gui.UpgradeScreenHandler(plugin, this));
+        registerHandler(GUIType.ENCHANTER_BROWSE_ALL, new com.miracle.arcanesigils.enchanter.gui.BrowseAllSigilsHandler(plugin, this));
+        registerHandler(GUIType.ENCHANTER_BROWSE_EXCLUSIVE, new com.miracle.arcanesigils.enchanter.gui.BrowseExclusiveSigilsHandler(plugin, this));
+        registerHandler(GUIType.ENCHANTER_TIER_COMPARISON, new com.miracle.arcanesigils.enchanter.gui.TierComparisonHandler(plugin, this));
     }
 
     /**

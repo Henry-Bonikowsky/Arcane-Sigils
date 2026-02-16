@@ -335,9 +335,12 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
 
                 // Register with BehaviorManager if behavior sigil is specified
                 if (behaviorSigil != null && behaviorManager != null) {
-                    LogHelper.debug("[SpawnEntity] Registering entity with BehaviorManager: behavior=%s, duration=%d", 
-                        behaviorId, duration);
-                    behaviorManager.registerEntity(entity, behaviorSigil, owner.getUniqueId(), duration);
+                    // Parse and resolve behavior_params
+                    Map<String, Object> behaviorParams = parseBehaviorParams(params, context);
+
+                    LogHelper.debug("[SpawnEntity] Registering entity with BehaviorManager: behavior=%s, duration=%d, params=%s",
+                        behaviorId, duration, behaviorParams);
+                    behaviorManager.registerEntity(entity, behaviorSigil, owner.getUniqueId(), duration, behaviorParams);
                 }
             }
         }
@@ -743,14 +746,30 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
 
         return switch (targetMode.toUpperCase()) {
             case "VICTIM" -> {
-                // If no victim, fall back to nearby enemy (respects exclude_owner)
+                // Priority 1: Direct event victim
                 LivingEntity victim = context.getVictim();
-                LivingEntity result = victim != null ? victim : findNearestEnemy(owner, range, excludeOwner);
-                LogHelper.debug("[SpawnEntity] VICTIM mode: victim=%s, fallback=%s, final=%s", 
-                    victim != null ? victim.getName() : "none",
-                    victim == null ? "used findNearestEnemy" : "none",
-                    result != null ? result.getName() : "none");
-                yield result;
+                if (victim != null) {
+                    LogHelper.debug("[SpawnEntity] VICTIM mode: Using event victim=%s", victim.getName());
+                    yield victim;
+                }
+
+                // Priority 2: Cached last hit entity
+                com.miracle.arcanesigils.binds.LastVictimManager victimManager =
+                    ((com.miracle.arcanesigils.ArmorSetsPlugin) getPlugin()).getLastVictimManager();
+                if (victimManager != null) {
+                    LivingEntity lastVictim = victimManager.getLastVictim(owner);
+                    if (lastVictim != null) {
+                        LogHelper.debug("[SpawnEntity] VICTIM mode: Using last victim=%s from LastVictimManager",
+                            lastVictim.getName());
+                        yield lastVictim;
+                    }
+                }
+
+                // Priority 3: Look-ahead fallback
+                LivingEntity lookTarget = getTarget(context, range);
+                LogHelper.debug("[SpawnEntity] VICTIM mode: Using look-ahead target=%s",
+                    lookTarget != null ? lookTarget.getName() : "none");
+                yield lookTarget;
             }
             case "NEARBY" -> {
                 LivingEntity result = findNearestEnemy(owner, range, excludeOwner);
@@ -861,7 +880,7 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                         LivingEntity boundTarget = glowManager.getTarget(ownerPlayer);
                         if (boundTarget != null && boundTarget.isValid() && !boundTarget.isDead()) {
                             currentTarget = boundTarget;
-                            LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: Using bound target=%s from TargetGlowManager", 
+                            LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: Using bound target=%s from TargetGlowManager",
                                 boundTarget.getName());
                         } else {
                             LogHelper.debug("[SpawnEntity] Force-targeting OWNER_TARGET mode: No valid bound target, using initial target UUID");
@@ -1131,5 +1150,61 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
         }
         allSpawnedEntities.clear();
         ownerToEntities.clear();
+    }
+
+    /**
+     * Parse behavior_params from params and resolve variable placeholders.
+     * Format: "key1={var1},key2={var2},key3=literal"
+     * Example: "mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}"
+     *
+     * @param params  Effect params containing behavior_params
+     * @param context Effect context for variable resolution
+     * @return Map of resolved parameter key-value pairs
+     */
+    private Map<String, Object> parseBehaviorParams(EffectParams params, EffectContext context) {
+        Map<String, Object> behaviorParams = new HashMap<>();
+
+        String behaviorParamsStr = params.getString("behavior_params", null);
+        if (behaviorParamsStr == null || behaviorParamsStr.isEmpty()) {
+            return behaviorParams; // No params specified
+        }
+
+        // Split by comma
+        String[] pairs = behaviorParamsStr.split(",");
+        for (String pair : pairs) {
+            String[] keyValue = pair.trim().split("=", 2);
+            if (keyValue.length != 2) continue;
+
+            String key = keyValue[0].trim();
+            String value = keyValue[1].trim();
+
+            // Resolve variable placeholder if present (e.g., {mark_chance})
+            if (value.startsWith("{") && value.endsWith("}")) {
+                String varName = value.substring(1, value.length() - 1);
+                Object resolvedValue = context.getVariable(varName);
+
+                if (resolvedValue != null) {
+                    behaviorParams.put(key, resolvedValue);
+                    LogHelper.debug("[SpawnEntity] Resolved behavior param: %s = {%s} → %s", key, varName, resolvedValue);
+                } else {
+                    LogHelper.debug("[SpawnEntity] WARNING: Variable {%s} not found in context, skipping param %s", varName, key);
+                }
+            } else {
+                // Literal value - try to parse as number
+                try {
+                    if (value.contains(".")) {
+                        behaviorParams.put(key, Double.parseDouble(value));
+                    } else {
+                        behaviorParams.put(key, Integer.parseInt(value));
+                    }
+                } catch (NumberFormatException e) {
+                    // Not a number, store as string
+                    behaviorParams.put(key, value);
+                }
+                LogHelper.debug("[SpawnEntity] Literal behavior param: %s = %s", key, value);
+            }
+        }
+
+        return behaviorParams;
     }
 }

@@ -22,3 +22,34 @@ marks:
     max_duration: 6.0
     stack_increment: 0.0
     stacking_enabled: false
+
+  CLEOPATRA_DEBUFF:
+    name: "&5Cleopatra's Suppression"
+    description: "Target takes increased damage"
+    max_duration: 5.0
+    stack_increment: 0.0
+    stacking_enabled: false
+    damage_multiplier: 1.20  # Will be overridden by param
+
+  KINGS_BRACE_DR:
+    name: "&5King's Protection"
+    description: "Damage reduction from charge"
+    max_duration: -1  # Permanent until updated
+    stack_increment: 0.0
+    stacking_enabled: false
+    damage_multiplier: 0.80  # Will be overridden by param
+
+  # Universal Damage Marks (Multi-Source System)
+  DAMAGE_AMPLIFICATION:
+    name: "&c&lDamage Amplification"
+    description: "Takes increased damage from multiple sources"
+    max_duration: 10.0
+    stack_increment: 0.0
+    stacking_enabled: false  # Multi-source handles stacking internally
+
+  DAMAGE_REDUCTION:
+    name: "&a&lDamage Reduction"
+    description: "Protected by damage reduction from multiple sources"
+    max_duration: 10.0
+    stack_increment: 0.0
+    stacking_enabled: false  # Multi-source handles stacking internally

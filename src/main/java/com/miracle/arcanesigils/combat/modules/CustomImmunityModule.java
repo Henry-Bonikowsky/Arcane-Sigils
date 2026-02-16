@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.combat.modules;
 
 import com.miracle.arcanesigils.combat.LegacyCombatManager;
+import com.miracle.arcanesigils.utils.LogHelper;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -144,7 +145,8 @@ public class CustomImmunityModule extends AbstractCombatModule implements Listen
             
             if (isImmune(victim)) {
                 event.setCancelled(true);
-                
+                LogHelper.info("[Immunity] Cancelled damage to %s (immune)", victim.getName());
+
                 // Mark this attacker as having recently failed a hit
                 if (attacker != null) {
                     recentFailedAttackers.put(attacker.getUniqueId(), System.currentTimeMillis());

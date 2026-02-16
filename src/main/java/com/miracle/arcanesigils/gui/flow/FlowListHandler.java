@@ -274,11 +274,15 @@ public class FlowListHandler extends AbstractHandler {
             lore.add("&7Trigger: &f" + flow.getTrigger());
         }
 
-        if (flow.getCooldown() > 0) {
+        if (flow.getCooldown() < 0) {
+            lore.add("&7Cooldown: &aTier-scaled");
+        } else if (flow.getCooldown() > 0) {
             lore.add("&7Cooldown: &f" + flow.getCooldown() + "s");
         }
 
-        if (flow.getChance() < 100) {
+        if (flow.getChance() < 0) {
+            lore.add("&7Chance: &aTier-scaled");
+        } else if (flow.getChance() < 100) {
             lore.add("&7Chance: &f" + (int) flow.getChance() + "%");
         }
 

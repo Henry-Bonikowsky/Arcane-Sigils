@@ -4,7 +4,6 @@ import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
@@ -83,9 +82,6 @@ public class DamageReductionBuffEffect extends AbstractEffect {
         // Apply the buff
         long expiryTime = System.currentTimeMillis() + (durationSeconds * 1000L);
         activeBuffs.put(player.getUniqueId(), new DamageReductionBuff(expiryTime, percent));
-
-        // Sound only - particles should be added via PARTICLE effect in YAML if desired
-        player.playSound(player.getLocation(), Sound.ITEM_ARMOR_EQUIP_DIAMOND, 0.8f, 1.2f);
 
         debug("Applied " + percent + "% damage reduction to " + player.getName() + " for " + durationSeconds + "s");
         return true;

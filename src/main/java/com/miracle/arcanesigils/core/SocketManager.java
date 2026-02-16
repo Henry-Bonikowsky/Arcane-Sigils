@@ -317,6 +317,7 @@ public class SocketManager implements Listener {
             String[] parts = entry.split(":");
             String sigilId = parts[0];
             int tier = parts.length > 1 ? Integer.parseInt(parts[1]) : 1;
+
             Sigil sigil = plugin.getSigilManager().getSigilWithTier(sigilId, tier);
             if (sigil != null) sigils.add(sigil);
         }

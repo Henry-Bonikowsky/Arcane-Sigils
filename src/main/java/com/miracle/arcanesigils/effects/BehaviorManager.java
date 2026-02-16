@@ -63,26 +63,39 @@ public class BehaviorManager implements Listener {
         private final Entity entity;
         private final Location blockLocation;
         private final double proximityRadius;
+        private final Map<String, Object> behaviorParams; // Parameters from spawning sigil
         private UUID auraId; // For aura tracking
 
         // For entities
         public BehaviorContext(Sigil behavior, UUID ownerUUID, Entity entity, int durationSeconds) {
+            this(behavior, ownerUUID, entity, durationSeconds, null);
+        }
+
+        // For entities with params
+        public BehaviorContext(Sigil behavior, UUID ownerUUID, Entity entity, int durationSeconds, Map<String, Object> behaviorParams) {
             this.behavior = behavior;
             this.ownerUUID = ownerUUID;
             this.entity = entity;
             this.blockLocation = null;
             this.expireTime = durationSeconds > 0 ? System.currentTimeMillis() + (durationSeconds * 1000L) : -1;
             this.proximityRadius = PROXIMITY_RADIUS;
+            this.behaviorParams = behaviorParams != null ? new java.util.HashMap<>(behaviorParams) : new java.util.HashMap<>();
         }
 
         // For blocks/auras
         public BehaviorContext(Sigil behavior, UUID ownerUUID, Location location, int durationSeconds, double proximityRadius) {
+            this(behavior, ownerUUID, location, durationSeconds, proximityRadius, null);
+        }
+
+        // For blocks/auras with params
+        public BehaviorContext(Sigil behavior, UUID ownerUUID, Location location, int durationSeconds, double proximityRadius, Map<String, Object> behaviorParams) {
             this.behavior = behavior;
             this.ownerUUID = ownerUUID;
             this.entity = null;
             this.blockLocation = location;
             this.expireTime = durationSeconds > 0 ? System.currentTimeMillis() + (durationSeconds * 1000L) : -1;
             this.proximityRadius = proximityRadius;
+            this.behaviorParams = behaviorParams != null ? new java.util.HashMap<>(behaviorParams) : new java.util.HashMap<>();
         }
 
         public Sigil getBehavior() {
@@ -116,6 +129,10 @@ public class BehaviorManager implements Listener {
         public void setAuraId(UUID auraId) {
             this.auraId = auraId;
         }
+
+        public Map<String, Object> getBehaviorParams() {
+            return behaviorParams;
+        }
     }
 
     /**
@@ -127,13 +144,26 @@ public class BehaviorManager implements Listener {
      * @param durationSeconds How long the entity should exist (-1 for permanent)
      */
     public void registerEntity(Entity entity, Sigil behavior, UUID ownerUUID, int durationSeconds) {
+        registerEntity(entity, behavior, ownerUUID, durationSeconds, null);
+    }
+
+    /**
+     * Register a spawned entity with a behavior sigil and parameters.
+     *
+     * @param entity          The spawned entity
+     * @param behavior        The behavior sigil defining its actions
+     * @param ownerUUID       UUID of the player who spawned it
+     * @param durationSeconds How long the entity should exist (-1 for permanent)
+     * @param behaviorParams  Parameters to pass to behavior flows (for variable resolution)
+     */
+    public void registerEntity(Entity entity, Sigil behavior, UUID ownerUUID, int durationSeconds, Map<String, Object> behaviorParams) {
         if (entity == null || behavior == null) return;
 
-        BehaviorContext context = new BehaviorContext(behavior, ownerUUID, entity, durationSeconds);
+        BehaviorContext context = new BehaviorContext(behavior, ownerUUID, entity, durationSeconds, behaviorParams);
         trackedEntities.put(entity.getUniqueId(), context);
 
-        LogHelper.debug("[BehaviorManager] Registered entity %s with behavior: %s (duration: %ds)",
-            entity.getType().name(), behavior.getId(), durationSeconds);
+        LogHelper.debug("[BehaviorManager] Registered entity %s with behavior: %s (duration: %ds, params: %s)",
+            entity.getType().name(), behavior.getId(), durationSeconds, behaviorParams);
     }
 
     /**
@@ -425,19 +455,52 @@ public class BehaviorManager implements Listener {
                 continue; // Signal doesn't match this flow's trigger
             }
 
-            // Check chance
-            double chance = flowConfig.getChance();
-            if (chance < 100) {
-                if (Math.random() * 100 > chance) {
-                    continue; // Failed chance roll
-                }
-            }
-
-            // Build effect context
+            // Build effect context first so we can inject params before checking chance
             EffectContext effectContext = EffectContext.builder(owner, signalType)
                     .victim(target)
                     .location(effectLocation)
                     .build();
+
+            // Inject behavior params as variables for placeholder resolution
+            Map<String, Object> behaviorParams = context.getBehaviorParams();
+            if (behaviorParams != null && !behaviorParams.isEmpty()) {
+                for (Map.Entry<String, Object> entry : behaviorParams.entrySet()) {
+                    effectContext.setVariable(entry.getKey(), entry.getValue());
+                    LogHelper.debug("[BehaviorManager] Injected behavior param: %s = %s", entry.getKey(), entry.getValue());
+                }
+            }
+
+            // Check chance - resolve from START node params if present
+            double chance = flowConfig.getChance();
+            if (flowConfig.getGraph() != null && flowConfig.getGraph().getStartNode() != null) {
+                com.miracle.arcanesigils.flow.FlowNode startNodeBase = flowConfig.getGraph().getStartNode();
+                if (!(startNodeBase instanceof com.miracle.arcanesigils.flow.nodes.StartNode)) {
+                    continue; // Not a valid START node
+                }
+                com.miracle.arcanesigils.flow.nodes.StartNode startNode = (com.miracle.arcanesigils.flow.nodes.StartNode) startNodeBase;
+                Object chanceParam = startNode.getParam("chance");
+                if (chanceParam != null) {
+                    // Resolve variable placeholder if present
+                    if (chanceParam instanceof String str && str.startsWith("{") && str.endsWith("}")) {
+                        String varName = str.substring(1, str.length() - 1);
+                        Object resolvedValue = effectContext.getVariable(varName);
+                        if (resolvedValue instanceof Number num) {
+                            chance = num.doubleValue();
+                            LogHelper.debug("[BehaviorManager] Resolved chance from variable {%s} = %.1f", varName, chance);
+                        }
+                    } else if (chanceParam instanceof Number num) {
+                        chance = num.doubleValue();
+                    }
+                }
+            }
+
+            if (chance < 100) {
+                if (Math.random() * 100 > chance) {
+                    LogHelper.debug("[BehaviorManager] Failed chance roll: %.1f%% for flow %s", chance, flowConfig.getGraph().getId());
+                    continue; // Failed chance roll
+                }
+            }
+            LogHelper.debug("[BehaviorManager] Passed chance roll: %.1f%% for flow %s", chance, flowConfig.getGraph().getId());
 
             // Execute flow
             if (flowConfig.getGraph() != null) {

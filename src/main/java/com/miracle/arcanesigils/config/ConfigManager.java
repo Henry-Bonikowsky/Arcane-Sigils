@@ -55,6 +55,7 @@ public class ConfigManager {
             behaviorsDir.mkdirs();
         }
         saveDefaultBehaviors();
+        saveDefaultSets();
 
         marksDir = new File(plugin.getDataFolder(), "marks");
         if (!marksDir.exists()) {
@@ -93,9 +94,10 @@ public class ConfigManager {
                 double maxDuration = marksConfig.getDouble(path + ".max_duration", 3.0);
                 double stackIncrement = marksConfig.getDouble(path + ".stack_increment", 1.0);
                 boolean stackingEnabled = marksConfig.getBoolean(path + ".stacking_enabled", true);
-                
+                double damageMultiplier = marksConfig.getDouble(path + ".damage_multiplier", 1.0);
+
                 MarkConfig config = new MarkConfig(markId, name, description,
-                    maxDuration, stackIncrement, stackingEnabled);
+                    maxDuration, stackIncrement, stackingEnabled, damageMultiplier);
                 markConfigs.put(markId, config);
             }
         }
@@ -144,6 +146,10 @@ public class ConfigManager {
         saveResource("behaviors/quicksand_pull_behavior.yml");
         saveResource("behaviors/wolf_companion.yml");
         saveResource("behaviors/royal_guard_behavior.yml");
+    }
+
+    private void saveDefaultSets() {
+        saveResource("sets/ancient_set.yml");
     }
 
     private void saveResource(String resourcePath) {

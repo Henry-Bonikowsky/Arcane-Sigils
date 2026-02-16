@@ -63,12 +63,9 @@ public class AITrainingManager {
      * Creates 21 objectives: 12 for bind state + 9 for target info.
      */
     public void initializePlayerObjectives(Player player) {
-        Scoreboard sb = player.getScoreboard();
-        if (sb == Bukkit.getScoreboardManager().getMainScoreboard()) {
-            sb = Bukkit.getScoreboardManager().getNewScoreboard();
-            player.setScoreboard(sb);
-        }
-        
+        // Use main scoreboard - don't create custom scoreboards (breaks collision team)
+        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
+
         // Bind state objectives (12 total)
         for (int slot = 1; slot <= 4; slot++) {
             String prefix = "sigil_bind" + slot;

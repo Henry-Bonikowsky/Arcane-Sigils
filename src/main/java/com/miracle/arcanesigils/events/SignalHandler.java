@@ -4,6 +4,7 @@ import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.ai.AITrainingManager;
 import com.miracle.arcanesigils.ai.RewardSignal;
 import com.miracle.arcanesigils.binds.BindsListener;
+import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.flow.FlowConfig;
@@ -43,6 +44,7 @@ public class SignalHandler implements Listener {
 
     private final ArmorSetsPlugin plugin;
     private final ConditionManager conditionManager;
+    private final LastVictimManager lastVictimManager;
     // Track applied effects per player to remove them when armor is unequipped
     private final Map<UUID, Set<PotionEffectType>> appliedEffects = new HashMap<>();
     // Track previous armor state to detect changes
@@ -53,6 +55,7 @@ public class SignalHandler implements Listener {
     public SignalHandler(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         this.conditionManager = new ConditionManager(plugin);
+        this.lastVictimManager = plugin.getLastVictimManager();
         startStaticEffectTask();
         startArmorCheckTask();
         startTickSignalTask();
@@ -275,6 +278,11 @@ public class SignalHandler implements Listener {
                 .damage(originalDamage)
                 .build();
 
+        // Record last hit for @Victim tracking (only if event not cancelled by other plugins)
+        if (!event.isCancelled() && lastVictimManager != null) {
+            lastVictimManager.recordHit(player, victim);
+        }
+
         // Process armor set effects
         processArmorEffects(player, SignalType.ATTACK, context);
 
@@ -458,6 +466,11 @@ public class SignalHandler implements Listener {
                 .location(event.getHitBlock() != null ? event.getHitBlock().getLocation() :
                          (victim != null ? victim.getLocation() : player.getLocation()))
                 .build();
+
+        // Record last hit for @Victim tracking (only if victim exists and event not cancelled)
+        if (victim != null && !event.isCancelled() && lastVictimManager != null) {
+            lastVictimManager.recordHit(player, victim);
+        }
 
         processArmorEffects(player, SignalType.BOW_HIT, context);
     }
@@ -657,7 +670,17 @@ public class SignalHandler implements Listener {
             context.setMetadata("sourceItem", entry.sourceItem);
             if (entry.sigil.getTierScalingConfig() != null) {
                 context.setMetadata("tierScalingConfig", entry.sigil.getTierScalingConfig());
+
+                // Inject tier params as variables (for behavior_params and other param usage)
+                com.miracle.arcanesigils.tier.TierParameterConfig tierParams = entry.sigil.getTierScalingConfig().getParams();
+                if (tierParams != null) {
+                    for (String paramName : tierParams.getParameterNames()) {
+                        double value = tierParams.getValue(paramName, entry.sigil.getTier());
+                        context.setVariable(paramName, value);
+                    }
+                }
             }
+
 
             String flowId = entry.flow.getGraph() != null ? entry.flow.getGraph().getId() : "unknown";
             String cooldownKey = "sigil_" + entry.sigil.getId() + "_" + signalType.getConfigKey() + "_" + flowId;
@@ -822,6 +845,12 @@ public class SignalHandler implements Listener {
                     String placeholder = cooldownParam.toString().replace("{", "").replace("}", "");
                     if (tierConfig != null && tierConfig.hasParam(placeholder)) {
                         cooldown = tierConfig.getParamValue(placeholder, tier);
+                    } else {
+                        // Also check context variables (for set bonuses and other param sources)
+                        Object varValue = context.getVariable(placeholder);
+                        if (varValue instanceof Number) {
+                            cooldown = ((Number) varValue).doubleValue();
+                        }
                     }
                 } else if (cooldownParam != null) {
                     cooldown = startNode.getDoubleParam("cooldown", cooldown);
@@ -832,12 +861,23 @@ public class SignalHandler implements Listener {
                 if (chanceParam != null && chanceParam.toString().contains("{")) {
                     // Unified tier system - resolve from TierScalingConfig
                     String placeholder = chanceParam.toString().replace("{", "").replace("}", "");
+                    com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolving chance placeholder: %s", placeholder);
                     if (tierConfig != null && tierConfig.hasParam(placeholder)) {
                         chance = tierConfig.getParamValue(placeholder, tier);
+                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from tierConfig: %.1f", chance);
+                    } else {
+                        // Also check context variables (for set bonuses and other param sources)
+                        Object varValue = context.getVariable(placeholder);
+                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] tierConfig null/missing param, checking variables: %s", varValue);
+                        if (varValue instanceof Number) {
+                            chance = ((Number) varValue).doubleValue();
+                            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from variables: %.1f", chance);
+                        }
                     }
                 } else if (chanceParam != null) {
                     chance = startNode.getDoubleParam("chance", chance);
                 }
+                com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Final chance value: %.1f%%", chance);
             }
         }
 
@@ -849,6 +889,7 @@ public class SignalHandler implements Listener {
         // Check chance
         if (chance < 100) {
             double roll = ThreadLocalRandom.current().nextDouble() * 100;
+            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Chance roll: %.1f vs %.1f (pass=%s)", roll, chance, roll <= chance);
             if (roll > chance) {
                 return false;
             }
@@ -906,12 +947,21 @@ public class SignalHandler implements Listener {
 
         java.util.Map<String, Integer> activeBonuses = setBonusManager.getActiveBonuses(player);
 
+        com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Processing for player %s, active bonuses: %d",
+            player.getName(), activeBonuses.size());
+
         for (java.util.Map.Entry<String, Integer> entry : activeBonuses.entrySet()) {
             String setName = entry.getKey();
             int tier = entry.getValue();
 
             com.miracle.arcanesigils.sets.SetBonus setBonus = setBonusManager.getSetBonus(setName);
-            if (setBonus == null) continue;
+            if (setBonus == null) {
+                com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Set '%s' not found in manager!", setName);
+                continue;
+            }
+
+            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Executing %s (tier %d) for %s",
+                setName, tier, player.getName());
 
             // Inject set bonus tier into context as metadata
             context.setMetadata("setBonus_" + setName, tier);
@@ -924,12 +974,15 @@ public class SignalHandler implements Listener {
                 Double value = paramEntry.getValue().get(tier);
                 if (value != null) {
                     context.setVariable(paramName, value);
+                    com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus]   Param: %s = %.1f", paramName, value);
                 }
             }
 
-            // Execute set bonus flow
-            com.miracle.arcanesigils.flow.FlowExecutor executor = new com.miracle.arcanesigils.flow.FlowExecutor(plugin);
-            executor.execute(setBonus.getFlow().getGraph(), context);
+            // Execute set bonus flow (use executeFlow to handle chance/cooldown)
+            String cooldownKey = "setbonus_" + setName + "_EFFECT_STATIC";
+            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] About to execute flow for %s", setName);
+            boolean activated = executeFlow(player, setBonus.getFlow().getGraph(), setBonus.getFlow(), context, cooldownKey);
+            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Finished executing flow for %s (activated=%s)", setName, activated);
         }
     }
 

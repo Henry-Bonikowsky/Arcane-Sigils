@@ -22,6 +22,9 @@ pharaoh_curse:
   item:
     material: ECHO_SHARD
     custom_model_data: 1001
+    name: Sigil Shard
+    lore: []
+    glow: false
   max_tier: 5
   tier:
     mode: PARAMETER
@@ -38,86 +41,94 @@ pharaoh_curse:
       - 2
       - 2.5
       - 3
+    xp_enabled: true
+    xp:
+      gain_per_activation: 1
+      curve_type: EXPONENTIAL
+      base_xp: 100
+      growth_rate: 1.5
   socketables:
   - helmet
   flows:
-    - type: SIGNAL
-      trigger: DEFENSE
-      cooldown: 10
-      startNodeId: start
-      nodes:
-      - id: start
-        type: START
-        x: 0
-        y: 0
-        params:
-          flow_type: SIGNAL
-          signal_type: DEFENSE
-          cooldown: 10
-          chance: '{chance}'
-        next: stun
-      - id: stun
-        type: EFFECT
-        effect: STUN
-        x: 0
-        y: 1
-        params:
-          duration: '{duration}'
-          target: '@Attacker'
-        next: change_skin
-      - id: change_skin
-        type: EFFECT
-        effect: CHANGE_SKIN
-        x: 1
-        y: 1
-        params:
-          skin: SandOfSand
-          duration: '{duration}'
-          target: '@Attacker'
-        next: sound_curse
-      - id: sound_curse
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 5
-        params:
-          sound: ENTITY_VEX_CHARGE
-          volume: 1
-          pitch: 0.5
-        next: sound_sand
-      - id: sound_sand
-        type: EFFECT
-        effect: SOUND
-        x: 0
-        y: 6
-        params:
-          sound: BLOCK_SAND_BREAK
-          volume: 1.2
-          pitch: 0.4
-        next: msg_attacker
-      - id: msg_attacker
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 7
-        params:
-          type: CHAT
-          message: '&6&lPharaoh''s Curse! &7You have been stunned!'
-          target: '@Attacker'
-        next: msg_self
-      - id: msg_self
-        type: EFFECT
-        effect: MESSAGE
-        x: 0
-        y: 8
-        params:
-          type: CHAT
-          message: '&6&lPharaoh''s Curse! &7Attacker stunned!'
-        next: end
-      - id: end
-        type: END
-        x: 0
-        y: 9
+  - type: SIGNAL
+    trigger: DEFENSE
+    cooldown: 10.0
+    id: flow
+    startNodeId: start
+    nodes:
+    - id: start
+      type: START
+      x: 0
+      y: 0
+      params:
+        flow_type: SIGNAL
+        signal_type: DEFENSE
+        cooldown: 10
+        chance: '{chance}'
+      next: stun
+    - id: stun
+      type: EFFECT
+      x: 0
+      y: 1
+      effect: STUN
+      params:
+        duration: '{duration}'
+        target: '@Attacker'
+      next: change_skin
+    - id: change_skin
+      type: EFFECT
+      x: 1
+      y: 1
+      effect: CHANGE_SKIN
+      params:
+        skin: SandOfSand
+        duration: '{duration}'
+        target: '@Attacker'
+      next: sound_curse
+    - id: sound_curse
+      type: EFFECT
+      x: 0
+      y: 5
+      effect: SOUND
+      params:
+        sound: ENTITY_VEX_CHARGE
+        volume: 1
+        pitch: 0.5
+      next: sound_sand
+    - id: sound_sand
+      type: EFFECT
+      x: 0
+      y: 6
+      effect: SOUND
+      params:
+        sound: BLOCK_SAND_BREAK
+        volume: 1.2
+        pitch: 0.4
+      next: msg_attacker
+    - id: msg_attacker
+      type: EFFECT
+      x: 0
+      y: 7
+      effect: MESSAGE
+      params:
+        type: CHAT
+        message: '&6&lPharaoh''s Curse! &7You have been stunned!'
+        target: '@Attacker'
+      next: msg_self
+    - id: msg_self
+      type: EFFECT
+      x: 0
+      y: 8
+      effect: MESSAGE
+      params:
+        type: CHAT
+        message: '&6&lPharaoh''s Curse! &7Attacker stunned!'
+      next: end
+    - id: end
+      type: END
+      x: 0
+      y: 9
+  slot: HELMET
 
 # ============================================
 # SANDSTORM - Chestplate
@@ -168,7 +179,6 @@ sandstorm:
   flows:
   - type: SIGNAL
     trigger: ATTACK
-    cooldown: 8.0
     id: flow
     startNodeId: start
     nodes:
@@ -177,9 +187,10 @@ sandstorm:
       x: 1
       y: 0
       params:
-        cooldown: 8.0
+        cooldown: 0.0
         signal_type: ATTACK
         flow_type: SIGNAL
+        chance: '{chance}'
       next: pulse_sand
     - id: pulse_sand
       type: EFFECT
@@ -332,6 +343,12 @@ royal_bolster:
       - 25
       - 28
       - 30
+      cooldown:
+      - 120
+      - 100
+      - 80
+      - 60
+      - 40
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -350,7 +367,7 @@ royal_bolster:
       x: 0
       y: 0
       params:
-        cooldown: 0.0
+        cooldown: '{cooldown}'
         flow_type: ABILITY
       next: absorption
     - id: absorption
@@ -370,32 +387,46 @@ royal_bolster:
       params:
         duration: 5
         percent: '{damage_reduction}'
-      next: blue_sphere
-    - id: blue_sphere
+      next: soul_fire_visual
+    - id: soul_fire_visual
       type: EFFECT
       x: 0
       y: 3
       effect: PARTICLE
       params:
-        particle_type: DUST
-        color: CYAN
-        size: 0.8
-        shape: sphere
-        radius: 0.5
-        spacing: 0.6
-        duration: 5
+        particle_type: SOUL_FIRE_FLAME
+        count: 30
+        spread_x: 1.5
+        spread_y: 0.3
+        spread_z: 1.5
+        offset_y: 1.2
+        speed: 0.05
         follow_target: true
-        y_offset: 1.2
-      next: sound_shield
-    - id: sound_shield
+      next: wax_visual
+    - id: wax_visual
+      type: EFFECT
+      x: 1
+      y: 3
+      effect: PARTICLE
+      params:
+        particle_type: WAX_ON
+        count: 15
+        spread_x: 1.0
+        spread_y: 0.5
+        spread_z: 1.0
+        offset_y: 1.2
+        speed: 0.02
+        follow_target: true
+      next: sound_thunder
+    - id: sound_thunder
       type: EFFECT
       x: 0
       y: 4
       effect: SOUND
       params:
-        sound: BLOCK_BEACON_ACTIVATE
-        volume: 1.2
-        pitch: 1.3
+        sound: ITEM_TRIDENT_THUNDER
+        volume: 1.5
+        pitch: 1.2
       next: msg
     - id: msg
       type: EFFECT
@@ -406,74 +437,7 @@ royal_bolster:
         type: CHAT
         message: '&b&lRoyal Bolster! &7You are protected!'
       next: end
-  - type: SIGNAL
-    trigger: flow
-    id: bolster_ability
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      params:
-        cooldown: 0.0
-        flow_type: SIGNAL
-        signal_type: flow
-      next: absorption
-    - id: absorption
-      type: EFFECT
-      x: 0
-      y: 1
-      effect: ABSORBTION
-      params:
-        duration: 5
-        value: '{absorption_hearts}'
-      next: damage_reduction
-    - id: damage_reduction
-      type: EFFECT
-      x: 0
-      y: 2
-      effect: DAMAGE_REDUCTION_BUFF
-      params:
-        duration: 5
-        percent: '{damage_reduction}'
-      next: blue_sphere
-    - id: blue_sphere
-      type: EFFECT
-      x: 0
-      y: 3
-      effect: PARTICLE
-      params:
-        particle_type: DUST
-        color: CYAN
-        size: 0.8
-        shape: sphere
-        radius: 0.5
-        spacing: 0.6
-        duration: 5
-        follow_target: true
-        y_offset: 1.2
-      next: sound_shield
-    - id: sound_shield
-      type: EFFECT
-      x: 0
-      y: 4
-      effect: SOUND
-      params:
-        sound: BLOCK_BEACON_ACTIVATE
-        volume: 1.2
-        pitch: 1.3
-      next: msg
-    - id: msg
-      type: EFFECT
-      x: 0
-      y: 5
-      effect: MESSAGE
-      params:
-        type: CHAT
-        message: '&b&lRoyal Bolster! &7You are protected!'
-      next: end
-  slot: HELMET
+  slot: LEGGINGS
 
 # ============================================
 # QUICK SAND - Boots
@@ -502,11 +466,11 @@ quick_sand:
     mode: PARAMETER
     params:
       cooldown:
-      - 240
-      - 210
-      - 180
-      - 150
+      - 140
       - 120
+      - 100
+      - 80
+      - 60
       slowness_amp:
       - 0
       - 0
@@ -545,7 +509,7 @@ quick_sand:
       - 0.35
       pull_strength:
       - 1.6
-      - 2.0
+      - 2
       - 2.4
       - 2.8
       - 3.2
@@ -567,6 +531,7 @@ quick_sand:
       x: 0
       y: 0
       params:
+        cooldown: '{cooldown}'
         flow_type: ABILITY
       next: register_no_kb
     - id: register_no_kb
@@ -580,13 +545,15 @@ quick_sand:
     - id: set_active_flag
       type: VARIABLE
       x: 0
-      y: 1.5
+      y: 1
       params:
-        name: quicksand_active
         operation: SET
-        value: 1
         scope: PLAYER
+        name: quicksand_active
+        value: 1
         duration: 6
+        sigilId: ''
+        slot: ''
       next: place_sand
     - id: place_sand
       type: EFFECT
@@ -674,12 +641,13 @@ quick_sand:
       params:
         flow_type: SIGNAL
         signal_type: ATTACK
+        cooldown: 0.0
       next: check_variable
     - id: check_variable
       type: CONDITION
       x: 0
       y: 1
-      condition: "HAS_PLAYER_VARIABLE:quicksand_active"
+      condition: HAS_PLAYER_VARIABLE:quicksand_active
       connections:
         'yes': apply_mark
         'no': end
@@ -698,7 +666,7 @@ quick_sand:
       type: END
       x: 0
       y: 3
-  slot: HELMET
+  slot: BOOTS
 
 # ============================================
 # RULER'S HAND - Sword
@@ -767,7 +735,7 @@ rulers_hand:
       type: CONDITION
       x: 0
       y: 1
-      condition: "HAS_MARK:PHARAOH_MARK:@Victim"
+      condition: HAS_MARK:PHARAOH_MARK:@Victim
       connections:
         'yes': dust_burst
         'no': end
@@ -914,6 +882,12 @@ royal_guard:
       - 2
       - 2.5
       - 3
+      chance:
+      - 100
+      - 125
+      - 150
+      - 175
+      - 200
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -951,14 +925,14 @@ royal_guard:
         damage: 6
         knockback_resist: 1.0
         fast_attack_speed: 2.0
-        target_mode: OWNER_TARGET
+        target_mode: VICTIM
         force_target: true
         exclude_owner: true
         custom_name: '&6&lMummified Guard'
         glowing: true
         fire_immune: true
         behavior: royal_guard_behavior
-        behavior_params: 'mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}'
+        behavior_params: mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}
         no_drops: true
       next: sound_summon
     - id: sound_summon
@@ -1033,6 +1007,7 @@ royal_guard:
         cooldown: 120.0
         flow_type: SIGNAL
         signal_type: flow
+        chance: '{chance}'
       next: spawn
     - id: spawn
       type: EFFECT
@@ -1049,14 +1024,14 @@ royal_guard:
         damage: 6
         knockback_resist: 1.0
         fast_attack_speed: 2.0
-        target_mode: OWNER_TARGET
+        target_mode: VICTIM
         force_target: true
         exclude_owner: true
         custom_name: '&6&lMummified Guard'
         glowing: true
         fire_immune: true
         behavior: royal_guard_behavior
-        behavior_params: 'mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}'
+        behavior_params: mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}
         no_drops: true
       next: sound_summon
     - id: sound_summon

@@ -149,7 +149,7 @@ public class SigilManager {
     /**
      * Clone a sigil (deep copy for tier application).
      */
-    private Sigil cloneSigil(Sigil original) {
+    public Sigil cloneSigil(Sigil original) {
         Sigil clone = new Sigil(original.getId());
         clone.setName(original.getName());
         clone.setDescription(new java.util.ArrayList<>(original.getDescription()));

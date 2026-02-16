@@ -26,8 +26,32 @@ public class RegisterAncientCrownImmunityEffect extends AbstractEffect {
             return false;
         }
 
-        // Get immunity percentage from params
-        double immunityPercent = context.getParams().getDouble("immunity_percent", 20.0);
+        // Get tier scaling config and tier from context metadata
+        com.miracle.arcanesigils.tier.TierScalingConfig tierConfig = context.getMetadata("tierScalingConfig", null);
+        Integer sigilTier = context.getMetadata("sourceSigilTier", null);
+
+        // Resolve immunity_percent from tier config
+        double immunityPercent = 20.0; // default for T1
+
+        // Check if param is a placeholder (contains { })
+        Object paramValue = context.getParams().get("immunity_percent");
+        if (paramValue != null && paramValue.toString().contains("{")) {
+            // Extract placeholder name
+            String placeholder = paramValue.toString().replace("{", "").replace("}", "");
+
+            // Resolve from tier config if available
+            if (tierConfig != null && tierConfig.hasParam(placeholder) && sigilTier != null) {
+                immunityPercent = tierConfig.getParamValue(placeholder, sigilTier);
+                debug(String.format("Resolved %s from tier config: %.1f%% for tier %d",
+                      placeholder, immunityPercent, sigilTier));
+            } else {
+                debug(String.format("Failed to resolve %s: tierConfig=%s, sigilTier=%d",
+                      placeholder, tierConfig != null, sigilTier != null ? sigilTier : -1));
+            }
+        } else if (paramValue != null) {
+            // Direct value (non-placeholder)
+            immunityPercent = context.getParams().getDouble("immunity_percent", 20.0);
+        }
 
         ArmorSetsPlugin plugin = getPlugin();
         InterceptionManager interceptionManager = plugin.getInterceptionManager();
@@ -43,8 +67,13 @@ public class RegisterAncientCrownImmunityEffect extends AbstractEffect {
             if (interceptor instanceof AncientCrownImmunityInterceptor existing) {
                 alreadyRegistered = true;
 
-                // Optional: Update immunity percent if tier changed
-                // (Would require setter in AncientCrownImmunityInterceptor)
+                // Update immunity percent if tier changed
+                double currentPercent = existing.getImmunityPercent() * 100.0;
+                if (Math.abs(currentPercent - immunityPercent) > 0.01) {
+                    existing.setImmunityPercent(immunityPercent);
+                    debug("Updated Ancient Crown immunity for " + player.getName() +
+                          " from " + currentPercent + "% to " + immunityPercent + "%");
+                }
                 break;
             }
         }

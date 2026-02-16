@@ -62,6 +62,13 @@ cooldowns:
   ready-sound-pitch: 1.5
   ready-message: "&a%ability% &7is ready!"
 
+# Item Cooldowns
+item-cooldowns:
+  enabled: true
+  golden-apple: 9.0           # seconds
+  enchanted-golden-apple: 9.0 # same cooldown as regular
+  totem-of-undying: 60.0      # seconds
+
 # BossBar Notification Settings
 # Shows animated progress bars for cooldowns and buff durations
 notifications:
@@ -154,3 +161,11 @@ notifications:
   show_cooldowns: true     # Cooldown messages (active + ready)
   show_tier_ups: true      # Tier progression messages
   show_set_bonuses: true   # Set bonus activation/proc messages
+
+# Enchanter Settings
+enchanter:
+  # Block type for physical Enchanter stations
+  block_type: ENCHANTING_TABLE
+
+  # Registered Enchanter block locations (populated via /ce setblock)
+  locations: []

@@ -301,6 +301,9 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         var result = plugin.getSocketManager().socketSigil(p, item, sigil);
         switch (result) {
             case SUCCESS -> {
+                // IMPORTANT: setItemMeta modifies the ItemStack, so we must put it back in inventory
+                p.getInventory().setItemInMainHand(item);
+
                 String prefix = sigil.isExclusive() ? "§6* " : "§a> ";
                 sender.sendMessage(TextUtil.colorize(prefix + "§aSocketed §f" + sigil.getName() + " §aonto item!"));
                 if (sigil.isExclusive()) {

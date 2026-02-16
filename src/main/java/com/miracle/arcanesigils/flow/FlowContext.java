@@ -402,6 +402,7 @@ public class FlowContext {
         String resolved = resolveExpression(condition);
 
         // 1. Check for comparison expressions (VALUE OPERATOR VALUE)
+        // Only match when both sides look like numeric values (not ConditionManager formats like HEALTH_PERCENT:<50)
         String[] operators = {"<=", ">=", "==", "!=", "<", ">"};
         for (String op : operators) {
             int idx = resolved.indexOf(op);
@@ -423,12 +424,11 @@ public class FlowContext {
                         default -> false;
                     };
                 } catch (NumberFormatException ignored) {
-                    // String comparison
-                    return switch (op) {
-                        case "==" -> left.equals(right);
-                        case "!=" -> !left.equals(right);
-                        default -> false;
-                    };
+                    // Left side isn't numeric - for == and != do string comparison,
+                    // otherwise fall through to ConditionManager (e.g. HEALTH_PERCENT:<50)
+                    if ("==".equals(op)) return left.equals(right);
+                    if ("!=".equals(op)) return !left.equals(right);
+                    // Not a valid expression - continue to ConditionManager delegation
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.binds.TargetGlowManager;
+import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.effects.Effect;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
@@ -169,16 +170,34 @@ public abstract class AbstractEffect implements Effect {
         if (target == null || target.equalsIgnoreCase("@Self")) {
             return context.getPlayer();
         } else if (target.equalsIgnoreCase("@Victim")) {
-            // If victim exists (combat event), use it
-            if (context.getVictim() != null) {
-                return context.getVictim();
+            // @Victim = entity you most recently hit (via LastVictimManager)
+            getPlugin().getLogger().info(String.format("[AbstractEffect] @Victim resolution for %s", context.getPlayer().getName()));
+
+            LastVictimManager victimManager = ArmorSetsPlugin.getInstance().getLastVictimManager();
+            if (victimManager == null) {
+                getPlugin().getLogger().info("[AbstractEffect] LastVictimManager is NULL!");
+                return null;
             }
-            // Otherwise, find target in front of player (ability-style)
-            LivingEntity lookTarget = TargetFinder.findLookTarget(context.getPlayer(), range);
-            if (lookTarget != null) {
-                return lookTarget;
+
+            LivingEntity victim = victimManager.getLastVictim(context.getPlayer());
+            getPlugin().getLogger().info(String.format("[AbstractEffect] getLastVictim() returned: %s",
+                victim != null ? victim.getName() + " (dead: " + victim.isDead() + ")" : "null"));
+
+            if (victim != null && !victim.isDead()) {
+                getPlugin().getLogger().info(String.format("[AbstractEffect] Returning valid victim: %s", victim.getName()));
+                return victim;
             }
-            // Fallback to self if no target found
+
+            // No valid victim - stop flow with error
+            getPlugin().getLogger().info("[AbstractEffect] No valid victim - setting flow error");
+            FlowContext flowContext = context.getFlowContext();
+            if (flowContext != null) {
+                String abilityName = context.getSigilId() != null
+                    ? context.getSigilId()
+                    : "Ability";
+                flowContext.setError(abilityName + " requires a recent target!");
+            }
+
             return null;
         } else if (target.equalsIgnoreCase("@Attacker")) {
             // Target the entity that hit the player (for DEFENSE signals)

@@ -203,20 +203,18 @@ public class TargetGlowManager implements Listener {
     }
 
     /**
-     * Show "Target: [player name]" message in chat.
+     * Show "Target: [player name]" message in action bar.
      */
     private void showTargetMessage(Player viewer, Player target) {
         String message = TextUtil.colorize("&aTarget: &f" + target.getName());
-        viewer.spigot().sendMessage(ChatMessageType.CHAT, new TextComponent(message));
+        viewer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
     }
 
     /**
-     * Clear the target message.
-     * NOTE: With CHAT messages (not actionbar), we can't "clear" a message.
-     * Just do nothing - the message will scroll away naturally.
+     * Clear the target message from action bar.
      */
     private void clearTargetMessage(Player viewer) {
-        // No-op - can't clear chat messages like we could actionbar
+        viewer.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(""));
     }
 
     /**

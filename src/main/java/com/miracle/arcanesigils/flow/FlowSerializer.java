@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.flow;
 
 import com.miracle.arcanesigils.flow.nodes.*;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
@@ -147,7 +148,13 @@ public class FlowSerializer {
 
         // Connections
         if (map.containsKey("next")) {
-            node.setConnection("next", (String) map.get("next"));
+            String nextId = (String) map.get("next");
+            node.setConnection("next", nextId);
+            LogHelper.info("[FlowSerializer] Set 'next' connection for node %s -> %s",
+                node.getId(), nextId);
+        } else {
+            LogHelper.warning("[FlowSerializer] Node %s has no 'next' field in YAML",
+                node.getId());
         }
         Object connObj = map.get("connections");
         if (connObj instanceof Map<?, ?> connMap) {

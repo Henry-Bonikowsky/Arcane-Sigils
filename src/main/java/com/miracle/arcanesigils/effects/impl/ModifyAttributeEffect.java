@@ -169,15 +169,18 @@ public class ModifyAttributeEffect extends AbstractEffect {
         // Used to determine if we should fill max health on health boosts
         boolean isFirstApplication = true;
 
+        // Extract sigilId from context (already done at line 159, but check again)
+        boolean isAbilityModifier = sigilId != null && !sigilId.isEmpty();
+
         NamespacedKey key;
-        if ((persistent || permanent) && sigilId != null) {
-            // Use stable key based on sigil ID + attribute for persistent/permanent modifiers
+        if ((persistent || permanent || isAbilityModifier) && sigilId != null) {
+            // Use stable key based on sigil ID + attribute
             // Sanitize to valid NamespacedKey format: lowercase, alphanumeric + underscores
             String sanitized = (sigilId + "_" + attributeName).toLowerCase().replaceAll("[^a-z0-9_]", "_");
-            String keyString = PERSISTENT_PREFIX + "_" + sanitized;
+            String keyString = (persistent || permanent ? PERSISTENT_PREFIX : MODIFIER_NAME) + "_" + sanitized;
             key = new NamespacedKey(getPlugin(), keyString);
 
-            // Remove existing modifier with this key before adding new one
+            // Remove existing modifier with this key (prevents stacking from same ability)
             // Compare by key string to ensure proper matching
             AttributeModifier toRemove = null;
             for (AttributeModifier existing : attrInstance.getModifiers()) {
@@ -191,7 +194,7 @@ public class ModifyAttributeEffect extends AbstractEffect {
                 isFirstApplication = false; // This is a refresh, not first application
             }
         } else {
-            // Generate unique key for temporary modifier
+            // Generate unique key for temporary modifier (preserves old behavior)
             UUID modifierId = UUID.randomUUID();
             key = new NamespacedKey(getPlugin(), MODIFIER_NAME + "_" + modifierId.toString().substring(0, 8));
         }

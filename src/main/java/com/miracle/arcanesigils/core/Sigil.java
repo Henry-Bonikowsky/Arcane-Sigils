@@ -47,6 +47,7 @@ public class Sigil {
     private TierScalingConfig tierScalingConfig; // How this sigil scales with tier
     private TierXPConfig tierXPConfig; // XP progression configuration
     private SigilType sigilType = SigilType.STANDARD; // Type of sigil
+    private com.miracle.arcanesigils.enchanter.config.UpgradeCostConfig upgradeCostConfig; // Upgrade costs for Enchanter system
 
     // UNIFIED FLOWS - replaces both signals and activation
     // A sigil has ONE flow (either SIGNAL or ABILITY type)
@@ -392,6 +393,14 @@ public class Sigil {
         this.tierXPConfig = tierXPConfig;
     }
 
+    public com.miracle.arcanesigils.enchanter.config.UpgradeCostConfig getUpgradeCostConfig() {
+        return upgradeCostConfig;
+    }
+
+    public void setUpgradeCostConfig(com.miracle.arcanesigils.enchanter.config.UpgradeCostConfig upgradeCostConfig) {
+        this.upgradeCostConfig = upgradeCostConfig;
+    }
+
     public SigilType getSigilType() {
         return sigilType;
     }
@@ -468,6 +477,13 @@ public class Sigil {
                 sigil.setTierXPConfig(TierXPConfig.disabled());
             } else {
                 sigil.setTierXPConfig(TierXPConfig.fromConfig(tierSection.getConfigurationSection("xp")));
+            }
+
+            // Load upgrade costs for Enchanter system
+            ConfigurationSection upgradeCostsSection = tierSection.getConfigurationSection("upgrade_costs");
+            if (upgradeCostsSection != null) {
+                sigil.setUpgradeCostConfig(com.miracle.arcanesigils.enchanter.config.UpgradeCostConfig.loadFromConfig(
+                    upgradeCostsSection, id));
             }
         }
 
@@ -566,6 +582,31 @@ public class Sigil {
 
         // Set flow_type so GUI knows how to render START node params
         startNode.setParam("flow_type", flow.getType().name());
+    }
+
+    /**
+     * Resolve tier-scaled cooldown from flow's START node params.
+     * Returns the actual cooldown value for the given tier.
+     *
+     * @param flow The flow config
+     * @param tier The player's sigil tier (1-based)
+     * @return The resolved cooldown in seconds, or 0 if not found
+     */
+    public double resolveTierScaledCooldown(FlowConfig flow, int tier) {
+        if (flow == null || flow.getGraph() == null) return 0;
+        com.miracle.arcanesigils.flow.FlowNode startNode = flow.getGraph().getStartNode();
+        if (startNode == null) return 0;
+
+        Object cooldownVal = startNode.getParam("cooldown");
+        if (cooldownVal instanceof String str && str.contains("{")) {
+            String paramName = str.replace("{", "").replace("}", "");
+            com.miracle.arcanesigils.tier.TierScalingConfig tierConfig = getTierScalingConfig();
+            if (tierConfig != null && tierConfig.hasParam(paramName)) {
+                return tierConfig.getParamValue(paramName, tier);
+            }
+        }
+        // Fall back to double param if not a placeholder
+        return startNode.getDoubleParam("cooldown", 0.0);
     }
 
     /**

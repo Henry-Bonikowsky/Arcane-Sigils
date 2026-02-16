@@ -1,5 +1,6 @@
 package com.miracle.arcanesigils.combat.modules;
 
+import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.combat.LegacyCombatManager;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -50,26 +51,51 @@ public class DamageScalingModule extends AbstractCombatModule implements Listene
      */
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDamageLowest(EntityDamageByEntityEvent event) {
-        if (!isEnabled()) return;
-        if (!(event.getDamager() instanceof Player attacker)) return;
+        var log = ArmorSetsPlugin.getInstance().getLogger();
 
-        // Check if enchantment scaling is enabled
-        if (!config.isEnchantmentScalingEnabled()) return;
+        log.info("[EnchantScale] onDamageLowest triggered - damager: " + event.getDamager().getType());
+
+        if (!isEnabled()) {
+            log.info("[EnchantScale] SKIP: Module not enabled (isEnabled=false)");
+            return;
+        }
+        log.info("[EnchantScale] Module is enabled");
+
+        if (!(event.getDamager() instanceof Player attacker)) {
+            log.info("[EnchantScale] SKIP: Damager is not a player");
+            return;
+        }
+        log.info("[EnchantScale] Attacker: " + attacker.getName());
 
         // Read Sharpness level from weapon
         ItemStack weapon = attacker.getInventory().getItemInMainHand();
-        if (weapon == null || weapon.getType().isAir()) return;
+        if (weapon == null || weapon.getType().isAir()) {
+            log.info("[EnchantScale] SKIP: No weapon in hand");
+            return;
+        }
+        log.info("[EnchantScale] Weapon: " + weapon.getType());
 
         int sharpnessLevel = weapon.getEnchantmentLevel(Enchantment.SHARPNESS);
-        if (sharpnessLevel == 0) return;
+        if (sharpnessLevel == 0) {
+            log.info("[EnchantScale] SKIP: Weapon has no Sharpness enchant");
+            return;
+        }
+        log.info("[EnchantScale] Sharpness level: " + sharpnessLevel);
 
         // Get scalar for this Sharpness level
         double scalar = config.getSharpnessScalar(sharpnessLevel);
-        if (scalar == 1.0) return;
+        log.info("[EnchantScale] Config scalar for Sharp " + sharpnessLevel + ": " + scalar);
+
+        if (scalar == 1.0) {
+            log.info("[EnchantScale] SKIP: Scalar is 1.0 (no change)");
+            return;
+        }
 
         // Apply damage scaling
         double damage = event.getDamage();
-        event.setDamage(damage * scalar);
+        double newDamage = damage * scalar;
+        event.setDamage(newDamage);
+        log.info("[EnchantScale] APPLIED: damage " + damage + " -> " + newDamage + " (x" + scalar + ")");
     }
 
     /**
@@ -77,12 +103,13 @@ public class DamageScalingModule extends AbstractCombatModule implements Listene
      */
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDamageHighest(EntityDamageByEntityEvent event) {
+        var log = ArmorSetsPlugin.getInstance().getLogger();
+
         if (!isEnabled()) return;
         if (!(event.getDamager() instanceof Player)) return;
         if (!(event.getEntity() instanceof Player victim)) return;
 
-        // Check if enchantment scaling is enabled
-        if (!config.isEnchantmentScalingEnabled()) return;
+        log.info("[EnchantScale] onDamageHighest - PvP detected, victim: " + victim.getName());
 
         // Calculate scaled Protection from victim's armor
         ItemStack[] armor = victim.getInventory().getArmorContents();
@@ -102,16 +129,27 @@ public class DamageScalingModule extends AbstractCombatModule implements Listene
                 double scalar = config.getProtectionScalar(protectionLevel);
                 double scaledPieceReduction = vanillaPieceReduction * scalar;
                 scaledReduction += scaledPieceReduction;
+
+                log.info("[EnchantScale] Armor piece " + piece.getType() + " Prot " + protectionLevel +
+                    " -> vanilla=" + vanillaPieceReduction + ", scalar=" + scalar + ", scaled=" + scaledPieceReduction);
             }
         }
 
-        if (vanillaReduction == 0.0) return; // No Protection enchants
+        if (vanillaReduction == 0.0) {
+            log.info("[EnchantScale] SKIP: No Protection enchants on victim");
+            return;
+        }
 
         // Calculate additional reduction (difference between scaled and vanilla)
         // Vanilla already applied its reduction, we add the extra from scaling
         double additionalReduction = scaledReduction - vanillaReduction;
         double currentDamage = event.getDamage();
-        event.setDamage(currentDamage * (1.0 - additionalReduction));
+        double newDamage = currentDamage * (1.0 - additionalReduction);
+        event.setDamage(newDamage);
+
+        log.info("[EnchantScale] Protection total: vanilla=" + vanillaReduction + ", scaled=" + scaledReduction +
+            ", additionalReduction=" + additionalReduction);
+        log.info("[EnchantScale] APPLIED: damage " + currentDamage + " -> " + newDamage);
     }
 
     /**

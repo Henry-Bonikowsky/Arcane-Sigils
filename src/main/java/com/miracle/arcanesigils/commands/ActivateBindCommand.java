@@ -145,11 +145,17 @@ public class ActivateBindCommand implements CommandExecutor, TabCompleter {
             context.setMetadata("tierScalingConfig", sigil.getTierScalingConfig());
         }
 
-        // Process cooldown
+        // Process cooldown - resolve tier-scaled value if needed
         String cooldownKey = "bind_action_" + sigilId;
+        double cooldown = flow.getCooldown();
+
+        // Resolve tier-scaled cooldown from START node if needed
+        if (cooldown < 0 || flow.getGraph() != null) {
+            cooldown = sigil.resolveTierScaledCooldown(flow, sigil.getTier());
+        }
 
         // Check cooldown
-        if (flow.getCooldown() > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
+        if (cooldown > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
             double remaining = plugin.getCooldownManager().getRemainingCooldown(player, cooldownKey);
             player.sendMessage(TextUtil.colorize("§cAbility on cooldown! (" + String.format("%.1f", remaining) + "s remaining)"));
             return;
@@ -162,9 +168,9 @@ public class ActivateBindCommand implements CommandExecutor, TabCompleter {
         com.miracle.arcanesigils.utils.LogHelper.debug("[ActivateBind] Flow execution result: %s", flowResult);
 
         // Apply cooldown with display name
-        if (flow.getCooldown() > 0) {
+        if (cooldown > 0) {
             String displayName = TextUtil.stripColors(sigil.getName());
-            plugin.getCooldownManager().setCooldown(player, cooldownKey, displayName, flow.getCooldown());
+            plugin.getCooldownManager().setCooldown(player, cooldownKey, displayName, cooldown);
         }
     }
 

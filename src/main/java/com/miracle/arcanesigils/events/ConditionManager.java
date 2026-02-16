@@ -83,28 +83,37 @@ public class ConditionManager {
                     yield onGround;
                 }
                 case "IN_AIR" -> {
-                    // More robust IN_AIR check - isOnGround() can be unreliable
+                    // Simple reliable IN_AIR check
                     Player p = context.getPlayer();
-                    boolean clientOnGround = p.isOnGround();
-
-                    // Also check if there's a solid block within 0.3 blocks below player's feet
-                    // This handles cases where isOnGround() is wrong due to network lag
-                    org.bukkit.Location feet = p.getLocation();
-                    org.bukkit.block.Block below = feet.clone().subtract(0, 0.3, 0).getBlock();
-                    boolean solidBelow = below.getType().isSolid();
-
-                    // Player is in air if: not on ground AND no solid block directly below
-                    // OR: has significant upward/downward velocity (clearly jumping/falling)
+                    boolean onGround = p.isOnGround();
                     double yVel = p.getVelocity().getY();
-                    boolean hasVerticalVelocity = Math.abs(yVel) > 0.1;
 
-                    // In air = (not on ground AND no solid below) OR (significant vertical velocity AND not on ground)
-                    boolean inAir = (!clientOnGround && !solidBelow) || (hasVerticalVelocity && !clientOnGround);
-
-                    com.miracle.arcanesigils.utils.LogHelper.debug(
-                        "[Conditions] IN_AIR: player=%s onGround=%s solidBelow=%s yVel=%.2f -> inAir=%s",
-                        p.getName(), clientOnGround, solidBelow, yVel, inAir);
+                    // Player is in air if not on ground OR has significant Y velocity
+                    boolean inAir = !onGround || Math.abs(yVel) > 0.1;
                     yield inAir;
+                }
+                case "SIGIL_ON_COOLDOWN" -> {
+                    // Check if a specific sigil is on cooldown
+                    // Format: SIGIL_ON_COOLDOWN <sigil_id>
+                    if (parts.length < 2) {
+                        yield false; // No sigil ID provided - edge case, return false
+                    }
+
+                    String sigilId = parts[1].toLowerCase();
+                    Player player = context.getPlayer();
+
+                    // Build cooldown key for the sigil's main flow
+                    // Format: sigil_<id>_<signal>_flow
+                    String signalKey = context.getSignalType().getConfigKey();
+                    String cooldownKey = "sigil_" + sigilId + "_" + signalKey + "_flow";
+
+                    // Return true if sigil IS on cooldown
+                    // Returns false if:
+                    // - Sigil not equipped (cooldown doesn't exist)
+                    // - Sigil not on cooldown
+                    // - Cooldown expired
+                    boolean onCooldown = plugin.getCooldownManager().isOnCooldown(player, cooldownKey);
+                    yield onCooldown;
                 }
                 case "HUNGER" -> checkHunger(context.getPlayer(), parts);
                 case "WEATHER" -> checkWeather(context.getPlayer(), parts);
@@ -218,7 +227,12 @@ public class ConditionManager {
         double percentHealth = (currentHealth / maxHealth) * 100;
 
         String condition = parts[1];
-        return evaluateComparison(percentHealth, condition);
+        boolean result = evaluateComparison(percentHealth, condition);
+
+        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] HEALTH_PERCENT check: player=%s, current=%.1f, max=%.1f, percent=%.1f%%, condition=%s, result=%s",
+            player.getName(), currentHealth, maxHealth, percentHealth, condition, result);
+
+        return result;
     }
 
     /**
@@ -887,6 +901,9 @@ public class ConditionManager {
             case "IN_WATER" -> "NOT_IN_WATER";
             case "ON_GROUND" -> "NOT_ON_GROUND";
             case "IN_AIR" -> "NOT_IN_AIR";
+            case "SIGIL_ON_COOLDOWN" -> parts.length > 1
+                ? "SIGIL_NOT_ON_COOLDOWN_" + parts[1].toUpperCase()
+                : "SIGIL_NOT_ON_COOLDOWN";
             case "HUNGER" -> "WRONG_HUNGER";
             case "WEATHER" -> "WRONG_WEATHER";
             case "TIME" -> parts.length > 1 && parts[1].contains("DAY")
@@ -906,4 +923,5 @@ public class ConditionManager {
             default -> type;
         };
     }
+
 }

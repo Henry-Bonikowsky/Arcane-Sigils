@@ -784,8 +784,22 @@ public class NodeConfigHandler extends AbstractHandler {
         // CRITICAL: Sync StartNode chance/cooldown/priority to FlowConfig
         FlowNode startNodeRaw = graph.getStartNode();
         if (startNodeRaw instanceof StartNode startNode) {
-            flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
-            flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
+            // Handle cooldown - check for tier placeholder first
+            Object cooldownVal = startNode.getParam("cooldown");
+            if (cooldownVal != null && cooldownVal.toString().contains("{")) {
+                flowConfig.setCooldown(-1.0); // Sentinel: tier-scaled
+            } else {
+                flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
+            }
+
+            // Handle chance - check for tier placeholder first
+            Object chanceVal = startNode.getParam("chance");
+            if (chanceVal != null && chanceVal.toString().contains("{")) {
+                flowConfig.setChance(-1.0); // Sentinel: tier-scaled
+            } else {
+                flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
+            }
+
             flowConfig.setPriority(startNode.getIntParam("priority", 1));
 
             // Also sync signal_type to trigger

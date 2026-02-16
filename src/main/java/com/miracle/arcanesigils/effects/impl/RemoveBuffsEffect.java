@@ -53,7 +53,7 @@ public class RemoveBuffsEffect extends AbstractEffect {
     @Override
     public boolean execute(EffectContext context) {
         LivingEntity target = getTarget(context);
-        
+
         if (target == null) {
             debug("REMOVE_BUFFS requires a target");
             return false;

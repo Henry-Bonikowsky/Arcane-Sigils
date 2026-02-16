@@ -4,7 +4,7 @@
   <groupId>com.miracle</groupId>
   <artifactId>ArcaneSigils</artifactId>
   <name>ArcaneSigils</name>
-  <version>1.1.29</version>
+  <version>1.1.57</version>
   <description>Unlimited collections of applicable abilities</description>
   <build>
     <resources>
@@ -137,6 +137,12 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
+      <groupId>com.github.drtshock</groupId>
+      <artifactId>Factions</artifactId>
+      <version>0.6.35</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>5.10.2</version>
@@ -214,7 +220,7 @@
     </dependency>
   </dependencies>
   <properties>
-    <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.version>21</java.version>
   </properties>
 </project>

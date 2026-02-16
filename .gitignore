@@ -3,6 +3,7 @@ target/
 
 # IDE
 .idea/
+.vscode/
 *.iml
 
 # Tools (Bozar obfuscator - 35MB binary)

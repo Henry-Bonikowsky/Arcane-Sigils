@@ -6,6 +6,28 @@ Paper plugin - magical abilities (sigils) socketed into armor.
 
 ---
 
+## CRITICAL: Server-First Edit Workflow
+
+**ALWAYS pull from server before editing deployed files:**
+
+```bash
+# Pull the file you want to edit
+python host/deploy.py pull plugins/ArcaneSigils/path/to/file.yml local-temp.yml
+
+# Edit the pulled file
+# Make your changes...
+
+# Build and deploy
+mvn clean package -DskipTests
+python host/deploy.py deploy
+```
+
+**Why**: Server may have changes not in local repo. Editing local files first = overwriting server changes.
+
+**Applies to**: All YAML files (config.yml, sigils/*.yml, behaviors/*.yml, sets/*.yml, marks/*.yml)
+
+---
+
 ## Build
 
 ```bash
@@ -23,11 +45,11 @@ export JAVA_HOME="/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.
 
 Deploy to server:
 ```bash
-python deploy.py deploy          # Upload JAR (auto-deletes old JARs)
-python deploy.py push <local> <remote>   # Upload specific file
-python deploy.py ls [path]       # List remote directory
-python deploy.py rm <path>       # Delete remote file
-python deploy.py pull <remote> [local]  # Download from server
+python host/deploy.py deploy          # Upload JAR (auto-deletes old JARs)
+python host/deploy.py push <local> <remote>   # Upload specific file
+python host/deploy.py ls [path]       # List remote directory
+python host/deploy.py rm <path>       # Delete remote file
+python host/deploy.py pull <remote> [local]  # Download from server
 ```
 
 **SFTP password** is in `.env` file (not committed to git).
@@ -125,27 +147,50 @@ Action bars are reserved for transient UI elements only. Chat messages provide b
     message: "&5&lCleopatra! &7Buffs stolen!"
 ```
 
-### Target Resolution for ABILITY Flows
-ABILITY-type flows use the bind menu target system:
-- Use `target: "@Target"` to reference the player's selected target from `/binds`
-- Do NOT use `@Victim` in ABILITY flows (that's for SIGNAL/ATTACK flows only)
+### Target Resolution
+
+All flow types support these target specifiers:
+
+| Specifier | Meaning | Source |
+|-----------|---------|--------|
+| **@Self** | The player | Always the player who owns the sigil |
+| **@Victim** | Entity you recently punched | LastVictimManager (30 block range, any LivingEntity) |
+| **@Target** | Selected target from bind menu | TargetGlowManager (requires `/binds` selection) |
+| **@Attacker** | Entity that hit you | Event context (DEFENSE signals only) |
+
+**ABILITY Flows** - Can use any target:
+- `@Target` - Requires target selection via `/binds` menu (shows error if no target)
+- `@Victim` - Uses entity you most recently hit (shows error if no recent target)
+- `@Self` - Effects apply to yourself
+
+**Validation**: Both `@Target` and `@Victim` will prevent flow activation if no valid target exists - flow stops, error message shown, cooldown NOT consumed.
+
+**SIGNAL Flows** (ATTACK/DEFEND/etc):
+- `@Victim` - Automatically set to entity you just hit/got hit by
+- `@Target` - Falls back to bind menu if no combat context
+- `@Self` - Effects apply to yourself
 
 **Example:**
 ```yaml
 flows:
   - type: ABILITY
-    id: my_ability
+    id: cleopatra_steal
     nodes:
       - effect: STEAL_BUFFS
         params:
-          target: "@Target"  # ✓ Correct for abilities
+          target: "@Victim"  # ✓ Works - uses last punched entity
 ```
 
 ---
 
 ## Debugging
 
-**Enable debug mode** in `config.yml`:
+**Logging Preference**: Use `LogHelper.info()` for diagnostic logging, NOT `LogHelper.debug()`.
+- Regular logging always visible without config changes
+- Debug mode should only be for verbose/spammy logs
+- When adding diagnostic logs for troubleshooting, use `.info()` by default
+
+**Enable debug mode** (for verbose logs only) in `config.yml`:
 ```yaml
 settings:
   debug: true
@@ -157,6 +202,45 @@ Debug logs cover:
 - **MarkManager**: Mark application, stacking, duration, EFFECT_STATIC execution
 
 All debug messages prefixed with `[DEBUG]` and tagged by component (e.g., `[SpawnEntity]`, `[MarkManager]`).
+
+### Debugging Pattern: Collaborative Diagnosis
+
+**When to use**: Complex bugs where you understand the system but need help mapping the execution flow.
+
+**The Pattern:**
+
+1. **Ask Claude to Research** - Have Claude trace the full execution path
+   ```
+   "Trace how [feature] works from trigger to result"
+   "Find where [expected behavior] diverges from [actual behavior]"
+   ```
+
+2. **Claude Presents Findings** - Claude documents:
+   - Full execution pipeline (trigger → collection → filtering → sorting → execution)
+   - Where expectations diverge from reality
+   - What happens at each decision point
+   - Why previous fixes failed
+
+3. **You Identify the Fix** - With the architecture laid out clearly, you spot:
+   - The structural problem (not just symptoms)
+   - Where validation should happen
+   - The minimal change needed
+
+4. **Claude Implements** - Claude writes the code you described
+
+**Why This Works:**
+- Claude handles tedious code tracing without getting tired
+- Claude presents findings neutrally (no solution bias)
+- You maintain architectural oversight and spot elegant solutions
+- Explaining the system to Claude clarifies your own thinking
+
+**Example: Dasher/Sky Stepper Bug (v1.1.29)**
+- **You**: "Dasher stops working when Sky Stepper is on cooldown"
+- **Claude**: *traces execution, finds cooldown checked in `executeFlow()` not during collection*
+- **You**: "Check cooldown BEFORE adding to the list"
+- **Claude**: *implements shift-left filtering*
+
+**Key Principle**: Claude researches and presents architecture. You identify the fix. Claude implements.
 
 ---
 

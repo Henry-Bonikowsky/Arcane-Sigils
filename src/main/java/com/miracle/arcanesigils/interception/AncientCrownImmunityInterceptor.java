@@ -1,39 +1,32 @@
 package com.miracle.arcanesigils.interception;
 
-import com.miracle.arcanesigils.ArmorSetsPlugin;
-import com.miracle.arcanesigils.effects.AttributeModifierManager;
-import com.miracle.arcanesigils.effects.PotionEffectTracker;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.Random;
+
 /**
- * Interceptor that reduces negative effects by a percentage based on Ancient Crown tier.
+ * Interceptor that blocks negative effects by chance based on Ancient Crown tier.
  * Provides passive immunity to debuffs for the wearer.
  *
- * Counter-modifier approach:
- * - Allows potion effects through but applies counter-modifiers to offset the impact
- * - For Slowness: applies +movement speed to counter the slowdown
- * - For Weakness: applies +attack damage to counter the damage reduction
- * - Counter-modifiers are tracked and removed when effects expire
+ * Chance-based blocking:
+ * - Potion effects: Roll dice, either block completely or let through at full strength
+ * - Attribute modifiers: Proportional reduction (not chance-based)
  *
  * Tier scaling:
- * - T1: 20% immunity
- * - T2: 40% immunity
- * - T3: 60% immunity
- * - T4: 80% immunity
- * - T5: 100% immunity (complete block)
+ * - T1: 20% chance to block
+ * - T2: 40% chance to block
+ * - T3: 60% chance to block
+ * - T4: 80% chance to block
+ * - T5: 100% chance to block (always blocks)
  */
 public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
     private final Player wearer;
-    private final double immunityPercent; // 0.0 to 1.0
+    private double immunityPercent; // 0.0 to 1.0 (mutable for tier updates)
     private boolean active;
-
-    // Base effect values for potion effects (per amplifier level)
-    private static final double SLOWNESS_PER_LEVEL = 0.15; // 15% speed reduction per level
-    private static final double WEAKNESS_PER_LEVEL = 4.0;  // 4 attack damage reduction per level
+    private final Random random = new Random();
 
     public AncientCrownImmunityInterceptor(Player wearer, double immunityPercent) {
         this.wearer = wearer;
@@ -53,15 +46,22 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
             // Only affect negative potion effects
             if (isNegativeEffect(type)) {
-                // At 100% immunity, block completely
-                if (immunityPercent >= 1.0) {
-                    event.cancel();
-                    return new InterceptionResult(true);
-                }
+                // Roll dice for chance-based blocking
+                double roll = random.nextDouble(); // 0.0 to 1.0
 
-                // Apply counter-modifier to offset the effect
-                applyCounterModifier(type, event.getAmplifier(), event.getDuration());
-                return new InterceptionResult(true); // Effect handled (but not cancelled)
+                if (roll < immunityPercent) {
+                    // Block completely
+                    event.cancel();
+                    LogHelper.info("Ancient Crown blocked " + type.getKey().getKey() +
+                                   " (" + String.format("%.0f%%", immunityPercent * 100) + " chance) for " + wearer.getName());
+                    return new InterceptionResult(true);
+                } else {
+                    // Failed roll - let effect through at full strength
+                    LogHelper.info("Ancient Crown failed to block " + type.getKey().getKey() +
+                                   " (rolled " + String.format("%.1f%%", roll * 100) +
+                                   " vs " + String.format("%.0f%%", immunityPercent * 100) + ") for " + wearer.getName());
+                    return InterceptionResult.PASS;
+                }
             }
         } else if (event.getType() == InterceptionEvent.Type.ATTRIBUTE_MODIFIER) {
             double value = event.getValue();
@@ -83,54 +83,6 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
         return InterceptionResult.PASS;
     }
 
-    /**
-     * Apply a counter-modifier to offset a negative potion effect.
-     * The counter-modifier counters the immunity percentage of the effect.
-     */
-    private void applyCounterModifier(PotionEffectType type, int amplifier, int duration) {
-        ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
-        AttributeModifierManager modManager = plugin.getAttributeModifierManager();
-        PotionEffectTracker tracker = plugin.getPotionEffectTracker();
-
-        if (modManager == null || tracker == null) return;
-
-        // Calculate counter-modifier based on effect type
-        Attribute attribute = null;
-        double counterValue = 0;
-        String modifierName = "ancient_crown_counter_" + type.getKey().getKey();
-
-        if (type.equals(PotionEffectType.SLOWNESS)) {
-            // Slowness: counter with +movement speed
-            attribute = Attribute.MOVEMENT_SPEED;
-            // Each amplifier level = 15% slow, counter with immunity% of that
-            double totalSlow = SLOWNESS_PER_LEVEL * (amplifier + 1);
-            counterValue = totalSlow * immunityPercent * 0.1; // Base speed is 0.1, so multiply
-        } else if (type.equals(PotionEffectType.WEAKNESS)) {
-            // Weakness: counter with +attack damage
-            attribute = Attribute.ATTACK_DAMAGE;
-            // Each amplifier level = 4 damage reduction, counter with immunity% of that
-            double totalWeakness = WEAKNESS_PER_LEVEL * (amplifier + 1);
-            counterValue = totalWeakness * immunityPercent;
-        }
-
-        if (attribute != null && counterValue > 0) {
-            // Convert duration from ticks to seconds
-            int durationSeconds = duration / 20;
-
-            // Apply the counter-modifier
-            modManager.setNamedModifier(
-                wearer,
-                attribute,
-                modifierName,
-                counterValue,
-                AttributeModifier.Operation.ADD_NUMBER,
-                durationSeconds
-            );
-
-            // Track it for cleanup when effect ends
-            tracker.trackEffect(wearer, type, modifierName);
-        }
-    }
 
     private boolean isNegativeEffect(PotionEffectType type) {
         // List of negative potion effects
@@ -164,5 +116,21 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
     public Player getWearer() {
         return wearer;
+    }
+
+    /**
+     * Get the current immunity percentage (0.0 to 1.0).
+     */
+    public double getImmunityPercent() {
+        return immunityPercent;
+    }
+
+    /**
+     * Update the immunity percentage (for tier changes).
+     * @param newPercent The new percentage (0-100, will be converted to 0.0-1.0)
+     */
+    public void setImmunityPercent(double newPercent) {
+        this.immunityPercent = Math.max(0.0, Math.min(1.0, newPercent / 100.0));
+        LogHelper.info("[AncientCrown] Updated immunity for " + wearer.getName() + " to " + (immunityPercent * 100) + "%");
     }
 }

@@ -28,13 +28,13 @@ public class TierProgressionManager {
 
     /**
      * Award XP to a sigil socketed in armor.
-     * Handles tier-up automatically if XP threshold is reached.
+     * NOTE: Auto tier-up disabled - players must use Enchanter GUI for manual upgrades.
      *
      * @param player The player wearing the armor
      * @param armorItem The armor item containing the sigil
      * @param sigilId The sigil ID that activated
      * @param currentTier Current tier of the sigil
-     * @return true if a tier-up occurred
+     * @return always false (no auto tier-up)
      */
     public boolean awardXP(Player player, ItemStack armorItem, String sigilId, int currentTier) {
         if (armorItem == null || !armorItem.hasItemMeta()) {
@@ -65,6 +65,9 @@ public class TierProgressionManager {
         int xpGain = xpConfig.getGainPerActivation();
         int newXP = currentXP + xpGain;
 
+        // DISABLED: Auto tier-up
+        // Players must manually upgrade via Enchanter GUI using vanilla XP + materials
+        /*
         // Check for tier up
         int xpRequired = xpConfig.getXPForTier(currentTier + 1);
         boolean tieredUp = false;
@@ -85,11 +88,12 @@ public class TierProgressionManager {
 
             tieredUp = true;
         }
+        */
 
-        // Save new XP
+        // Save new XP (kept for compatibility, but no longer used for auto tier-up)
         setSigilXP(armorItem, sigilId, newXP);
 
-        return tieredUp;
+        return false; // No auto tier-up
     }
 
     /**

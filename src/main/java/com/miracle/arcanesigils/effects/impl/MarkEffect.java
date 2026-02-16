@@ -88,6 +88,9 @@ public class MarkEffect extends AbstractEffect {
         // Get owner for behavior context
         Player owner = context.getPlayer();
 
+        // Extract sigilId from context for ability-aware stacking
+        String sigilId = context.getSigilId();
+
         // Handle @Nearby targets
         String targetStr = params.getTarget();
         if (targetStr != null && targetStr.startsWith("@Nearby")) {
@@ -104,14 +107,14 @@ public class MarkEffect extends AbstractEffect {
             for (LivingEntity entity : nearbyEntities) {
                 boolean isPlayer = entity instanceof Player;
                 getPlugin().getLogger().info("[MARK DEBUG] Applying mark to: " + entity.getName() + " (" + entity.getType() + ", isPlayer=" + isPlayer + ")");
-                getPlugin().getMarkManager().applyMark(entity, markName, duration, behaviorId, owner);
+                getPlugin().getMarkManager().applyMark(entity, markName, duration, behaviorId, owner, sigilId);
             }
             debug("Applied mark " + markName + " to nearby entities for " + duration + "s" +
                   (behaviorId != null ? " with behavior " + behaviorId : ""));
             return true;
         }
 
-        getPlugin().getMarkManager().applyMark(target, markName, duration, behaviorId, owner);
+        getPlugin().getMarkManager().applyMark(target, markName, duration, behaviorId, owner, sigilId);
 
         debug("Applied mark " + markName + " to " +
               (target instanceof Player p ? p.getName() : target.getType().name()) +

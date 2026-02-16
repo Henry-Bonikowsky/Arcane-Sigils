@@ -118,6 +118,8 @@ public class EffectManager {
 
         // Mark System
         registerEffect(new MarkEffect());
+        registerEffect(new ApplyDamageMarkEffect());
+        registerEffect(new ApplyUniversalMarkEffect());
         registerEffect(new PullToOwnerEffect());
         registerEffect(new RegisterNoKnockbackEffect());
 

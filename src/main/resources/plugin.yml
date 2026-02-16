@@ -25,6 +25,10 @@ commands:
     description: Activate a specific bind by ID (for command system)
     aliases: [ab]
     usage: /<command> <id>
+  ce:
+    description: Cosmic Enchanter - Upgrade sigil tiers
+    aliases: [enchanter]
+    usage: /<command> [setblock|removeblock|info|reload]
   dungeon:
     description: Dungeons addon command
     aliases: [dg, dungeons]
@@ -65,6 +69,12 @@ permissions:
     default: op
   arcanesigils.behaviors:
     description: Permission to access behaviors menu
+    default: op
+  arcanesigils.enchanter.use:
+    description: Permission to use the Enchanter GUI
+    default: true
+  arcanesigils.enchanter.admin:
+    description: Permission to manage Enchanter blocks
     default: op
   dungeons.use:
     description: Basic dungeon access

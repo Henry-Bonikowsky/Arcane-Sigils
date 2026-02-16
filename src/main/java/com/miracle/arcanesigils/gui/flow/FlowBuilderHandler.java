@@ -215,8 +215,13 @@ public class FlowBuilderHandler extends AbstractHandler {
                 flowConfig = existingConfig;
             } else {
                 flowConfig = new FlowConfig();
-                flowConfig.setType(FlowType.SIGNAL);
-                flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
+                // Create ABILITY flow for exclusive sigils, SIGNAL flow otherwise
+                if (sigil.isExclusive() && "ABILITY".equals(signalKey)) {
+                    flowConfig.setType(FlowType.ABILITY);
+                } else {
+                    flowConfig.setType(FlowType.SIGNAL);
+                    flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
+                }
             }
             session.put("flowConfig", flowConfig);
         }
@@ -230,8 +235,22 @@ public class FlowBuilderHandler extends AbstractHandler {
         FlowNode startNodeRaw = graph.getStartNode();
         StartNode startNode = startNodeRaw instanceof StartNode ? (StartNode) startNodeRaw : null;
         if (startNode != null) {
-            flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
-            flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
+            // Handle cooldown - check for tier placeholder first
+            Object cooldownVal = startNode.getParam("cooldown");
+            if (cooldownVal != null && cooldownVal.toString().contains("{")) {
+                flowConfig.setCooldown(-1.0); // Sentinel: tier-scaled
+            } else {
+                flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
+            }
+
+            // Handle chance - check for tier placeholder first
+            Object chanceVal = startNode.getParam("chance");
+            if (chanceVal != null && chanceVal.toString().contains("{")) {
+                flowConfig.setChance(-1.0); // Sentinel: tier-scaled
+            } else {
+                flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
+            }
+
             flowConfig.setPriority(startNode.getIntParam("priority", 1));
 
             // Also sync signal_type to trigger if changed in StartNode
@@ -304,8 +323,13 @@ public class FlowBuilderHandler extends AbstractHandler {
             flowConfig = sigil.getFlowForTrigger(signalKey);
             if (flowConfig == null) {
                 flowConfig = new FlowConfig();
-                flowConfig.setType(FlowType.SIGNAL);
-                flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
+                // Create ABILITY flow for exclusive sigils, SIGNAL flow otherwise
+                if (sigil.isExclusive() && "ABILITY".equals(signalKey)) {
+                    flowConfig.setType(FlowType.ABILITY);
+                } else {
+                    flowConfig.setType(FlowType.SIGNAL);
+                    flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
+                }
             }
         }
 
