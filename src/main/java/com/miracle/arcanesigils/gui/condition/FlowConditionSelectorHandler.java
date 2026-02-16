@@ -341,6 +341,8 @@ public class FlowConditionSelectorHandler extends AbstractHandler {
             case PLAYER_STATE -> Material.LEATHER_BOOTS;
             case EQUIPMENT -> Material.DIAMOND_CHESTPLATE;
             case META -> Material.ENDER_EYE;
+            case SIGNAL_SPECIFIC -> Material.REDSTONE;
+            default -> Material.BARRIER;
         };
     }
 

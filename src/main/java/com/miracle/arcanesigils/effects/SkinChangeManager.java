@@ -15,6 +15,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -48,6 +49,10 @@ public class SkinChangeManager implements Listener {
 
     // Track USE_ENTITY packets for debug
     private final Map<UUID, Long> lastUseEntityPacket = new ConcurrentHashMap<>();
+    
+    // Preserve noDamageTicks and maxNoDamageTicks during skin change
+    private final Map<UUID, Integer> preservedNoDamageTicks = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> preservedMaxNoDamageTicks = new ConcurrentHashMap<>();
 
     public SkinChangeManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -260,6 +265,17 @@ public class SkinChangeManager implements Listener {
             // Track timing for debug
             skinChangeTimestamps.put(target.getUniqueId(), System.currentTimeMillis());
 
+            // Store current immunity state for restoration (preserve existing immunity, don't force reset)
+            int currentMaxNoDamageTicks = target.getMaximumNoDamageTicks();
+            int currentNoDamageTicks = target.getNoDamageTicks();
+            preservedMaxNoDamageTicks.put(target.getUniqueId(), currentMaxNoDamageTicks);
+            preservedNoDamageTicks.put(target.getUniqueId(), currentNoDamageTicks);
+
+            plugin.getLogger().info(String.format(
+                "[SkinChange] Preserving immunity for %s: noDamageTicks=%d, max=%d",
+                target.getName(), currentNoDamageTicks, currentMaxNoDamageTicks
+            ));
+
             // Get all online players who can see this player
             Collection<? extends Player> viewers = Bukkit.getOnlinePlayers();
 
@@ -274,6 +290,34 @@ public class SkinChangeManager implements Listener {
 
             // Step 3: Respawn entity for all viewers (so they see new skin)
             respawnPlayerEntity(target, viewers);
+            
+            // FORCE standard immunity (10 ticks) after respawn - try multiple times for reliability
+            for (long delay : new long[]{1L, 2L, 3L}) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (!target.isOnline()) return;
+
+                    // Restore preserved immunity values (don't force reset to 10)
+                    Integer preservedMax = preservedMaxNoDamageTicks.get(target.getUniqueId());
+                    Integer preservedCurrent = preservedNoDamageTicks.get(target.getUniqueId());
+
+                    int maxImmunity = preservedMax != null ? preservedMax : 20;
+                    int currentImmunity = preservedCurrent != null ? preservedCurrent : 10;
+
+                    target.setMaximumNoDamageTicks(maxImmunity);
+                    target.setNoDamageTicks(currentImmunity); // Restore original, don't force
+
+                    plugin.getLogger().info(String.format(
+                        "[SkinChange] ✓ Restored immunity for %s: noDamageTicks=%d, max=%d",
+                        target.getName(), currentImmunity, maxImmunity
+                    ));
+                }, delay);
+            }
+            
+            // Cleanup after final attempt
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                preservedMaxNoDamageTicks.remove(target.getUniqueId());
+                preservedNoDamageTicks.remove(target.getUniqueId());
+            }, 5L);
 
             plugin.getLogger().info("[SkinDebug] Applied skin change to " + target.getName() +
                     " (entityId=" + target.getEntityId() + ", viewers=" + (viewers.size() - 1) + ")");
@@ -657,28 +701,121 @@ public class SkinChangeManager implements Listener {
     }
 
     /**
+     * Clean up skin changes when player dies.
+     * Restores original skin immediately to prevent it persisting on respawn.
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        restoreSkin(player);  // Restore original skin immediately on death
+    }
+
+    /**
      * FIX: Override AdvancedChat's InvincibleEffect which wrongly cancels damage
      * when the attacker has a skin change (interprets respawn packet as actual respawn).
      *
      * Runs at HIGH priority to uncancell after AdvancedChat's NORMAL priority handler.
      */
+    /**
+     * Fix: Override damage cancellation when ANY involved party has recent skin change.
+     * This addresses issues where external plugins (AdvancedChat) or Minecraft itself
+     * incorrectly cancels damage events due to entity tracking desync from respawn packets.
+     */
     @EventHandler(priority = EventPriority.HIGH)
-    public void onDamageFixAdvancedChat(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player attacker)) return;
-
-        // Only intervene if the event was cancelled
+    public void onDamageFixSkinChangeDesync(EntityDamageByEntityEvent event) {
         if (!event.isCancelled()) return;
+        
+        // Get involved parties
+        Player attacker = null;
+        Player victim = null;
+        
+        if (event.getDamager() instanceof Player p) {
+            attacker = p;
+        } else if (event.getDamager() instanceof org.bukkit.entity.Projectile proj) {
+            if (proj.getShooter() instanceof Player shooter) {
+                attacker = shooter;
+            }
+        }
+        
+        if (event.getEntity() instanceof Player p) {
+            victim = p;
+        }
+        
+        if (attacker == null) return;
+        
+        // Check if attacker has recent skin change
+        long attackerMs = getTimeSinceSkinChange(attacker);
+        if (attackerMs >= 0 && attackerMs < 5000) {
+            // Respect immunity - don't uncancel immunity-based cancellations
+            if (victim != null) {
+                var combatManager = plugin.getLegacyCombatManager();
+                if (combatManager != null) {
+                    var immunityModule = combatManager.getModule("custom-immunity");
+                    if (immunityModule != null &&
+                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                        return;
+                    }
+                }
+            }
 
-        // Check if attacker has recent skin change (within 5 seconds)
-        long timeSince = getTimeSinceSkinChange(attacker);
-        if (timeSince >= 0 && timeSince < 5000) {
-            // AdvancedChat likely cancelled this due to skin change respawn packet
-            // Uncancell it so the attack goes through
             event.setCancelled(false);
-            plugin.getLogger().info("[SkinFix] Uncancelled damage event for " + attacker.getName() +
-                " (skin changed " + timeSince + "ms ago - AdvancedChat fix)");
+            plugin.getLogger().info("[SkinFix] Uncancelled: attacker " + attacker.getName() +
+                " had skin change " + attackerMs + "ms ago");
+            return;
+        }
+        
+        // NEW: Check if victim has recent skin change
+        if (victim != null) {
+            long victimMs = getTimeSinceSkinChange(victim);
+            if (victimMs >= 0 && victimMs < 5000) {
+                // Respect immunity - don't uncancel immunity-based cancellations
+                var combatManager = plugin.getLegacyCombatManager();
+                if (combatManager != null) {
+                    var immunityModule = combatManager.getModule("custom-immunity");
+                    if (immunityModule != null &&
+                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                        return;
+                    }
+                }
+
+                event.setCancelled(false);
+                plugin.getLogger().info("[SkinFix] Uncancelled: victim " + victim.getName() +
+                    " had skin change " + victimMs + "ms ago");
+                return;
+            }
+        }
+        
+        // NEW: Check if any player NEAR the victim had recent skin change
+        // (addresses the cross-player desync propagation issue)
+        if (victim != null) {
+            for (Player nearby : victim.getWorld().getPlayers()) {
+                if (nearby == attacker || nearby == victim) continue;
+                if (nearby.getLocation().distanceSquared(victim.getLocation()) > 2500) continue; // 50 block radius
+
+                long nearbyMs = getTimeSinceSkinChange(nearby);
+                if (nearbyMs >= 0 && nearbyMs < 3000) {
+                    // Respect immunity - don't uncancel immunity-based cancellations
+                    var combatManager = plugin.getLegacyCombatManager();
+                    if (combatManager != null) {
+                        var immunityModule = combatManager.getModule("custom-immunity");
+                        if (immunityModule != null &&
+                            ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
+                            plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
+                            return;
+                        }
+                    }
+
+                    event.setCancelled(false);
+                    plugin.getLogger().info("[SkinFix] Uncancelled: nearby player " + nearby.getName() +
+                        " had skin change " + nearbyMs + "ms ago (victim=" + victim.getName() + ")");
+                    return;
+                }
+            }
         }
     }
+
 
     /**
      * Clean up all active skin changes on shutdown.

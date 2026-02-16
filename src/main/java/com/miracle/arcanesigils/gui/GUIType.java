@@ -9,6 +9,12 @@ public enum GUIType {
     SIGIL_EDITOR,
     SIGIL_CONFIG,
     SIGIL_PREVIEW,
+    
+    // Sigil Filter GUIs
+    RARITY_FILTER,
+    SLOT_FILTER,
+    TIER_FILTER,
+    CRATE_FILTER,
 
     // Behavior GUIs
     BEHAVIOR_BROWSER,
@@ -42,6 +48,7 @@ public enum GUIType {
     TIER_PARAM_SELECTOR,
     TIER_PROGRESS,
     TIER_PROGRESS_VIEWER,
+    QUICK_PARAM_EDITOR,
 
     // Binds GUIs
     BINDS_HOTBAR,

@@ -231,7 +231,6 @@ public class EffectNodeBrowserHandler extends AbstractHandler {
             case "FREEZING" -> Material.BLUE_ICE;
             case "SPAWN_DISPLAY" -> Material.ARMOR_STAND;
             case "GIVE_ITEM" -> Material.CHEST;
-            case "SPAWN_AURA" -> Material.BEACON;
             case "CANCEL_EVENT" -> Material.BARRIER;
             case "SOULBOUND" -> Material.SOUL_LANTERN;
             default -> Material.PAPER;

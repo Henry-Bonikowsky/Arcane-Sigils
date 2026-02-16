@@ -1,7 +1,7 @@
 package com.miracle.arcanesigils.events;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import com.miracle.arcanesigils.flow.FlowConfig.ConditionLogic;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Biome;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -15,54 +15,37 @@ import java.util.List;
  */
 public class ConditionManager {
 
+    private final com.miracle.arcanesigils.ArmorSetsPlugin plugin;
+
+    public ConditionManager(com.miracle.arcanesigils.ArmorSetsPlugin plugin) {
+        this.plugin = plugin;
+    }
+
     /**
      * Check if all conditions are met using AND logic.
      * Returns false if any condition fails.
      */
     public boolean checkConditions(List<String> conditions, EffectContext context) {
-        return checkConditions(conditions, context, ConditionLogic.AND);
-    }
-
-    /**
-     * Check if conditions are met using specified logic (AND/OR).
-     *
-     * @param conditions The list of condition strings
-     * @param context    The effect context
-     * @param logic      The logic mode (AND = all must pass, OR = any can pass)
-     * @return True if conditions pass according to logic mode
-     */
-    public boolean checkConditions(List<String> conditions, EffectContext context,
-                                  ConditionLogic logic) {
         if (conditions == null || conditions.isEmpty()) {
             return true; // No conditions = always pass
         }
 
-        com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] Checking %d conditions with %s logic", conditions.size(), logic);
+        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] Checking %d conditions: %s", 
+            conditions.size(), conditions);
 
-        if (logic == ConditionLogic.OR) {
-            // OR logic: At least one condition must pass
-            for (String condition : conditions) {
-                boolean result = evaluateCondition(condition, context);
-                com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] %s = %s (OR mode)", condition, result);
-                if (result) {
-                    return true; // Any passing condition allows execution
-                }
+        // All conditions must pass (AND logic)
+        for (String condition : conditions) {
+            boolean result = evaluateCondition(condition, context);
+            com.miracle.arcanesigils.utils.LogHelper.info("[Conditions]   %s = %s", condition, result);
+            if (!result) {
+                com.miracle.arcanesigils.utils.LogHelper.warning("[Conditions] Failed condition: %s", condition);
+                // AI Training: Set failure reason for learning
+                context.setMetadata("aiTraining_conditionFail", getConditionFailureReason(condition));
+                return false; // Any failed condition blocks execution
             }
-            com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] All conditions failed in OR mode");
-            return false; // No conditions passed
-        } else {
-            // AND logic (default): All conditions must pass
-            for (String condition : conditions) {
-                boolean result = evaluateCondition(condition, context);
-                com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] %s = %s (AND mode)", condition, result);
-                if (!result) {
-                    com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] Failed condition: %s", condition);
-                    return false; // Any failed condition blocks execution
-                }
-            }
-            com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] All conditions passed");
-            return true; // All conditions passed
         }
+        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] All conditions passed");
+        return true; // All conditions passed
     }
 
     /**
@@ -145,12 +128,49 @@ public class ConditionManager {
                 case "SPRINTING" -> context.getPlayer().isSprinting();
                 case "FLYING" -> context.getPlayer().isFlying() || context.getPlayer().isGliding();
                 case "SWIMMING" -> context.getPlayer().isSwimming();
+                case "HAS_PLAYER_VARIABLE" -> {
+                    Player p = context.getPlayer();
+                    if (p == null) yield false;
+                    String varName = parts.length > 1 ? parts[1] : null;
+                    if (varName == null || varName.isEmpty()) yield false;
+                    com.miracle.arcanesigils.ArmorSetsPlugin pluginInstance = com.miracle.arcanesigils.ArmorSetsPlugin.getInstance();
+                    yield pluginInstance.getPlayerVariableManager().hasVariable(p.getUniqueId(), varName);
+                }
 
                 // ===== EQUIPMENT CONDITIONS =====
                 case "MAIN_HAND" -> checkMainHand(context.getPlayer(), parts);
                 case "HAS_ENCHANT" -> checkHasEnchant(context.getPlayer(), parts);
                 case "HOLDING_SIGIL_ITEM" -> checkHoldingSigilItem(context);
                 case "DURABILITY_PERCENT" -> checkDurabilityPercent(context, parts);
+
+                // ===== SET BONUS CONDITIONS =====
+                case "HAS_SET_BONUS" -> {
+                    // Format: HAS_SET_BONUS:ancient_set:2
+                    if (parts.length < 2) yield false;
+
+                    String setName = parts[1];
+                    int minTier = 1;
+                    if (parts.length >= 3) {
+                        try {
+                            minTier = Integer.parseInt(parts[2]);
+                        } catch (NumberFormatException e) {
+                            minTier = 1;
+                        }
+                    }
+
+                    var setBonusManager = plugin.getSetBonusManager();
+                    if (setBonusManager == null) yield false;
+
+                    int playerTier = setBonusManager.getSetBonusTier(context.getPlayer(), setName);
+                    yield playerTier >= minTier;
+                }
+                case "IS_BLOCKING_SWORD" -> {
+                    Player p = context.getPlayer();
+                    if (p == null) yield false;
+                    var blocking = plugin.getLegacyCombatManager().getModule("sword-blocking");
+                    if (blocking == null) yield false;
+                    yield ((com.miracle.arcanesigils.combat.modules.SwordBlockingModule) blocking).isPlayerBlocking(p);
+                }
 
                 // ===== ADDITIONAL COMBAT CONDITIONS =====
                 case "HAS_MARK" -> checkHasMark(context, parts);
@@ -166,16 +186,20 @@ public class ConditionManager {
                 // ===== ADDITIONAL META CONDITIONS =====
                 case "EXPERIENCE_LEVEL" -> checkExperienceLevel(context.getPlayer(), parts);
 
-                // Default: unknown condition passes (fail-safe)
+                // ===== SIGNAL-SPECIFIC CONDITIONS =====
+                case "IS_NEGATIVE_EFFECT" -> checkIsNegativeEffect(context);
+                case "IS_NEGATIVE_MODIFIER" -> checkIsNegativeModifier(context);
+                case "IS_POTION_DAMAGE" -> checkIsPotionDamage(context);
+
+                // Default: unknown condition FAILS (safety)
                 default -> {
-                    System.err.println("[ArmorSets] Unknown condition: " + type);
-                    yield true;
+                    com.miracle.arcanesigils.utils.LogHelper.warning("[Conditions] UNKNOWN CONDITION TYPE: %s - FAILING", type);
+                    yield false;
                 }
             };
         } catch (Exception e) {
-            System.err.println("[ArmorSets] Error evaluating condition: " + condition);
-            e.printStackTrace();
-            return true; // Fail-safe: pass on error
+            com.miracle.arcanesigils.utils.LogHelper.severe("[Conditions] ERROR evaluating condition: " + condition, e);
+            return false; // Fail on error - don't allow execution
         }
     }
 
@@ -304,19 +328,30 @@ public class ConditionManager {
 
     /**
      * BLOCK_BELOW:NETHERITE_BLOCK - Standing on netherite block
+     * BLOCK_BELOW:SAND,RED_SAND - Standing on sand or red sand (comma-separated)
      */
     private boolean checkBlockBelow(Player player, String[] parts) {
         if (parts.length < 2) return true;
 
-        String blockName = parts[1].toUpperCase();
+        String blockNames = parts[1].toUpperCase();
         org.bukkit.block.Block blockBelow = player.getLocation().clone().subtract(0, 1, 0).getBlock();
+        org.bukkit.Material blockType = blockBelow.getType();
 
-        try {
-            org.bukkit.Material material = org.bukkit.Material.valueOf(blockName);
-            return blockBelow.getType() == material;
-        } catch (IllegalArgumentException e) {
-            return false;
+        // Support comma-separated materials (e.g., "SAND,RED_SAND")
+        String[] materials = blockNames.split(",");
+        
+        for (String materialName : materials) {
+            try {
+                org.bukkit.Material material = org.bukkit.Material.valueOf(materialName.trim());
+                if (blockType == material) {
+                    return true;
+                }
+            } catch (IllegalArgumentException e) {
+                // Invalid material name, skip it
+            }
         }
+        
+        return false;
     }
 
     /**
@@ -409,6 +444,7 @@ public class ConditionManager {
             com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getMarkManager();
 
         if (markManager == null) {
+            com.miracle.arcanesigils.utils.LogHelper.warning("[HAS_MARK] MarkManager is null!");
             return false;
         }
 
@@ -444,10 +480,17 @@ public class ConditionManager {
         }
 
         if (targetEntity == null || targetEntity.isDead()) {
+            com.miracle.arcanesigils.utils.LogHelper.info("[HAS_MARK] No valid target entity (null or dead)");
             return false;
         }
 
-        return markManager.hasMark(targetEntity, markName);
+        boolean hasMark = markManager.hasMark(targetEntity, markName);
+        
+        com.miracle.arcanesigils.utils.LogHelper.info(
+            String.format("[HAS_MARK] Checking %s for mark '%s': %s", 
+                targetEntity.getName(), markName, hasMark ? "YES" : "NO"));
+        
+        return hasMark;
     }
 
     // ===== SIGNAL CONDITIONS =====
@@ -728,5 +771,139 @@ public class ConditionManager {
      */
     private boolean evaluateComparison(int value, String condition) {
         return evaluateComparison((double) value, condition);
+    }
+
+    // ===== SIGNAL-SPECIFIC CONDITION IMPLEMENTATIONS =====
+
+    /**
+     * IS_NEGATIVE_EFFECT - Check if the potion effect being applied is harmful.
+     * Only works in POTION_EFFECT_APPLY signal flows.
+     * 
+     * Negative effects include: Poison, Wither, Slowness, Weakness, Instant Damage,
+     * Hunger, Nausea, Blindness, Bad Omen, Unluck, Darkness, Levitation (harmful), Glowing (PvP debuff)
+     */
+    private boolean checkIsNegativeEffect(EffectContext context) {
+        PotionEffectType effectType = context.getCurrentPotionEffect();
+        
+        if (effectType == null) {
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[Conditions] IS_NEGATIVE_EFFECT: No effect in context - returning false");
+            return false;
+        }
+        
+        // List of harmful/negative potion effects
+        boolean isNegative = switch (effectType.getKey().getKey().toUpperCase()) {
+            case "POISON", "WITHER", "SLOWNESS", "SLOW", "SLOW_DIGGING", "MINING_FATIGUE",
+                 "WEAKNESS", "INSTANT_DAMAGE", "HARM", "HUNGER", "NAUSEA", "CONFUSION",
+                 "BLINDNESS", "BAD_OMEN", "UNLUCK", "DARKNESS", "LEVITATION", "GLOWING" -> true;
+            default -> false;
+        };
+        
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            "[Conditions] IS_NEGATIVE_EFFECT: effect=%s, isNegative=%s",
+            effectType.getKey().getKey(), isNegative);
+        
+        return isNegative;
+    }
+
+    /**
+     * IS_NEGATIVE_MODIFIER - Check if the attribute modifier being applied is harmful.
+     * Only works in ATTRIBUTE_MODIFY signal flows.
+     * 
+     * Checks if the modifier value is negative (reduces a stat).
+     * Most attributes use negative values for debuffs, except for attributes where
+     * higher values are worse (like knockback resistance where negative = less resistance = worse).
+     */
+    private boolean checkIsNegativeModifier(EffectContext context) {
+        Attribute attribute = context.getCurrentAttribute();
+        double modifierValue = context.getCurrentModifierValue();
+        
+        if (attribute == null) {
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[Conditions] IS_NEGATIVE_MODIFIER: No attribute in context - returning false");
+            return false;
+        }
+        
+        // For most attributes, negative values are harmful (reduce the stat)
+        // Exceptions could be added here if needed (e.g., knockback resistance)
+        boolean isNegative = modifierValue < 0;
+        
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            "[Conditions] IS_NEGATIVE_MODIFIER: attribute=%s, value=%.2f, isNegative=%s",
+            attribute.getKey().getKey(), modifierValue, isNegative);
+        
+        return isNegative;
+    }
+
+    /**
+     * IS_POTION_DAMAGE - Check if damage is from poison or wither effect.
+     * Only works in DEFENSE signal flows.
+     *
+     * Checks the damage cause to see if it's POISON or WITHER DOT.
+     */
+    private boolean checkIsPotionDamage(EffectContext context) {
+        if (context.getBukkitEvent() == null || !(context.getBukkitEvent() instanceof org.bukkit.event.entity.EntityDamageEvent)) {
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[Conditions] IS_POTION_DAMAGE: Not a damage event - returning false");
+            return false;
+        }
+
+        org.bukkit.event.entity.EntityDamageEvent damageEvent = (org.bukkit.event.entity.EntityDamageEvent) context.getBukkitEvent();
+        org.bukkit.event.entity.EntityDamageEvent.DamageCause cause = damageEvent.getCause();
+
+        boolean isPotionDamage = cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.POISON ||
+                                 cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.WITHER;
+
+        com.miracle.arcanesigils.utils.LogHelper.info(
+            "[AncientCrown] IS_POTION_DAMAGE check: cause=%s, isPotionDamage=%s",
+            cause, isPotionDamage);
+
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            "[Conditions] IS_POTION_DAMAGE: cause=%s, isPotionDamage=%s",
+            cause, isPotionDamage);
+
+        return isPotionDamage;
+    }
+
+    /**
+     * Get user-friendly failure reason for AI training.
+     * Converts technical condition strings to readable failure reasons.
+     */
+    private String getConditionFailureReason(String condition) {
+        if (condition == null) return "UNKNOWN";
+        
+        String[] parts = condition.split(":");
+        String type = parts[0].toUpperCase().trim();
+        
+        return switch (type) {
+            case "HEALTH_PERCENT", "HEALTH" -> parts.length > 1 && parts[1].startsWith("<")
+                ? "HEALTH_TOO_LOW" : "HEALTH_TOO_HIGH";
+            case "VICTIM_HEALTH_PERCENT" -> "VICTIM_HEALTH_WRONG";
+            case "HAS_POTION" -> "MISSING_POTION";
+            case "NO_POTION" -> "HAS_POTION";
+            case "BIOME" -> "WRONG_BIOME";
+            case "BLOCK_BELOW" -> "WRONG_BLOCK_BELOW";
+            case "LIGHT_LEVEL" -> "WRONG_LIGHT_LEVEL";
+            case "IN_WATER" -> "NOT_IN_WATER";
+            case "ON_GROUND" -> "NOT_ON_GROUND";
+            case "IN_AIR" -> "NOT_IN_AIR";
+            case "HUNGER" -> "WRONG_HUNGER";
+            case "WEATHER" -> "WRONG_WEATHER";
+            case "TIME" -> parts.length > 1 && parts[1].contains("DAY")
+                ? "NOT_DAYTIME" : "NOT_NIGHTTIME";
+            case "HAS_VICTIM" -> "NO_VICTIM";
+            case "VICTIM_IS_PLAYER" -> "VICTIM_NOT_PLAYER";
+            case "VICTIM_IS_HOSTILE" -> "VICTIM_NOT_HOSTILE";
+            case "SNEAKING" -> "NOT_SNEAKING";
+            case "SPRINTING" -> "NOT_SPRINTING";
+            case "FLYING" -> "NOT_FLYING";
+            case "SWIMMING" -> "NOT_SWIMMING";
+            case "WEARING_FULL_SET" -> "NOT_FULL_SET";
+            case "Y_LEVEL" -> "WRONG_Y_LEVEL";
+            case "EXPERIENCE_LEVEL" -> "WRONG_XP_LEVEL";
+            case "IS_NEGATIVE_EFFECT" -> "NOT_NEGATIVE_EFFECT";
+            case "IS_NEGATIVE_MODIFIER" -> "NOT_NEGATIVE_MODIFIER";
+            default -> type;
+        };
     }
 }

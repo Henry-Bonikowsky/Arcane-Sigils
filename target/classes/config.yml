@@ -4,7 +4,7 @@
 # General Settings
 settings:
   # Enable debug messages in console
-  debug: true
+  debug: false
 
   # Performance settings
   effect-check-interval: 20  # Ticks between static effect reapplication (20 = 1 second)
@@ -28,22 +28,6 @@ sigils:
 
   # Slot restrictions: Sigils can only go in their designated slot (helmet sigil -> helmet only)
   enforce-slot-restrictions: true
-
-# Set Detection Settings
-sets:
-  # How to detect if player is wearing a full set
-  # Options: NAME_PATTERN, LORE_TAG, NBT_TAG
-  detection-method: NAME_PATTERN
-
-  # Whether mixing tiers disables set bonuses
-  # If true, all 4 pieces must be same tier
-  require-same-tier: true
-
-  # Partial set bonuses (when wearing less than 4 pieces)
-  partial-bonuses:
-    enabled: false
-    2-piece-multiplier: 0.25
-    3-piece-multiplier: 0.5
 
 # GUI Settings
 gui:
@@ -133,3 +117,40 @@ integrations:
 
   # Respect WorldGuard PvP flags
   respect-pvp-flags: true
+
+# AI Training Settings
+ai_training:
+  # Enable AI training integration (reward signals, scoreboard updates)
+  enabled: true
+
+  # Update interval for scoreboard (in ticks, 20 = 1 second)
+  scoreboard_update_interval: 20
+
+  # Kill attribution window (milliseconds) - kills within this time after bind activation count
+  kill_attribution_window: 5000
+
+  # Signal display format
+  signals:
+    # Show signals as action bar messages
+    action_bar: true
+    
+    # Show signals in scoreboard
+    scoreboard: true
+    
+    # Signal message formats (placeholders: %slot%, %type%, %value%)
+    formats:
+      hit: "&a[Slot %slot%] HIT +%.1f dmg"
+      miss: "&7[Slot %slot%] MISS"
+      heal: "&e[Slot %slot%] HEAL +%.1f hp"
+      kill: "&c[Slot %slot%] KILL"
+      cc: "&5[Slot %slot%] CC %.1fs"
+      cooldown: "&8[Slot %slot%] CD %.1fs"
+
+# Notification Settings
+notifications:
+  enabled: true
+  show_attacker: true      # Attacker sees their ability procs
+  show_victim: true        # Victim sees what hit them
+  show_cooldowns: true     # Cooldown messages (active + ready)
+  show_tier_ups: true      # Tier progression messages
+  show_set_bonuses: true   # Set bonus activation/proc messages

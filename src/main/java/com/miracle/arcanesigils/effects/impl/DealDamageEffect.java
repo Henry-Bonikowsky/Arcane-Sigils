@@ -44,6 +44,12 @@ public class DealDamageEffect extends AbstractEffect {
         if (target != null && target != context.getPlayer()) {
             target.damage(damage, context.getPlayer());
             debug("Dealt " + damage + " damage to " + target.getName());
+            
+            // AI Training: Accumulate total damage dealt
+            Double currentTotal = context.getVariable("aiTraining_totalDamage");
+            double newTotal = (currentTotal != null ? currentTotal : 0.0) + damage;
+            context.setVariable("aiTraining_totalDamage", newTotal);
+            
             return true;
         }
 
@@ -55,11 +61,21 @@ public class DealDamageEffect extends AbstractEffect {
         Location center = context.getLocation();
         LivingEntity damager = context.getPlayer();
 
+        int hitCount = 0;
         for (LivingEntity entity : center.getWorld().getLivingEntities()) {
             if (entity.getLocation().distance(center) <= radius && entity != damager) {
                 entity.damage(damage, damager);
+                hitCount++;
             }
         }
+        
+        // AI Training: Accumulate total damage dealt (damage * hitCount)
+        if (hitCount > 0) {
+            Double currentTotal = context.getVariable("aiTraining_totalDamage");
+            double newTotal = (currentTotal != null ? currentTotal : 0.0) + (damage * hitCount);
+            context.setVariable("aiTraining_totalDamage", newTotal);
+        }
+        
         debug("Dealt " + damage + " damage to entities within " + radius + " blocks");
     }
 

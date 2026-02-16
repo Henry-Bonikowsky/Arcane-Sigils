@@ -43,8 +43,9 @@ public class EffectNode extends FlowNode {
 
     @Override
     public String execute(FlowContext context) {
+        LogHelper.debug("[EffectNode] execute() START - effect=%s", effectType);
         if (effectType == null || effectType.isEmpty()) {
-            LogHelper.debug("[EffectNode] No effect type configured");
+            LogHelper.debug("[EffectNode] No effect type configured - ABORTING");
             return "next";
         }
 
@@ -52,9 +53,11 @@ public class EffectNode extends FlowNode {
         EffectManager effectManager = plugin.getEffectManager();
 
         // Get the effect
+        LogHelper.debug("[EffectNode] Getting effect from manager: %s", effectType);
         Effect effect = effectManager.getEffect(effectType);
+        LogHelper.debug("[EffectNode] Effect instance: %s", effect != null ? effect.getClass().getSimpleName() : "NULL");
         if (effect == null) {
-            LogHelper.debug("[EffectNode] Unknown effect type: %s", effectType);
+            LogHelper.debug("[EffectNode] Unknown effect type: %s - ABORTING", effectType);
             return "next";
         }
 
@@ -104,6 +107,10 @@ public class EffectNode extends FlowNode {
         // IMPORTANT: Pass attacker through for @Attacker target resolution (e.g., Pharaoh's Curse)
         // IMPORTANT: Copy sigilId from metadata for persistent modifier key generation
         String sigilId = context.getEffectContext().getMetadata("sourceSigilId", null);
+        LogHelper.debug("[EffectNode] Creating EffectContext: player=%s, victim=%s, currentTarget=%s",
+            context.getPlayer() != null ? context.getPlayer().getName() : "NULL",
+            context.getEffectContext().getVictim() != null ? context.getEffectContext().getVictim().getName() : "NULL",
+            context.getCurrentTarget() != null ? context.getCurrentTarget().getName() : "NULL");
         EffectContext execContext = EffectContext.builder(context.getPlayer(), context.getEffectContext().getSignalType())
                 .event(context.getEffectContext().getBukkitEvent())
                 .victim(context.getCurrentTarget())
@@ -112,17 +119,43 @@ public class EffectNode extends FlowNode {
                 .damage(context.getEffectContext().getDamage())
                 .params(params)
                 .sigilId(sigilId)
+                .flowContext(context)
                 .build();
+        LogHelper.debug("[EffectNode] EffectContext built: execContext.player=%s, execContext.params.target=%s",
+            execContext.getPlayer() != null ? execContext.getPlayer().getName() : "NULL",
+            params != null ? params.getTarget() : "NULL");
 
         // Copy metadata from flow context
         context.getEffectContext().getMetadata().forEach(execContext::setMetadata);
 
+        // CRITICAL: Copy InterceptionEvent for POTION_EFFECT_APPLY and ATTRIBUTE_MODIFY signals
+        // Effects like REDUCE_POTION_POTENCY require this to access potion type/amplifier/duration
+        LogHelper.debug("[EffectNode] Checking InterceptionEvent: original=%s",
+            context.getEffectContext().getInterceptionEvent() != null ? "present" : "NULL");
+
+        if (context.getEffectContext().getInterceptionEvent() != null) {
+            execContext.setInterceptionEvent(context.getEffectContext().getInterceptionEvent());
+            LogHelper.debug("[EffectNode] Copied InterceptionEvent to execContext");
+        } else {
+            LogHelper.debug("[EffectNode] NO InterceptionEvent in original context!");
+        }
+
+        // Copy currentPotionEffect if set (for IS_NEGATIVE_EFFECT condition)
+        if (context.getEffectContext().getCurrentPotionEffect() != null) {
+            execContext.setCurrentPotionEffect(context.getEffectContext().getCurrentPotionEffect());
+        }
+
         // Execute
+        LogHelper.debug("[EffectNode] About to execute effect: %s", effectType);
         boolean success = effect.execute(execContext);
+        LogHelper.debug("[EffectNode] Effect execution result: %s", success);
 
         // Track that an effect executed (for cooldown logic)
         if (success) {
             context.incrementEffectsExecuted();
+            LogHelper.debug("[EffectNode] Effect success - incremented effectsExecuted");
+        } else {
+            LogHelper.debug("[EffectNode] Effect FAILED - not incrementing effectsExecuted");
         }
 
         // Store result in context variable if requested

@@ -61,11 +61,20 @@ public final class GUILayout {
         }
     }
 
-    // Sigils Menu specific (bottom row)
-    public static final int BROWSE_BEHAVIORS = 21;
-    public static final int CREATE_BEHAVIOR = 23;
-    public static final int CREATE_SIGIL = 24;
-    public static final int FILTER = 26;
+    // Sigils Menu specific (6-row layout)
+    // Filter row (row 4, slots 36-44)
+    public static final int FILTER_RARITY = 36;
+    public static final int FILTER_SLOT_TYPE = 37;
+    public static final int FILTER_TIER_RANGE = 38;
+    public static final int FILTER_CRATE = 39;
+    public static final int FILTER_CLEAR = 41;
+    public static final int FILTER_SORT = 42;
+    public static final int FILTER_REVERSE = 43;
+    
+    // Navigation row (row 5, slots 45-53)
+    public static final int BROWSE_BEHAVIORS = 48;
+    public static final int CREATE_BEHAVIOR = 50;
+    public static final int CREATE_SIGIL = 51;
 
     // Edit Sigil specific (top 2 rows)
     public static final int DESCRIPTION = 3;

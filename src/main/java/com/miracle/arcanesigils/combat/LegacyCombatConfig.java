@@ -7,6 +7,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -37,8 +39,9 @@ public class LegacyCombatConfig {
     private double kbHorizontalBase = 0.35;
     private double kbVerticalBase = 0.35;
     private double kbVerticalCap = 0.4;
+    private double kbHorizontalCap = 0.5;
     private double kbExtraHorizontal = 0.425;
-    private double kbExtraVertical = 0.077;
+    private double kbExtraVertical = 0.085;
     private int damageImmunityTicks = 10;
 
 
@@ -97,6 +100,16 @@ public class LegacyCombatConfig {
     private boolean cpsLimitEnabled = true;
     private int maxCps = 12;
 
+    // Global Damage Scaling settings
+    private boolean globalDamageScalingEnabled = true;
+    private double damageScalar = 1.0;
+    private double resistanceDescalar = 1.0;
+
+    // Enchantment scaling
+    private boolean enchantmentScalingEnabled = false;
+    private final Map<Integer, Double> sharpnessScaling = new HashMap<>();
+    private final Map<Integer, Double> protectionScaling = new HashMap<>();
+
     public LegacyCombatConfig(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
         load();
@@ -143,6 +156,7 @@ public class LegacyCombatConfig {
             kbHorizontalBase = kb.getDouble("horizontal-base", 0.35);
             kbVerticalBase = kb.getDouble("vertical-base", 0.35);
             kbVerticalCap = kb.getDouble("vertical-cap", 0.4);
+            kbHorizontalCap = kb.getDouble("horizontal-cap", 0.5);
             kbExtraHorizontal = kb.getDouble("extra-horizontal", 0.425);
             kbExtraVertical = kb.getDouble("extra-vertical", 0.077);
         }
@@ -234,6 +248,50 @@ public class LegacyCombatConfig {
             cpsLimitEnabled = cps.getBoolean("enabled", true);
             maxCps = cps.getInt("max-cps", 12);
         }
+
+        // Global Damage Scaling
+        ConfigurationSection gds = root.getConfigurationSection("global-damage-scaling");
+        if (gds != null) {
+            globalDamageScalingEnabled = gds.getBoolean("enabled", true);
+            damageScalar = gds.getDouble("damage-scalar", 1.0);
+            resistanceDescalar = gds.getDouble("resistance-descalar", 1.0);
+        }
+
+        // Load enchantment scaling
+        ConfigurationSection enchSection = root.getConfigurationSection("enchantment-scaling");
+        if (enchSection != null) {
+            enchantmentScalingEnabled = enchSection.getBoolean("enabled", false);
+
+            // Load sharpness scaling
+            sharpnessScaling.clear();
+            ConfigurationSection sharpSection = enchSection.getConfigurationSection("sharpness");
+            if (sharpSection != null) {
+                for (String key : sharpSection.getKeys(false)) {
+                    try {
+                        int level = Integer.parseInt(key);
+                        double scalar = sharpSection.getDouble(key, 1.0);
+                        sharpnessScaling.put(level, scalar);
+                    } catch (NumberFormatException e) {
+                        // Skip invalid keys
+                    }
+                }
+            }
+
+            // Load protection scaling
+            protectionScaling.clear();
+            ConfigurationSection protSection = enchSection.getConfigurationSection("protection");
+            if (protSection != null) {
+                for (String key : protSection.getKeys(false)) {
+                    try {
+                        int level = Integer.parseInt(key);
+                        double scalar = protSection.getDouble(key, 1.0);
+                        protectionScaling.put(level, scalar);
+                    } catch (NumberFormatException e) {
+                        // Skip invalid keys
+                    }
+                }
+            }
+        }
     }
 
     public void save() {
@@ -321,6 +379,24 @@ public class LegacyCombatConfig {
         projKb.set("egg-knockback", eggKb);
         projKb.set("egg-vertical", eggKbVertical);
 
+        // Global Damage Scaling
+        ConfigurationSection gds = root.createSection("global-damage-scaling");
+        gds.set("enabled", globalDamageScalingEnabled);
+        gds.set("damage-scalar", damageScalar);
+        gds.set("resistance-descalar", resistanceDescalar);
+
+        // Enchantment Scaling
+        ConfigurationSection ench = root.createSection("enchantment-scaling");
+        ench.set("enabled", enchantmentScalingEnabled);
+        ConfigurationSection sharp = ench.createSection("sharpness");
+        for (Map.Entry<Integer, Double> entry : sharpnessScaling.entrySet()) {
+            sharp.set(String.valueOf(entry.getKey()), entry.getValue());
+        }
+        ConfigurationSection prot = ench.createSection("protection");
+        for (Map.Entry<Integer, Double> entry : protectionScaling.entrySet()) {
+            prot.set(String.valueOf(entry.getKey()), entry.getValue());
+        }
+
         try {
             config.save(configFile);
         } catch (IOException e) {
@@ -346,6 +422,7 @@ public class LegacyCombatConfig {
             case "potions" -> potionsEnabled;
             case "projectile-kb" -> projectileKbEnabled;
             case "cps-limit" -> cpsLimitEnabled;
+            case "global-damage-scaling" -> globalDamageScalingEnabled;
             default -> false;
         };
     }
@@ -366,6 +443,7 @@ public class LegacyCombatConfig {
             case "potions" -> potionsEnabled = value;
             case "projectile-kb" -> projectileKbEnabled = value;
             case "cps-limit" -> cpsLimitEnabled = value;
+            case "global-damage-scaling" -> globalDamageScalingEnabled = value;
         }
     }
 
@@ -398,6 +476,8 @@ public class LegacyCombatConfig {
     public void setKbVerticalBase(double v) { this.kbVerticalBase = v; }
     public double getKbVerticalCap() { return kbVerticalCap; }
     public void setKbVerticalCap(double v) { this.kbVerticalCap = v; }
+    public double getKbHorizontalCap() { return kbHorizontalCap; }
+    public void setKbHorizontalCap(double v) { this.kbHorizontalCap = v; }
 
     // Regeneration
     public boolean isRegenerationEnabled() { return regenerationEnabled; }
@@ -506,4 +586,37 @@ public class LegacyCombatConfig {
     // Knockback getters/setters
     public int getDamageImmunityTicks() { return damageImmunityTicks; }
     public void setDamageImmunityTicks(int v) { this.damageImmunityTicks = v; }
+
+    // Global Damage Scaling
+    public boolean isGlobalDamageScalingEnabled() { return globalDamageScalingEnabled; }
+    public void setGlobalDamageScalingEnabled(boolean v) { this.globalDamageScalingEnabled = v; }
+    public double getDamageScalar() { return damageScalar; }
+    public void setDamageScalar(double v) { this.damageScalar = v; }
+    public double getResistanceDescalar() { return resistanceDescalar; }
+    public void setResistanceDescalar(double v) { this.resistanceDescalar = v; }
+
+    // Enchantment Scaling
+    public boolean isEnchantmentScalingEnabled() {
+        return enchantmentScalingEnabled;
+    }
+
+    public void setEnchantmentScalingEnabled(boolean v) {
+        this.enchantmentScalingEnabled = v;
+    }
+
+    public double getSharpnessScalar(int level) {
+        return sharpnessScaling.getOrDefault(level, 1.0);
+    }
+
+    public void setSharpnessScalar(int level, double value) {
+        sharpnessScaling.put(level, value);
+    }
+
+    public double getProtectionScalar(int level) {
+        return protectionScaling.getOrDefault(level, 1.0);
+    }
+
+    public void setProtectionScalar(int level, double value) {
+        protectionScaling.put(level, value);
+    }
 }

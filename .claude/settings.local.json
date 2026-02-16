@@ -12,7 +12,13 @@
       "Bash(git push:*)",
       "Bash(git mv:*)",
       "Bash(jar xf:*)",
-      "Bash(javap:*)"
+      "Bash(javap:*)",
+      "Bash(export JAVA_HOME:*)",
+      "Bash(\"C:\\\\Users\\\\henry\\\\.m2\\\\wrapper\\\\dists\\\\apache-maven-3.9.6-bin\\\\3311e1d4\\\\apache-maven-3.9.6\\\\bin\\\\mvn.cmd\" clean package -DskipTests -q)",
+      "Bash(python deploy.py deploy:*)",
+      "Skill(using-superpowers)",
+      "Skill(using-superpowers:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": []
   }

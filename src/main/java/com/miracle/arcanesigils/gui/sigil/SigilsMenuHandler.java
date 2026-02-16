@@ -1,7 +1,6 @@
 package com.miracle.arcanesigils.gui.sigil;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -23,12 +22,19 @@ import com.miracle.arcanesigils.utils.TextUtil;
 
 /**
  * Handler for the SIGILS_MENU GUI.
- * This is the main entry point that lists all sigils with pagination and filtering.
+ * 6-row layout with 36 sigils per page and dedicated filter row.
  */
 public class SigilsMenuHandler extends AbstractHandler {
 
-    private static final int ITEMS_PER_PAGE = 18;
-    private static final int[] SIGIL_SLOTS = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17};
+    private static final int ITEMS_PER_PAGE = 36;
+    private static final int[] SIGIL_SLOTS = new int[36];
+    
+    static {
+        // Fill first 4 rows (0-35) with sigil slots
+        for (int i = 0; i < 36; i++) {
+            SIGIL_SLOTS[i] = i;
+        }
+    }
 
     public SigilsMenuHandler(ArmorSetsPlugin plugin, GUIManager guiManager) {
         super(plugin, guiManager);
@@ -37,42 +43,28 @@ public class SigilsMenuHandler extends AbstractHandler {
     @Override
     public void reopen(Player player, GUISession session) {
         int page = session.getInt("page", 1);
-        String filter = session.get("filter", String.class);
-        openGUI(guiManager, player, page, filter != null ? filter : "NONE");
+        openGUI(guiManager, player, page);
     }
 
     @Override
     public void handleClick(Player player, GUISession session, int slot, InventoryClickEvent event) {
         int page = session.getInt("page", 1);
-        String filter = session.get("filter", String.class);
-        if (filter == null) {
-            filter = "NONE";
+        FilterState filterState = session.get("filterState", FilterState.class);
+        if (filterState == null) {
+            filterState = new FilterState();
+            session.put("filterState", filterState);
         }
 
-        // Handle sigil item clicks (slots 0-17)
-        if (slot >= 0 && slot <= 17) {
-            List<Sigil> sortedSigils = getSortedSigils(filter);
+        // Handle sigil item clicks (slots 0-35)
+        if (slot >= 0 && slot <= 35) {
+            List<Sigil> allSigils = new ArrayList<>(plugin.getSigilManager().getAllSigils());
+            List<Sigil> filteredSigils = filterState.applyFiltersAndSorting(allSigils);
             int index = (page - 1) * ITEMS_PER_PAGE + slot;
 
-            if (index < sortedSigils.size()) {
-                Sigil sigil = sortedSigils.get(index);
+            if (index < filteredSigils.size()) {
+                Sigil sigil = filteredSigils.get(index);
 
-                if (event.isShiftClick() && event.isRightClick()) {
-                    // Shift+Right: Delete sigil (with confirmation)
-                    String confirmKey = "deleteConfirm_" + sigil.getId();
-                    Boolean confirmed = session.get(confirmKey, Boolean.class);
-                    if (confirmed == null || !confirmed) {
-                        session.put(confirmKey, true);
-                        player.sendMessage(TextUtil.colorize("§eShift+Right-click again to delete §f" + sigil.getName()));
-                        playSound(player, "error");
-                    } else {
-                        // Confirmed - delete
-                        plugin.getSigilManager().deleteSigil(sigil.getId());
-                        player.sendMessage(TextUtil.colorize("§cDeleted sigil: §f" + sigil.getName()));
-                        playSound(player, "click");
-                        openGUI(guiManager, player, page, filter);
-                    }
-                } else if (event.isShiftClick()) {
+                if (event.isShiftClick()) {
                     // Shift+Left: Give Tier 1 item
                     int tier = 1;
                     Sigil tieredSigil = plugin.getSigilManager().getSigilWithTier(sigil.getId(), tier);
@@ -91,116 +83,136 @@ public class SigilsMenuHandler extends AbstractHandler {
                 } else {
                     // Left click: Open editor
                     playSound(player, "click");
-                    // Pass current page/filter so we can return to the same view
-                    SigilEditorHandler.openGUI(guiManager, player, sigil, page, filter);
+                    SigilEditorHandler.openGUI(guiManager, player, sigil, page, null);
                 }
             }
             return;
         }
 
+        // Filter row buttons (row 4, slots 36-44)
         switch (slot) {
-            case GUILayout.BACK -> {
-                // Close GUI (no previous menu)
+            case GUILayout.FILTER_RARITY -> {
+                playSound(player, "click");
+                RarityFilterHandler.openGUI(guiManager, player);
+            }
+            case GUILayout.FILTER_SLOT_TYPE -> {
+                playSound(player, "click");
+                SlotFilterHandler.openGUI(guiManager, player);
+            }
+            case GUILayout.FILTER_TIER_RANGE -> {
+                playSound(player, "click");
+                TierRangeFilterHandler.openGUI(guiManager, player);
+            }
+            case GUILayout.FILTER_CRATE -> {
+                playSound(player, "click");
+                CrateFilterHandler.openGUI(guiManager, player);
+            }
+            case GUILayout.FILTER_CLEAR -> {
+                filterState.reset();
+                session.put("filterState", filterState);
+                playSound(player, "click");
+                player.sendMessage(TextUtil.colorize("§7All filters cleared"));
+                openGUI(guiManager, player, 1); // Reset to page 1
+            }
+            case GUILayout.FILTER_SORT -> {
+                filterState.cycleSortMode();
+                session.put("filterState", filterState);
+                playSound(player, "click");
+                openGUI(guiManager, player, page);
+            }
+            case GUILayout.FILTER_REVERSE -> {
+                filterState.toggleReverseSortOrder();
+                session.put("filterState", filterState);
+                playSound(player, "click");
+                openGUI(guiManager, player, page);
+            }
+        }
+
+        // Navigation row buttons (row 5, slots 45-53)
+        switch (slot) {
+            case 45 -> { // Close button (slot 45)
                 playSound(player, "close");
                 player.closeInventory();
             }
-            case GUILayout.PREV_PAGE -> {
-                // Previous page
+            case 46 -> { // Prev page (slot 46)
                 if (page > 1) {
                     playSound(player, "page");
                     session.put("page", page - 1);
-                    refreshGUI(guiManager, player, session, page - 1, filter);
+                    refreshGUI(guiManager, player, session, page - 1, filterState);
                 } else {
                     playSound(player, "error");
                 }
             }
-            case GUILayout.PAGE_INDICATOR -> {
-                // No action for page indicator
-            }
-            case GUILayout.CREATE_SIGIL -> {
-                // Request sigil ID and create new sigil
-                playSound(player, "click");
-                final int finalPage = page;
-                final String finalFilter = filter;
-                guiManager.getInputHelper().requestText(player, "New Sigil ID", "",
-                    id -> {
-                        if (id == null || id.trim().isEmpty()) {
-                            player.sendMessage(TextUtil.colorize("§cInvalid sigil ID!"));
-                            openGUI(guiManager, player, finalPage, finalFilter);
-                            return;
-                        }
-
-                        // Check if sigil already exists
-                        if (plugin.getSigilManager().getSigil(id) != null) {
-                            player.sendMessage(TextUtil.colorize("§cSigil with ID §f" + id + " §calready exists!"));
-                            openGUI(guiManager, player, finalPage, finalFilter);
-                            return;
-                        }
-
-                        // Create new sigil
-                        Sigil newSigil = new Sigil(id);
-                        newSigil.setName(id);
-
-                        player.sendMessage(TextUtil.colorize("§aCreated new sigil: §f" + id));
-                        SigilEditorHandler.openGUI(guiManager, player, newSigil);
-                    },
-                    () -> openGUI(guiManager, player, finalPage, finalFilter)
-                );
-            }
-            case GUILayout.BROWSE_BEHAVIORS -> {
-                // Open behaviors browser
+            case GUILayout.BROWSE_BEHAVIORS -> { // Browse Behaviors (slot 48)
                 playSound(player, "click");
                 com.miracle.arcanesigils.gui.behavior.BehaviorBrowserHandler.openGUI(guiManager, player);
             }
+            case 49 -> { // Page indicator (slot 49)
+                // No action for page indicator
+            }
             case GUILayout.CREATE_BEHAVIOR -> {
-                // Request behavior ID and create new behavior
                 playSound(player, "click");
-                final int finalPage2 = page;
-                final String finalFilter2 = filter;
+                final int finalPage = page;
                 guiManager.getInputHelper().requestText(player, "New Behavior ID", "",
                     id -> {
                         if (id == null || id.trim().isEmpty()) {
                             player.sendMessage(TextUtil.colorize("§cInvalid behavior ID!"));
-                            openGUI(guiManager, player, finalPage2, finalFilter2);
+                            openGUI(guiManager, player, finalPage);
                             return;
                         }
 
-                        // Check if behavior already exists
                         if (plugin.getSigilManager().getBehavior(id) != null) {
                             player.sendMessage(TextUtil.colorize("§cBehavior with ID §f" + id + " §calready exists!"));
-                            openGUI(guiManager, player, finalPage2, finalFilter2);
+                            openGUI(guiManager, player, finalPage);
                             return;
                         }
 
-                        // Create new behavior (sigil with type: BEHAVIOR)
                         Sigil newBehavior = new Sigil(id);
                         newBehavior.setName(id);
                         newBehavior.setSigilType(Sigil.SigilType.BEHAVIOR);
-
-                        // Save to behaviors folder
                         plugin.getSigilManager().saveBehavior(newBehavior);
 
                         player.sendMessage(TextUtil.colorize("§dCreated new behavior: §f" + id));
                         player.sendMessage(TextUtil.colorize("§7Add flows with signals: §fEFFECT_STATIC§7, §fTICK§7, §fEXPIRE"));
                         SigilEditorHandler.openGUI(guiManager, player, newBehavior);
                     },
-                    () -> openGUI(guiManager, player, finalPage2, finalFilter2)
+                    () -> openGUI(guiManager, player, finalPage)
                 );
             }
-            case GUILayout.FILTER -> {
-                // Cycle filter mode
-                String newFilter = cycleFilter(filter);
+            case GUILayout.CREATE_SIGIL -> {
                 playSound(player, "click");
-                openGUI(guiManager, player, 1, newFilter); // Reset to page 1 when changing filter
+                final int finalPage = page;
+                guiManager.getInputHelper().requestText(player, "New Sigil ID", "",
+                    id -> {
+                        if (id == null || id.trim().isEmpty()) {
+                            player.sendMessage(TextUtil.colorize("§cInvalid sigil ID!"));
+                            openGUI(guiManager, player, finalPage);
+                            return;
+                        }
+
+                        if (plugin.getSigilManager().getSigil(id) != null) {
+                            player.sendMessage(TextUtil.colorize("§cSigil with ID §f" + id + " §calready exists!"));
+                            openGUI(guiManager, player, finalPage);
+                            return;
+                        }
+
+                        Sigil newSigil = new Sigil(id);
+                        newSigil.setName(id);
+                        player.sendMessage(TextUtil.colorize("§aCreated new sigil: §f" + id));
+                        SigilEditorHandler.openGUI(guiManager, player, newSigil);
+                    },
+                    () -> openGUI(guiManager, player, finalPage)
+                );
             }
-            case 25 -> { // Next page button
-                List<Sigil> sortedSigils = getSortedSigils(filter);
-                int maxPage = (int) Math.ceil((double) sortedSigils.size() / ITEMS_PER_PAGE);
+            case 53 -> { // Next page (slot 53)
+                List<Sigil> allSigils = new ArrayList<>(plugin.getSigilManager().getAllSigils());
+                List<Sigil> filteredSigils = filterState.applyFiltersAndSorting(allSigils);
+                int maxPage = (int) Math.ceil((double) filteredSigils.size() / ITEMS_PER_PAGE);
 
                 if (page < maxPage) {
                     playSound(player, "page");
                     session.put("page", page + 1);
-                    refreshGUI(guiManager, player, session, page + 1, filter);
+                    refreshGUI(guiManager, player, session, page + 1, filterState);
                 } else {
                     playSound(player, "error");
                 }
@@ -211,47 +223,85 @@ public class SigilsMenuHandler extends AbstractHandler {
     /**
      * Refresh GUI items in place without reopening (preserves cursor position).
      */
-    private static void refreshGUI(GUIManager guiManager, Player player, GUISession session, int page, String filter) {
-        Inventory inv = Bukkit.createInventory(null, GUILayout.ROWS_3,
+    private static void refreshGUI(GUIManager guiManager, Player player, GUISession session, int page, FilterState filterState) {
+        Inventory inv = Bukkit.createInventory(null, GUILayout.ROWS_6,
             TextUtil.parseComponent("§8Arcane Sigils"));
-        buildInventory(inv, page, filter);
+        buildInventory(inv, page, filterState);
         guiManager.updateGUI(player, inv, session);
     }
 
     /**
      * Build the inventory contents.
      */
-    private static void buildInventory(Inventory inv, int page, String filter) {
-        // Clear existing items first
+    private static void buildInventory(Inventory inv, int page, FilterState filterState) {
         inv.clear();
 
-        // Get sorted sigils
-        List<Sigil> sortedSigils = getSortedSigils(filter);
-        int maxPage = Math.max(1, (int) Math.ceil((double) sortedSigils.size() / ITEMS_PER_PAGE));
+        ArmorSetsPlugin plugin = (ArmorSetsPlugin) Bukkit.getPluginManager().getPlugin("ArcaneSigils");
+
+        // Get filtered and sorted sigils
+        List<Sigil> allSigils = new ArrayList<>(plugin.getSigilManager().getAllSigils());
+        List<Sigil> filteredSigils = filterState.applyFiltersAndSorting(allSigils);
+        int maxPage = Math.max(1, (int) Math.ceil((double) filteredSigils.size() / ITEMS_PER_PAGE));
         page = Math.max(1, Math.min(page, maxPage));
 
-        // Fill sigil slots
+        // Fill sigil slots (rows 0-3, slots 0-35)
         int startIndex = (page - 1) * ITEMS_PER_PAGE;
-        int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedSigils.size());
+        int endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredSigils.size());
 
-        for (int i = startIndex; i < endIndex; i++) {
-            Sigil sigil = sortedSigils.get(i);
-            int slot = SIGIL_SLOTS[i - startIndex];
-            inv.setItem(slot, createSigilItem(sigil));
+        if (filteredSigils.isEmpty()) {
+            // Show "no results" message in center
+            inv.setItem(22, ItemBuilder.createEmptyResultsItem());
+        } else {
+            for (int i = startIndex; i < endIndex; i++) {
+                Sigil sigil = filteredSigils.get(i);
+                int slot = SIGIL_SLOTS[i - startIndex];
+                inv.setItem(slot, createSigilItem(sigil));
+            }
         }
 
-        // Bottom row
-        inv.setItem(GUILayout.BACK, ItemBuilder.createItem(
+        // Filter row (row 4, slots 36-44)
+        inv.setItem(GUILayout.FILTER_RARITY, createFilterButton(
+            Material.DIAMOND,
+            "§eRarity Filter",
+            filterState.getActiveRarities().isEmpty() ? null : formatRarityList(filterState.getActiveRarities()),
+            !filterState.getActiveRarities().isEmpty()
+        ));
+
+        inv.setItem(GUILayout.FILTER_SLOT_TYPE, createFilterButton(
+            Material.IRON_CHESTPLATE,
+            "§eSlot Type Filter",
+            filterState.getActiveSlotTypes().isEmpty() ? null : formatSlotTypeList(filterState.getActiveSlotTypes()),
+            !filterState.getActiveSlotTypes().isEmpty()
+        ));
+
+        inv.setItem(GUILayout.FILTER_TIER_RANGE, createFilterButton(
+            Material.EXPERIENCE_BOTTLE,
+            "§eTier Range Filter",
+            formatTierRange(filterState.getMinTier(), filterState.getMaxTier()),
+            filterState.getMinTier() != null || filterState.getMaxTier() != null
+        ));
+
+        inv.setItem(GUILayout.FILTER_CRATE, createFilterButton(
+            Material.CHEST,
+            "§eCrate Type Filter",
+            filterState.getActiveCrates().isEmpty() ? null : formatCrateList(filterState.getActiveCrates()),
+            !filterState.getActiveCrates().isEmpty()
+        ));
+
+        inv.setItem(GUILayout.FILTER_CLEAR, ItemBuilder.createClearFiltersButton());
+
+        inv.setItem(GUILayout.FILTER_SORT, createSortButton(filterState.getSortMode()));
+
+        inv.setItem(GUILayout.FILTER_REVERSE, createReverseSortButton(filterState.isReverseSortOrder(), filterState.getSortMode()));
+
+        // Navigation row (row 5, slots 45-53)
+        inv.setItem(45, ItemBuilder.createItem(
             Material.RED_DYE,
             "§c← Close",
             "§7Close the menu"
         ));
 
-        inv.setItem(GUILayout.PREV_PAGE, ItemBuilder.createPageArrow(false, page, maxPage));
-
-        inv.setItem(GUILayout.PAGE_INDICATOR, ItemBuilder.createPageIndicator(
-            page, maxPage, sortedSigils.size()
-        ));
+        inv.setItem(46, ItemBuilder.createPageArrow(false, page, maxPage)); // Prev page
 
         inv.setItem(GUILayout.BROWSE_BEHAVIORS, ItemBuilder.createItem(
             Material.COMMAND_BLOCK,
@@ -262,14 +312,15 @@ public class SigilsMenuHandler extends AbstractHandler {
             "§8spawned entities and marks"
         ));
 
+        inv.setItem(49, ItemBuilder.createPageIndicator(
+            page, maxPage, filteredSigils.size()
+        )); // Page indicator
+
         inv.setItem(GUILayout.CREATE_BEHAVIOR, ItemBuilder.createItem(
             Material.SPAWNER,
             "§dCreate Behavior",
             "§7Create a behavior for marks",
-            "§7or spawned entities",
-            "",
-            "§8Behaviors define effects that",
-            "§8run while a mark/spawn is active"
+            "§7or spawned entities"
         ));
 
         inv.setItem(GUILayout.CREATE_SIGIL, ItemBuilder.createItem(
@@ -278,17 +329,12 @@ public class SigilsMenuHandler extends AbstractHandler {
             "§7Click to create a new sigil"
         ));
 
-        inv.setItem(GUILayout.FILTER, createFilterItem(filter));
+        inv.setItem(53, ItemBuilder.createPageArrow(true, page, maxPage)); // Next page
 
-        inv.setItem(25, ItemBuilder.createPageArrow(true, page, maxPage)); // Next page
-
-        // Fill remaining bottom row slots with background
-        for (int slot = 18; slot < 27; slot++) {
+        // Fill background in filter and nav rows
+        for (int slot = 36; slot < 54; slot++) {
             if (inv.getItem(slot) == null || inv.getItem(slot).getType() == Material.AIR) {
-                inv.setItem(slot, ItemBuilder.createItem(
-                    Material.GRAY_STAINED_GLASS_PANE,
-                    "§8Arcane Sigils"
-                ));
+                inv.setItem(slot, ItemBuilder.createBackground());
             }
         }
     }
@@ -296,30 +342,45 @@ public class SigilsMenuHandler extends AbstractHandler {
     /**
      * Open the Sigils Menu GUI.
      */
-    public static void openGUI(GUIManager guiManager, Player player, int page, String filter) {
-        if (filter == null) {
-            filter = "NONE";
+    public static void openGUI(GUIManager guiManager, Player player, int page) {
+        // Preserve filter state from existing session
+        GUISession oldSession = guiManager.getSession(player);
+        FilterState filterState = null;
+        if (oldSession != null) {
+            filterState = oldSession.get("filterState", FilterState.class);
+        }
+        if (filterState == null) {
+            filterState = new FilterState();
         }
 
         // Create inventory
-        Inventory inv = Bukkit.createInventory(null, GUILayout.ROWS_3,
+        Inventory inv = Bukkit.createInventory(null, GUILayout.ROWS_6,
             TextUtil.parseComponent("§8Arcane Sigils"));
 
         // Normalize page
-        List<Sigil> sortedSigils = getSortedSigils(filter);
-        int maxPage = Math.max(1, (int) Math.ceil((double) sortedSigils.size() / ITEMS_PER_PAGE));
+        ArmorSetsPlugin plugin = (ArmorSetsPlugin) Bukkit.getPluginManager().getPlugin("ArcaneSigils");
+        List<Sigil> allSigils = new ArrayList<>(plugin.getSigilManager().getAllSigils());
+        List<Sigil> filteredSigils = filterState.applyFiltersAndSorting(allSigils);
+        int maxPage = Math.max(1, (int) Math.ceil((double) filteredSigils.size() / ITEMS_PER_PAGE));
         page = Math.max(1, Math.min(page, maxPage));
 
         // Build inventory contents
-        buildInventory(inv, page, filter);
+        buildInventory(inv, page, filterState);
 
-        // Create session
+        // Create new session with correct type
         GUISession session = new GUISession(GUIType.SIGILS_MENU);
         session.put("page", page);
-        session.put("filter", filter);
+        session.put("filterState", filterState);
 
         // Open GUI
         guiManager.openGUI(player, inv, session);
+    }
+
+    /**
+     * Overload to maintain backward compatibility with old calls.
+     */
+    public static void openGUI(GUIManager guiManager, Player player, int page, String legacyFilter) {
+        openGUI(guiManager, player, page);
     }
 
     /**
@@ -334,76 +395,122 @@ public class SigilsMenuHandler extends AbstractHandler {
         String rarityColor = getRarityColor(sigil.getRarity());
 
         List<String> lore = new ArrayList<>();
-        lore.add("§7ID: §f" + sigil.getId());
         lore.add("§7Rarity: " + rarityColor + sigil.getRarity());
         lore.add("§7Max Tier: §f" + sigil.getMaxTier());
         lore.add("");
         lore.add("§eLeft-click §7to edit");
-        lore.add("§eRight-click §7to get max tier");
-        lore.add("§eShift+Left §7to get tier 1");
-        lore.add("§cShift+Right §7to delete");
 
         return ItemBuilder.createItem(material, sigil.getName(), lore);
     }
 
     /**
-     * Create the filter item.
+     * Create a filter button.
      */
-    private static ItemStack createFilterItem(String currentFilter) {
+    private static ItemStack createFilterButton(Material material, String name, String activeDesc, boolean isActive) {
         List<String> lore = new ArrayList<>();
-        lore.add("§7Current: §f" + currentFilter);
+        if (isActive && activeDesc != null) {
+            lore.add("§aActive: §f" + activeDesc);
+            lore.add("§7Click to change");
+        } else {
+            lore.add("§7Currently: §fAll");
+            lore.add("§7Click to filter");
+        }
+
+        return ItemBuilder.createFilterButton(material, name, lore, isActive);
+    }
+
+    /**
+     * Create sort button.
+     */
+    private static ItemStack createSortButton(String sortMode) {
+        List<String> lore = new ArrayList<>();
+        lore.add("§7Current: §f" + sortMode);
         lore.add("");
-        lore.add("§7Filters:");
-        lore.add((currentFilter.equals("NONE") ? "§a▸ " : "§7- ") + "NONE");
-        lore.add((currentFilter.equals("RARITY") ? "§a▸ " : "§7- ") + "RARITY");
-        lore.add((currentFilter.equals("MAX_TIER") ? "§a▸ " : "§7- ") + "MAX_TIER");
-        lore.add((currentFilter.equals("ALPHABETICAL_ID") ? "§a▸ " : "§7- ") + "ALPHABETICAL_ID");
+        lore.add("§7Modes:");
+        lore.add((sortMode.equals("NONE") ? "§a▸ " : "§7- ") + "NONE");
+        lore.add((sortMode.equals("ALPHABETICAL") ? "§a▸ " : "§7- ") + "ALPHABETICAL");
+        lore.add((sortMode.equals("RARITY") ? "§a▸ " : "§7- ") + "RARITY");
+        lore.add((sortMode.equals("TIER") ? "§a▸ " : "§7- ") + "TIER");
         lore.add("");
         lore.add("§eClick to cycle");
 
-        return ItemBuilder.createItem(Material.COMPASS, "§eFilter", lore);
+        return ItemBuilder.createItem(Material.COMPARATOR, "§eSort Mode", lore);
     }
 
     /**
-     * Get sorted sigils based on filter.
+     * Create reverse sort order button.
      */
-    private static List<Sigil> getSortedSigils(String filter) {
-        List<Sigil> sigils = new ArrayList<>(
-            ((ArmorSetsPlugin) Bukkit.getPluginManager().getPlugin("ArcaneSigils")).getSigilManager().getAllSigils()
-        );
-
-        if (filter == null) {
-            filter = "NONE";
+    private static ItemStack createReverseSortButton(boolean isReversed, String sortMode) {
+        String arrow = isReversed ? "↓" : "↑";
+        String orderName = isReversed ? "Descending" : "Ascending";
+        
+        // Special case for TIER: default is high-to-low (descending)
+        if (sortMode.equals("TIER")) {
+            orderName = isReversed ? "Ascending (Low→High)" : "Descending (High→Low)";
+        }
+        
+        List<String> lore = new ArrayList<>();
+        if (sortMode.equals("NONE")) {
+            lore.add("§7Order: §fN/A");
+            lore.add("");
+            lore.add("§7Select a sort mode first");
+        } else {
+            lore.add("§7Order: §f" + orderName);
+            lore.add("");
+            lore.add("§eClick to flip sort order");
         }
 
-        switch (filter) {
-            case "RARITY" -> sigils.sort(Comparator.comparingInt(SigilsMenuHandler::getRarityPriority)
-                .thenComparing(Sigil::getId));
-            case "MAX_TIER" -> sigils.sort(Comparator.comparingInt(Sigil::getMaxTier)
-                .reversed()
-                .thenComparing(Sigil::getId));
-            case "ALPHABETICAL_ID" -> sigils.sort(Comparator.comparing(Sigil::getId));
-            default -> {
-                // NONE - keep insertion order (no sorting)
-            }
-        }
-
-        return sigils;
+        Material material = sortMode.equals("NONE") ? Material.GRAY_DYE : Material.SPECTRAL_ARROW;
+        return ItemBuilder.createItem(material, "§eSort Order " + arrow, lore);
     }
 
     /**
-     * Get rarity priority for sorting (lower = more common).
+     * Format rarity list for display.
      */
-    private static int getRarityPriority(Sigil sigil) {
-        return switch (sigil.getRarity().toUpperCase()) {
-            case "COMMON" -> 0;
-            case "UNCOMMON" -> 1;
-            case "RARE" -> 2;
-            case "EPIC" -> 3;
-            case "LEGENDARY" -> 4;
-            case "MYTHIC" -> 5;
-            default -> 0;
-        };
+    private static String formatRarityList(java.util.Set<String> rarities) {
+        if (rarities.isEmpty()) return null;
+        List<String> sorted = new ArrayList<>(rarities);
+        sorted.sort(String::compareToIgnoreCase);
+        return String.join(", ", sorted);
+    }
+
+    /**
+     * Format slot type list for display.
+     */
+    private static String formatSlotTypeList(java.util.Set<String> slotTypes) {
+        if (slotTypes.isEmpty()) return null;
+        List<String> sorted = new ArrayList<>(slotTypes);
+        sorted.sort(String::compareToIgnoreCase);
+        // Capitalize first letter of each
+        List<String> capitalized = new ArrayList<>();
+        for (String slot : sorted) {
+            capitalized.add(slot.substring(0, 1).toUpperCase() + slot.substring(1));
+        }
+        return String.join(", ", capitalized);
+    }
+
+    /**
+     * Format tier range for display.
+     */
+    private static String formatTierRange(Integer min, Integer max) {
+        if (min == null && max == null) return null;
+        if (min != null && max != null) return "Tier " + min + "-" + max;
+        if (min != null) return "Tier " + min + "+";
+        if (max != null) return "Tier <=" + max;
+        return null;
+    }
+
+    /**
+     * Format crate list for display.
+     */
+    private static String formatCrateList(java.util.Set<String> crates) {
+        if (crates.isEmpty()) return null;
+        List<String> sorted = new ArrayList<>(crates);
+        sorted.sort(String::compareToIgnoreCase);
+        if (sorted.size() > 2) {
+            return sorted.get(0) + ", " + sorted.get(1) + ", +" + (sorted.size() - 2);
+        }
+        return String.join(", ", sorted);
     }
 
     /**
@@ -418,19 +525,6 @@ public class SigilsMenuHandler extends AbstractHandler {
             case "LEGENDARY" -> "§6";
             case "MYTHIC" -> "§d";
             default -> "§7";
-        };
-    }
-
-    /**
-     * Cycle to the next filter mode.
-     */
-    private static String cycleFilter(String currentFilter) {
-        return switch (currentFilter) {
-            case "NONE" -> "RARITY";
-            case "RARITY" -> "MAX_TIER";
-            case "MAX_TIER" -> "ALPHABETICAL_ID";
-            case "ALPHABETICAL_ID" -> "NONE";
-            default -> "NONE";
         };
     }
 }

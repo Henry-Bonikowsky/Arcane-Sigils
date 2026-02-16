@@ -130,6 +130,7 @@ public class FlowSerializer {
             case LOOP -> new LoopNode(nodeId);
             case VARIABLE -> new VariableNode(nodeId);
             case SKIP_COOLDOWN -> new SkipCooldownNode(nodeId);
+            case END -> new EndNode(nodeId);
         };
 
         // Position
@@ -184,23 +185,6 @@ public class FlowSerializer {
         config.setChance(section.getDouble("chance", 100.0));
         config.setPriority(section.getInt("priority", 1));
 
-        // Parse conditions
-        ConfigurationSection condSection = section.getConfigurationSection("conditions");
-        if (condSection != null) {
-            List<String> condList = new ArrayList<>(condSection.getStringList("list"));
-            config.setConditions(condList);
-            String logicStr = condSection.getString("logic", "AND").toUpperCase();
-            try {
-                config.setConditionLogic(FlowConfig.ConditionLogic.valueOf(logicStr));
-            } catch (IllegalArgumentException e) {
-                config.setConditionLogic(FlowConfig.ConditionLogic.AND);
-            }
-        } else if (section.contains("conditions")) {
-            // Flat format - just a list
-            List<String> condList = new ArrayList<>(section.getStringList("conditions"));
-            config.setConditions(condList);
-        }
-
         // Parse flow graph
         String graphId = section.getString("id", "flow");
         FlowGraph graph = new FlowGraph(graphId);
@@ -249,14 +233,6 @@ public class FlowSerializer {
 
         if (config.getPriority() != 1) {
             map.put("priority", config.getPriority());
-        }
-
-        // Conditions
-        if (!config.getConditions().isEmpty()) {
-            Map<String, Object> condMap = new LinkedHashMap<>();
-            condMap.put("logic", config.getConditionLogic().name());
-            condMap.put("list", config.getConditions());
-            map.put("conditions", condMap);
         }
 
         // Flow graph
@@ -309,31 +285,6 @@ public class FlowSerializer {
         Object priorityObj = map.get("priority");
         if (priorityObj instanceof Number num) {
             config.setPriority(num.intValue());
-        }
-
-        // Parse conditions
-        Object condObj = map.get("conditions");
-        if (condObj instanceof Map<?, ?> condMap) {
-            Object listObj = condMap.get("list");
-            if (listObj instanceof List<?> list) {
-                List<String> condList = list.stream()
-                        .map(Object::toString)
-                        .collect(Collectors.toCollection(ArrayList::new));
-                config.setConditions(condList);
-            }
-            Object logicObj = condMap.get("logic");
-            String logicStr = logicObj != null ? logicObj.toString() : "AND";
-            try {
-                config.setConditionLogic(FlowConfig.ConditionLogic.valueOf(logicStr.toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                config.setConditionLogic(FlowConfig.ConditionLogic.AND);
-            }
-        } else if (condObj instanceof List<?> list) {
-            // Flat format
-            List<String> condList = list.stream()
-                    .map(Object::toString)
-                    .collect(Collectors.toCollection(ArrayList::new));
-            config.setConditions(condList);
         }
 
         // Parse flow graph

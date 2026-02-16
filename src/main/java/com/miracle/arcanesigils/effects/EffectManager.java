@@ -65,6 +65,7 @@ public class EffectManager {
         registerEffect(new MaxHealthBoostEffect());
         registerEffect(new ResistEffectsEffect());
         registerEffect(new ClearNegativeEffectsEffect());
+        registerEffect(new InvulnerabilityHitsEffect());
 
         // Potion Effect
         registerEffect(new PotionEffectEffect());
@@ -89,7 +90,6 @@ public class EffectManager {
         // Spawning/Environmental Effects
         registerEffect(new SpawnEntityEffect());
         registerEffect(new SpawnDisplayEffect());
-        registerEffect(new SpawnAuraEffect());
         registerEffect(new FreezingEffect());
         registerEffect(new IgniteEffect());
         registerEffect(new LightningEffect());
@@ -104,12 +104,30 @@ public class EffectManager {
         registerEffect(new StunEffect());
         registerEffect(new SummonMummyEffect());
         registerEffect(new ChangeSkinEffect());
+        
+        // Cleopatra Set Effects
+        registerEffect(new RemoveBuffsEffect());
+        registerEffect(new DamageAmplificationEffect());
+        registerEffect(new ApplySuppressionEffect());
+        
+        // King's Brace Effects
+        registerEffect(new UpdateChargeDREffect());
+
+        // Ancient Crown Effects
+        registerEffect(new RegisterAncientCrownImmunityEffect());
 
         // Mark System
         registerEffect(new MarkEffect());
+        registerEffect(new PullToOwnerEffect());
+        registerEffect(new RegisterNoKnockbackEffect());
 
         // Buff System
         registerEffect(new DamageReductionBuffEffect());
+        
+        // Interception System
+        registerEffect(new ReducePotionAmplifierEffect());
+        registerEffect(new ReducePotionPotencyEffect());
+        registerEffect(new ReduceAttributeValueEffect());
 
         plugin.getLogger().info("Registered " + effects.size() + " effect types");
     }

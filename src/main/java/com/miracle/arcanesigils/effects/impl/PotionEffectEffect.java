@@ -105,8 +105,35 @@ public class PotionEffectEffect extends AbstractEffect {
             return true;
         }
 
+        // Create the potion effect
+        PotionEffect effect = new PotionEffect(potionType, duration, amplifier, false, true);
+
+        // CHECK INTERCEPTION BEFORE APPLYING
+        com.miracle.arcanesigils.ArmorSetsPlugin plugin = getPlugin();
+        com.miracle.arcanesigils.interception.InterceptionManager interceptionManager = plugin.getInterceptionManager();
+
+        if (interceptionManager != null && target instanceof org.bukkit.entity.Player player) {
+            com.miracle.arcanesigils.interception.InterceptionEvent interceptionEvent =
+                new com.miracle.arcanesigils.interception.InterceptionEvent(
+                    com.miracle.arcanesigils.interception.InterceptionEvent.Type.POTION_EFFECT,
+                    player,
+                    context.getPlayer(),
+                    potionType,
+                    amplifier,
+                    duration
+                );
+
+            com.miracle.arcanesigils.interception.InterceptionEvent result =
+                interceptionManager.fireIntercept(interceptionEvent);
+
+            if (result.isCancelled()) {
+                debug("Potion effect " + potionType + " blocked by interceptor on " + target.getName());
+                return false; // Effect was blocked (e.g., by Cleopatra suppression)
+            }
+        }
+
         // Use force=true to ensure effect is always applied/refreshed (critical for static effects)
-        target.addPotionEffect(new PotionEffect(potionType, duration, amplifier, false, true), true);
+        target.addPotionEffect(effect, true);
 
         // Track effect for removal when armor is unequipped
         if (target == context.getPlayer() && getPlugin().getSignalHandler() != null) {

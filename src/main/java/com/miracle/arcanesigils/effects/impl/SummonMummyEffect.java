@@ -111,8 +111,8 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
 
         // This ability requires a valid target (not self)
         if (target == null || target == owner) {
-            // No valid target found - show action bar message and don't execute
-            owner.sendActionBar(net.kyori.adventure.text.Component.text(
+            // No valid target found - show chat message and don't execute
+            owner.sendMessage(net.kyori.adventure.text.Component.text(
                 TextUtil.colorize("&c&lNo target found! &7Look at an enemy to summon mummies.")
             ));
             return false;

@@ -4,13 +4,23 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import com.comphenix.protocol.wrappers.WrappedDataValue;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
+import com.comphenix.protocol.wrappers.WrappedTeamParameters;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.utils.TargetFinder;
+import com.miracle.arcanesigils.utils.TextUtil;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
@@ -43,6 +53,7 @@ public class TargetGlowManager implements Listener {
     // Configuration
     private static final double GLOW_RANGE = 15.0;
     private static final int UPDATE_INTERVAL_TICKS = 2; // 100ms
+    private static final String GREEN_TEAM_NAME = "arcane_green_glow";
 
     public TargetGlowManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -85,7 +96,12 @@ public class TargetGlowManager implements Listener {
         Entity currentTarget = currentGlowTargets.remove(uuid);
         if (currentTarget != null && currentTarget.isValid()) {
             sendGlowPacket(player, currentTarget, false);
+            if (currentTarget instanceof Player oldTargetPlayer) {
+                sendTeamPacket(player, oldTargetPlayer, false);
+            }
         }
+        // Clear target message
+        clearTargetMessage(player);
     }
 
     /**
@@ -111,15 +127,96 @@ public class TargetGlowManager implements Listener {
         // Remove glow from old target
         if (currentTarget != null && currentTarget.isValid()) {
             sendGlowPacket(player, currentTarget, false);
+            if (currentTarget instanceof Player oldTargetPlayer) {
+                sendTeamPacket(player, oldTargetPlayer, false);
+            }
         }
 
         // Add glow to new target
         if (newTarget != null) {
             sendGlowPacket(player, newTarget, true);
+            
+            // Add players to green team for green glow (client-side)
+            if (newTarget instanceof Player targetPlayer) {
+                sendTeamPacket(player, targetPlayer, true);
+                // Show "Target: [player name]" message
+                showTargetMessage(player, targetPlayer);
+            } else {
+                // Clear target message for non-players
+                clearTargetMessage(player);
+            }
+            
             currentGlowTargets.put(uuid, newTarget);
         } else {
             currentGlowTargets.remove(uuid);
+            // Clear target message
+            clearTargetMessage(player);
         }
+    }
+
+    /**
+     * Send client-side team packet to make glow appear green.
+     * Uses ProtocolLib's WrappedTeamParameters for proper 1.21 support.
+     */
+    private void sendTeamPacket(Player viewer, Player target, boolean create) {
+        try {
+            plugin.getLogger().info(String.format("[TargetGlow] Sending team packet: viewer=%s, target=%s, create=%s",
+                viewer.getName(), target.getName(), create));
+            
+            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.SCOREBOARD_TEAM);
+            
+            // Set team name
+            packet.getStrings().write(0, GREEN_TEAM_NAME);
+            
+            if (create) {
+                // Mode 0 = Create team and add players
+                packet.getIntegers().write(0, 0);
+                
+                // Build team parameters using the builder pattern
+                WrappedTeamParameters parameters = WrappedTeamParameters.newBuilder()
+                    .displayName(WrappedChatComponent.fromText(""))
+                    .prefix(WrappedChatComponent.fromText(""))
+                    .suffix(WrappedChatComponent.fromText(""))
+                    .nametagVisibility("always")
+                    .collisionRule("always")
+                    .color(EnumWrappers.ChatFormatting.GREEN)
+                    .options(0x03) // Allow friendly fire + see invisible teammates
+                    .build();
+                
+                // Write team parameters
+                packet.getOptionalTeamParameters().write(0, Optional.of(parameters));
+                
+                // Add target player to team
+                packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(target.getName()));
+            } else {
+                // Mode 4 = Remove players from team
+                packet.getIntegers().write(0, 4);
+                packet.getSpecificModifier(Collection.class).write(0, Collections.singletonList(target.getName()));
+            }
+            
+            protocolManager.sendServerPacket(viewer, packet);
+            plugin.getLogger().info(String.format("[TargetGlow] Team packet sent successfully (mode=%s)", create ? "CREATE" : "REMOVE"));
+        } catch (Exception e) {
+            plugin.getLogger().warning("[TargetGlow] Failed to send team packet: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Show "Target: [player name]" message in chat.
+     */
+    private void showTargetMessage(Player viewer, Player target) {
+        String message = TextUtil.colorize("&aTarget: &f" + target.getName());
+        viewer.spigot().sendMessage(ChatMessageType.CHAT, new TextComponent(message));
+    }
+
+    /**
+     * Clear the target message.
+     * NOTE: With CHAT messages (not actionbar), we can't "clear" a message.
+     * Just do nothing - the message will scroll away naturally.
+     */
+    private void clearTargetMessage(Player viewer) {
+        // No-op - can't clear chat messages like we could actionbar
     }
 
     /**

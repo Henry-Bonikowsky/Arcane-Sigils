@@ -12,7 +12,9 @@ public enum ConditionCategory {
     COMBAT(Material.DIAMOND_SWORD, "Combat-related conditions"),
     PLAYER_STATE(Material.LEATHER_BOOTS, "Player state conditions"),
     EQUIPMENT(Material.DIAMOND_CHESTPLATE, "Equipment conditions"),
-    META(Material.NETHER_STAR, "Meta conditions");
+    SET(Material.DIAMOND_CHESTPLATE, "Set bonus conditions"),
+    META(Material.NETHER_STAR, "Meta conditions"),
+    SIGNAL_SPECIFIC(Material.REDSTONE, "Signal-specific conditions");
 
     private final Material icon;
     private final String description;

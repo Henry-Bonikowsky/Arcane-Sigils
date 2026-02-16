@@ -18,9 +18,20 @@ public class HealEffect extends AbstractEffect {
         LivingEntity target = getTarget(context);
         if (target == null) return false;
 
+        double currentHealth = target.getHealth();
         double maxHealth = target.getAttribute(Attribute.MAX_HEALTH).getValue();
-        double newHealth = Math.min(target.getHealth() + amount, maxHealth);
+        double newHealth = Math.min(currentHealth + amount, maxHealth);
+        double actualHealAmount = newHealth - currentHealth;
+        
         target.setHealth(newHealth);
+        
+        // AI Training: Accumulate total healing done
+        if (actualHealAmount > 0) {
+            Double currentTotal = context.getVariable("aiTraining_totalHeal");
+            double newTotal = (currentTotal != null ? currentTotal : 0.0) + actualHealAmount;
+            context.setVariable("aiTraining_totalHeal", newTotal);
+        }
+        
         return true;
     }
 }

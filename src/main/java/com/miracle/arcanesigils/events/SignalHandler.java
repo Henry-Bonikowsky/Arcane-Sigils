@@ -1,11 +1,16 @@
 package com.miracle.arcanesigils.events;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.ai.AITrainingManager;
+import com.miracle.arcanesigils.ai.RewardSignal;
+import com.miracle.arcanesigils.binds.BindsListener;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.flow.FlowConfig;
 import com.miracle.arcanesigils.flow.FlowExecutor;
 import com.miracle.arcanesigils.flow.FlowGraph;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -47,7 +52,7 @@ public class SignalHandler implements Listener {
 
     public SignalHandler(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
-        this.conditionManager = new ConditionManager();
+        this.conditionManager = new ConditionManager(plugin);
         startStaticEffectTask();
         startArmorCheckTask();
         startTickSignalTask();
@@ -146,6 +151,11 @@ public class SignalHandler implements Listener {
                     removeSigilAttributeModifiers(player, sigilId);
                 }
             }
+        }
+
+        // Update set bonuses when armor changes
+        if (plugin.getSetBonusManager() != null) {
+            plugin.getSetBonusManager().updatePlayerSetBonuses(player);
         }
 
         previousArmor.put(uuid, cloneArmor(current));
@@ -247,62 +257,6 @@ public class SignalHandler implements Listener {
 
     // ==================== EVENT HANDLERS ====================
 
-    /**
-     * LOWEST priority handler to track when event gets cancelled.
-     * This runs BEFORE all other handlers and logs initial event state.
-     */
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onDamageEventLowest(EntityDamageByEntityEvent event) {
-        if (!(event.getDamager() instanceof Player attacker)) return;
-        if (!(event.getEntity() instanceof Player victim)) return;
-
-        // Check if either player has RECENT skin change (within 5 seconds)
-        boolean shouldLog = false;
-        String reason = "";
-
-        if (plugin.getSkinChangeManager() != null) {
-            long attackerMs = plugin.getSkinChangeManager().getTimeSinceSkinChange(attacker);
-            long victimMs = plugin.getSkinChangeManager().getTimeSinceSkinChange(victim);
-
-            if (attackerMs >= 0 && attackerMs < 5000) {
-                shouldLog = true;
-                reason += "Attacker had skin change " + attackerMs + "ms ago. ";
-            }
-            if (victimMs >= 0 && victimMs < 5000) {
-                shouldLog = true;
-                reason += "Victim had skin change " + victimMs + "ms ago. ";
-            }
-        }
-
-        if (plugin.getStunManager() != null) {
-            if (plugin.getStunManager().isStunned(attacker)) {
-                shouldLog = true;
-                reason += "Attacker is stunned. ";
-            }
-            if (plugin.getStunManager().isStunned(victim)) {
-                shouldLog = true;
-                reason += "Victim is stunned. ";
-            }
-        }
-
-        if (!shouldLog) return;
-
-        // Log the INITIAL state at LOWEST priority
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n--- LOWEST PRIORITY (first handler) ---\n");
-        sb.append("Reason: ").append(reason).append("\n");
-        sb.append("Event cancelled at entry: ").append(event.isCancelled()).append("\n");
-        sb.append("Attacker: ").append(attacker.getName())
-          .append(" noDamageTicks=").append(attacker.getNoDamageTicks())
-          .append(" invulnerable=").append(attacker.isInvulnerable()).append("\n");
-        sb.append("Victim: ").append(victim.getName())
-          .append(" noDamageTicks=").append(victim.getNoDamageTicks())
-          .append(" invulnerable=").append(victim.isInvulnerable()).append("\n");
-        sb.append("Damage: ").append(event.getDamage()).append("\n");
-
-        plugin.getLogger().info(sb.toString());
-    }
-
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerAttack(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
@@ -314,9 +268,6 @@ public class SignalHandler implements Listener {
         }
 
         double originalDamage = event.getDamage();
-
-        // DEBUG: Log combat info when either party has skin change or stun
-        logCombatDebug("ATTACK", player, victim, event);
 
         EffectContext context = EffectContext.builder(player, SignalType.ATTACK)
                 .event(event)
@@ -337,9 +288,30 @@ public class SignalHandler implements Listener {
     public void onPlayerDefend(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
+        // Check invulnerability hits (Divine Intervention)
+        if (com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.isInvulnerable(player.getUniqueId())) {
+            event.setCancelled(true);
+            com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.decrementHits(player.getUniqueId());
+
+            // Visual/sound feedback
+            player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.2f);
+            player.getWorld().spawnParticle(Particle.ENCHANTED_HIT,
+                player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+
+            return;
+        }
+
         SignalType signalType = event.getCause() == EntityDamageEvent.DamageCause.FALL
                 ? SignalType.FALL_DAMAGE
                 : SignalType.DEFENSE;
+
+        // Log poison/wither damage for debugging Ancient Crown
+        if (event.getCause() == EntityDamageEvent.DamageCause.POISON ||
+            event.getCause() == EntityDamageEvent.DamageCause.WITHER) {
+            com.miracle.arcanesigils.utils.LogHelper.info(
+                "[AncientCrown] DEFENSE signal firing for %s damage: %.2f",
+                event.getCause(), event.getDamage());
+        }
 
         LivingEntity attacker = null;
         if (event instanceof EntityDamageByEntityEvent byEntity) {
@@ -357,13 +329,37 @@ public class SignalHandler implements Listener {
             }
         }
 
-        // Apply damage reduction buff BEFORE processing sigil effects
-        double originalDamage = event.getDamage();
+        // Apply damage modifiers BEFORE processing sigil effects
+        double currentDamage = event.getDamage();
+
+        // 1. Apply damage amplification (Cleopatra debuff - target takes MORE damage)
+        double amplificationPercent = com.miracle.arcanesigils.effects.impl.DamageAmplificationEffect.getDamageAmplification(player.getUniqueId());
+        if (amplificationPercent > 0) {
+            currentDamage = currentDamage * (1 + amplificationPercent / 100.0);
+        }
+
+        // 2. Apply damage reduction buff (temporary buff effect)
         double reductionPercent = com.miracle.arcanesigils.effects.impl.DamageReductionBuffEffect.getDamageReduction(player.getUniqueId());
         if (reductionPercent > 0) {
-            double reducedDamage = originalDamage * (1 - reductionPercent / 100.0);
-            event.setDamage(Math.max(0, reducedDamage));
+            currentDamage = currentDamage * (1 - reductionPercent / 100.0);
         }
+
+        // 3. Apply charge-based DR (King's Brace passive)
+        double chargeDR = com.miracle.arcanesigils.effects.impl.UpdateChargeDREffect.getChargeDR(player.getUniqueId());
+        if (chargeDR > 0) {
+            currentDamage = currentDamage * (1 - chargeDR / 100.0);
+        }
+
+        // 4. Apply mark-based damage multipliers (Cleopatra debuff, King's Brace marks, etc.)
+        double markMultiplier = plugin.getMarkManager().getDamageMultiplier(player);
+        if (markMultiplier != 1.0) {
+            currentDamage = currentDamage * markMultiplier;
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SignalHandler] Applied mark multiplier %.3f to %s: %.2f -> %.2f",
+                markMultiplier, player.getName(), event.getDamage(), currentDamage);
+        }
+
+        event.setDamage(Math.max(0, currentDamage));
 
         // Notify AuraManager of owner hit (triggers pull-on-hit auras)
         if (plugin.getAuraManager() != null) {
@@ -394,6 +390,19 @@ public class SignalHandler implements Listener {
                 .build();
 
         processArmorEffects(killer, signalType, context);
+
+        // AI Training: Send kill signal if kill happened within 5s of bind activation
+        BindsListener bindsListener = plugin.getBindsListener();
+        if (bindsListener != null) {
+            Integer bindSlot = bindsListener.getLastActivatedBindSlot(killer.getUniqueId(), 5000);
+            if (bindSlot != null) {
+                AITrainingManager aiTraining = plugin.getAITrainingManager();
+                if (aiTraining != null) {
+                    String entityType = dead.getType().name();
+                    aiTraining.sendKillSignal(killer, bindSlot, entityType);
+                }
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -401,6 +410,7 @@ public class SignalHandler implements Listener {
         if (!event.isSneaking()) return;
 
         Player player = event.getPlayer();
+
         EffectContext context = EffectContext.builder(player, SignalType.SHIFT)
                 .event(event)
                 .build();
@@ -554,106 +564,7 @@ public class SignalHandler implements Listener {
 
     // ==================== COMBAT DEBUG ====================
 
-    /**
-     * Log comprehensive debug info for combat involving stunned/skin-changed players.
-     * This helps diagnose hit detection issues after packet-based skin changes.
-     */
-    private void logCombatDebug(String eventType, Player attacker, LivingEntity victim, EntityDamageByEntityEvent event) {
-        boolean attackerHasSkinChange = plugin.getSkinChangeManager() != null &&
-                plugin.getSkinChangeManager().hasSkinChange(attacker);
-        boolean attackerIsStunned = plugin.getStunManager() != null &&
-                plugin.getStunManager().isStunned(attacker);
-        // Also check for RECENT skin change (within 5s) even if restored
-        boolean attackerHadRecentSkinChange = plugin.getSkinChangeManager() != null &&
-                plugin.getSkinChangeManager().getTimeSinceSkinChange(attacker) >= 0 &&
-                plugin.getSkinChangeManager().getTimeSinceSkinChange(attacker) < 5000;
 
-        boolean victimIsPlayer = victim instanceof Player;
-        boolean victimHasSkinChange = false;
-        boolean victimIsStunned = false;
-        boolean victimHadRecentSkinChange = false;
-
-        if (victimIsPlayer) {
-            Player victimPlayer = (Player) victim;
-            victimHasSkinChange = plugin.getSkinChangeManager() != null &&
-                    plugin.getSkinChangeManager().hasSkinChange(victimPlayer);
-            victimIsStunned = plugin.getStunManager() != null &&
-                    plugin.getStunManager().isStunned(victimPlayer);
-            victimHadRecentSkinChange = plugin.getSkinChangeManager() != null &&
-                    plugin.getSkinChangeManager().getTimeSinceSkinChange(victimPlayer) >= 0 &&
-                    plugin.getSkinChangeManager().getTimeSinceSkinChange(victimPlayer) < 5000;
-        }
-
-        // Only log if either party has skin change, stun, or RECENT skin change
-        if (!attackerHasSkinChange && !attackerIsStunned && !victimHasSkinChange && !victimIsStunned
-                && !attackerHadRecentSkinChange && !victimHadRecentSkinChange) {
-            return;
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n========== COMBAT DEBUG (").append(eventType).append(") ==========\n");
-
-        // Attacker info
-        sb.append("ATTACKER: ").append(attacker.getName()).append("\n");
-        sb.append("  entityId=").append(attacker.getEntityId()).append("\n");
-        sb.append("  noDamageTicks=").append(attacker.getNoDamageTicks()).append("\n");
-        sb.append("  maxNoDamageTicks=").append(attacker.getMaximumNoDamageTicks()).append("\n");
-        sb.append("  invulnerable=").append(attacker.isInvulnerable()).append("\n");
-        sb.append("  isStunned=").append(attackerIsStunned).append("\n");
-        if (plugin.getSkinChangeManager() != null) {
-            sb.append("  skinChange: ").append(plugin.getSkinChangeManager().getDebugInfo(attacker)).append("\n");
-        }
-
-        // Victim info
-        sb.append("VICTIM: ").append(victim.getName()).append(" (").append(victim.getType()).append(")\n");
-        sb.append("  entityId=").append(victim.getEntityId()).append("\n");
-        sb.append("  noDamageTicks=").append(victim.getNoDamageTicks()).append("\n");
-        sb.append("  maxNoDamageTicks=").append(victim.getMaximumNoDamageTicks()).append("\n");
-        sb.append("  invulnerable=").append(victim.isInvulnerable()).append("\n");
-        if (victimIsPlayer) {
-            Player victimPlayer = (Player) victim;
-            sb.append("  isStunned=").append(victimIsStunned).append("\n");
-            if (plugin.getSkinChangeManager() != null) {
-                sb.append("  skinChange: ").append(plugin.getSkinChangeManager().getDebugInfo(victimPlayer)).append("\n");
-            }
-        }
-
-        // Event info
-        sb.append("EVENT:\n");
-        sb.append("  cause=").append(event.getCause()).append("\n");
-        sb.append("  damage=").append(event.getDamage()).append("\n");
-        sb.append("  finalDamage=").append(event.getFinalDamage()).append("\n");
-        sb.append("  cancelled=").append(event.isCancelled()).append("\n");
-
-        // Distance between entities
-        double distance = attacker.getLocation().distance(victim.getLocation());
-        sb.append("  distance=").append(String.format("%.2f", distance)).append(" blocks\n");
-
-        // Key insight: spawn invulnerability is 60 ticks (3 seconds)
-        // Check if we're within that window
-        if (plugin.getSkinChangeManager() != null) {
-            long attackerMs = plugin.getSkinChangeManager().getTimeSinceSkinChange(attacker);
-            long victimMs = victimIsPlayer ?
-                    plugin.getSkinChangeManager().getTimeSinceSkinChange((Player) victim) : -1;
-
-            if (attackerMs >= 0 && attackerMs < 3000) {
-                sb.append("  WARNING: Attacker skin changed ").append(attackerMs).append("ms ago (within 3s spawn invuln window)\n");
-            }
-            if (victimMs >= 0 && victimMs < 3000) {
-                sb.append("  WARNING: Victim skin changed ").append(victimMs).append("ms ago (within 3s spawn invuln window)\n");
-            }
-        }
-
-        sb.append("==============================================");
-
-        plugin.getLogger().info(sb.toString());
-
-        // Also send to both players involved (if victim is player)
-        attacker.sendMessage("§c[Debug] Combat event logged - check console for details");
-        if (victimIsPlayer) {
-            ((Player) victim).sendMessage("§c[Debug] Combat event logged - check console for details");
-        }
-    }
 
     // ==================== TICK SIGNAL ====================
 
@@ -680,8 +591,9 @@ public class SignalHandler implements Listener {
     /**
      * Process armor effects for a signal.
      * Since sets have been removed, this only processes sigil effects.
+     * Public so it can be called from interception system to fire signals.
      */
-    private void processArmorEffects(Player player, SignalType signalType, EffectContext context) {
+    public void processArmorEffects(Player player, SignalType signalType, EffectContext context) {
         // Process sigil effects
         processSigilEffects(player, signalType, context);
     }
@@ -698,8 +610,9 @@ public class SignalHandler implements Listener {
         for (ItemStack armor : player.getInventory().getArmorContents()) {
             if (armor == null || armor.getType().isAir()) continue;
             List<Sigil> sigils = plugin.getSocketManager().getSocketedSigils(armor);
+            
             for (Sigil sigil : sigils) {
-                collectFlowsForSignal(sigil, signalType, armor, allFlows);
+                collectFlowsForSignal(sigil, signalType, armor, allFlows, player);
             }
         }
 
@@ -710,7 +623,7 @@ public class SignalHandler implements Listener {
                 && !plugin.getSocketManager().isArmor(mainHand)) {
             List<Sigil> heldSigils = plugin.getSocketManager().getSocketedSigils(mainHand);
             for (Sigil sigil : heldSigils) {
-                collectFlowsForSignal(sigil, signalType, mainHand, allFlows);
+                collectFlowsForSignal(sigil, signalType, mainHand, allFlows, player);
             }
         }
 
@@ -721,7 +634,7 @@ public class SignalHandler implements Listener {
                 && !plugin.getSocketManager().isArmor(offHand)) {
             List<Sigil> offHandSigils = plugin.getSocketManager().getSocketedSigils(offHand);
             for (Sigil sigil : offHandSigils) {
-                collectFlowsForSignal(sigil, signalType, offHand, allFlows);
+                collectFlowsForSignal(sigil, signalType, offHand, allFlows, player);
             }
         }
 
@@ -733,7 +646,7 @@ public class SignalHandler implements Listener {
                                    signalType == SignalType.TICK;
 
         if (!isPassiveSignal) {
-            // Sort by priority for active signals
+            // Sort by priority for active signals (highest first)
             allFlows.sort((a, b) -> Integer.compare(b.flow.getPriority(), a.flow.getPriority()));
         }
 
@@ -751,18 +664,15 @@ public class SignalHandler implements Listener {
 
             boolean activated = executeFlow(player, entry.flow.getGraph(), entry.flow, context, cooldownKey);
 
-            if (activated && !isPassiveSignal) {
-                // For active signals, stop after first activation (priority system)
+            if (activated) {
+                // Award XP for activation
                 if (entry.sourceItem != null) {
                     plugin.getTierProgressionManager().awardXP(player, entry.sourceItem, entry.sigil.getId(), entry.sigil.getTier());
                 }
-                break;
-            } else if (activated && isPassiveSignal) {
-                // For passive signals, award XP but continue to next flow
-                if (entry.sourceItem != null) {
-                    plugin.getTierProgressionManager().awardXP(player, entry.sourceItem, entry.sigil.getId(), entry.sigil.getTier());
+                // For active signals, stop after first activation (only ONE flow activates)
+                if (!isPassiveSignal) {
+                    break;
                 }
-                // Don't break - continue executing all passive flows
             }
         }
     }
@@ -784,13 +694,30 @@ public class SignalHandler implements Listener {
 
     /**
      * Collect flows from a sigil for a signal type.
+     * Filters out flows that are on cooldown before adding to the list.
      */
-    private void collectFlowsForSignal(Sigil sigil, SignalType signalType, ItemStack sourceItem, List<FlowEntry> allFlows) {
+    private void collectFlowsForSignal(Sigil sigil, SignalType signalType, ItemStack sourceItem, List<FlowEntry> allFlows, Player player) {
         List<FlowConfig> flows = sigil.getFlowsForTrigger(signalType.getConfigKey());
         if (flows.isEmpty()) {
             flows = sigil.getFlowsForTrigger(signalType.name());
         }
+
         for (FlowConfig flow : flows) {
+            // Check cooldown BEFORE adding to list
+            String flowId = flow.getGraph() != null ? flow.getGraph().getId() : "unknown";
+            String cooldownKey = "sigil_" + sigil.getId() + "_" + signalType.getConfigKey() + "_" + flowId;
+
+            // Get cooldown value from flow
+            double cooldown = flow.getCooldown();
+            if (flow.getGraph() != null && flow.getGraph().getStartNode() != null) {
+                cooldown = flow.getGraph().getStartNode().getDoubleParam("cooldown", cooldown);
+            }
+
+            // Skip if on cooldown
+            if (cooldown > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
+                continue;
+            }
+
             allFlows.add(new FlowEntry(flow, sigil, sourceItem));
         }
     }
@@ -927,13 +854,6 @@ public class SignalHandler implements Listener {
             }
         }
 
-        // Check conditions from FlowConfig
-        if (flowConfig != null && flowConfig.getConditions() != null && !flowConfig.getConditions().isEmpty()) {
-            if (!conditionManager.checkConditions(flowConfig.getConditions(), context)) {
-                return false;
-            }
-        }
-
         // Execute the flow and get context
         FlowExecutor executor = new FlowExecutor(plugin);
         com.miracle.arcanesigils.flow.FlowContext flowContext = executor.executeWithContext(flow, context);
@@ -968,7 +888,49 @@ public class SignalHandler implements Listener {
      */
     private void processStaticEffects(Player player) {
         EffectContext context = EffectContext.builder(player, SignalType.EFFECT_STATIC).build();
+
+        // Process regular sigil effects
         processArmorEffects(player, SignalType.EFFECT_STATIC, context);
+
+        // Process set bonus effects
+        processSetBonusEffects(player, context);
+    }
+
+    /**
+     * Process set bonus effects for player.
+     * Set bonuses act like global behaviors - they trigger independently of sigils.
+     */
+    private void processSetBonusEffects(Player player, EffectContext context) {
+        var setBonusManager = plugin.getSetBonusManager();
+        if (setBonusManager == null) return;
+
+        java.util.Map<String, Integer> activeBonuses = setBonusManager.getActiveBonuses(player);
+
+        for (java.util.Map.Entry<String, Integer> entry : activeBonuses.entrySet()) {
+            String setName = entry.getKey();
+            int tier = entry.getValue();
+
+            com.miracle.arcanesigils.sets.SetBonus setBonus = setBonusManager.getSetBonus(setName);
+            if (setBonus == null) continue;
+
+            // Inject set bonus tier into context as metadata
+            context.setMetadata("setBonus_" + setName, tier);
+            context.setMetadata("currentSetName", setName);
+            context.setMetadata("currentSetTier", tier);
+
+            // Resolve tier params from set config and inject into context as variables
+            for (java.util.Map.Entry<String, java.util.Map<Integer, Double>> paramEntry : setBonus.getTierParams().entrySet()) {
+                String paramName = paramEntry.getKey();
+                Double value = paramEntry.getValue().get(tier);
+                if (value != null) {
+                    context.setVariable(paramName, value);
+                }
+            }
+
+            // Execute set bonus flow
+            com.miracle.arcanesigils.flow.FlowExecutor executor = new com.miracle.arcanesigils.flow.FlowExecutor(plugin);
+            executor.execute(setBonus.getFlow().getGraph(), context);
+        }
     }
 
     // ==================== PLAYER JOIN CLEANUP ====================

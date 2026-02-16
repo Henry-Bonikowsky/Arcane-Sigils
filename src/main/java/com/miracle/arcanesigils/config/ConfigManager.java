@@ -18,13 +18,14 @@ public class ConfigManager {
     private final ArmorSetsPlugin plugin;
     private FileConfiguration mainConfig;
     private final Map<String, FileConfiguration> sigilConfigs = new HashMap<>();
-    private final Map<String, FileConfiguration> weaponConfigs = new HashMap<>();
     private FileConfiguration messagesConfig;
+    private FileConfiguration marksConfig;
+    private final Map<String, MarkConfig> markConfigs = new HashMap<>();
 
     // Directories
     private File sigilsDir;
-    private File weaponsDir;
     private File behaviorsDir;
+    private File marksDir;
 
     public ConfigManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -34,8 +35,8 @@ public class ConfigManager {
         createDirectories();
         loadMainConfig();
         loadMessagesConfig();
+        loadMarksConfig();
         loadSigilConfigs();
-        loadWeaponConfigs();
     }
 
     private void createDirectories() {
@@ -44,23 +45,21 @@ public class ConfigManager {
         }
 
         sigilsDir = new File(plugin.getDataFolder(), "sigils");
-        weaponsDir = new File(plugin.getDataFolder(), "weapons");
-
         if (!sigilsDir.exists()) {
             sigilsDir.mkdirs();
         }
         saveDefaultSigils();
-
-        if (!weaponsDir.exists()) {
-            weaponsDir.mkdirs();
-        }
-        saveDefaultWeapons();
 
         behaviorsDir = new File(plugin.getDataFolder(), "behaviors");
         if (!behaviorsDir.exists()) {
             behaviorsDir.mkdirs();
         }
         saveDefaultBehaviors();
+
+        marksDir = new File(plugin.getDataFolder(), "marks");
+        if (!marksDir.exists()) {
+            marksDir.mkdirs();
+        }
     }
 
     private void loadMainConfig() {
@@ -77,17 +76,39 @@ public class ConfigManager {
         messagesConfig = YamlConfiguration.loadConfiguration(messagesFile);
     }
 
+    private void loadMarksConfig() {
+        File marksFile = new File(marksDir, "marks.yml");
+        if (!marksFile.exists()) {
+            saveResource("marks/marks.yml");
+        }
+        marksConfig = YamlConfiguration.loadConfiguration(marksFile);
+        
+        // Parse mark configs into MarkConfig objects
+        markConfigs.clear();
+        if (marksConfig.contains("marks")) {
+            for (String markId : marksConfig.getConfigurationSection("marks").getKeys(false)) {
+                String path = "marks." + markId;
+                String name = marksConfig.getString(path + ".name", markId);
+                String description = marksConfig.getString(path + ".description", "");
+                double maxDuration = marksConfig.getDouble(path + ".max_duration", 3.0);
+                double stackIncrement = marksConfig.getDouble(path + ".stack_increment", 1.0);
+                boolean stackingEnabled = marksConfig.getBoolean(path + ".stacking_enabled", true);
+                
+                MarkConfig config = new MarkConfig(markId, name, description,
+                    maxDuration, stackIncrement, stackingEnabled);
+                markConfigs.put(markId, config);
+            }
+        }
+        plugin.getLogger().info("Loaded " + markConfigs.size() + " mark configurations");
+    }
+
     public void loadSigilConfigs() {
         sigilConfigs.clear();
         loadConfigsFromDirectory(sigilsDir, sigilConfigs);
         plugin.getLogger().info("Loaded " + sigilConfigs.size() + " sigil config files");
     }
 
-    private void loadWeaponConfigs() {
-        weaponConfigs.clear();
-        loadConfigsFromDirectory(weaponsDir, weaponConfigs);
-        plugin.getLogger().info("Loaded " + weaponConfigs.size() + " weapon config files");
-    }
+
 
     private void loadConfigsFromDirectory(File directory, Map<String, FileConfiguration> configMap) {
         File[] files = directory.listFiles((dir, name) -> name.endsWith(".yml") || name.endsWith(".yaml"));
@@ -112,16 +133,15 @@ public class ConfigManager {
     private void saveDefaultSigils() {
         saveResource("sigils/default-sigils.yml");
         saveResource("sigils/pharaoh-set.yml");
-    }
-
-    private void saveDefaultWeapons() {
-        saveResource("weapons/example-weapon.yml");
-        saveResource("weapons/signal-examples.yml");
+        saveResource("sigils/seasonal-pass.yml");
+        saveResource("sigils/mummy-kit.yml");
+        saveResource("sigils/test-dummy.yml");
     }
 
     private void saveDefaultBehaviors() {
         saveResource("behaviors/mummy_behavior.yml");
         saveResource("behaviors/quicksand_behavior.yml");
+        saveResource("behaviors/quicksand_pull_behavior.yml");
         saveResource("behaviors/wolf_companion.yml");
         saveResource("behaviors/royal_guard_behavior.yml");
     }
@@ -154,13 +174,23 @@ public class ConfigManager {
         return messagesConfig;
     }
 
+    public FileConfiguration getMarksConfig() {
+        return marksConfig;
+    }
+
+    public Map<String, MarkConfig> getMarkConfigs() {
+        return markConfigs;
+    }
+
+    public MarkConfig getMarkConfig(String markId) {
+        return markConfigs.get(markId.toUpperCase());
+    }
+
     public Map<String, FileConfiguration> getSigilConfigs() {
         return sigilConfigs;
     }
 
-    public Map<String, FileConfiguration> getWeaponConfigs() {
-        return weaponConfigs;
-    }
+
 
     public String getMessage(String key) {
         return messagesConfig.getString("messages." + key, "§cMissing message: " + key);

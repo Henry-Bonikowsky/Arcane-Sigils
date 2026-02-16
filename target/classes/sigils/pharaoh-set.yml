@@ -40,80 +40,84 @@ pharaoh_curse:
       - 3
   socketables:
   - helmet
-  flow:
-    type: SIGNAL
-    trigger: DEFENSE
-    chance: '{chance}'
-    cooldown: 10
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: stun
-    - id: stun
-      type: EFFECT
-      effect: STUN
-      x: 0
-      y: 1
-      params:
-        duration: '{duration}'
-        target: '@Attacker'
-      next: change_skin
-    - id: change_skin
-      type: EFFECT
-      effect: CHANGE_SKIN
-      x: 1
-      y: 1
-      params:
-        skin: SandOfSand
-        duration: '{duration}'
-        target: '@Attacker'
-      next: sound_curse
-    - id: sound_curse
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 5
-      params:
-        sound: ENTITY_VEX_CHARGE
-        volume: 1
-        pitch: 0.5
-      next: sound_sand
-    - id: sound_sand
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 6
-      params:
-        sound: BLOCK_SAND_BREAK
-        volume: 1.2
-        pitch: 0.4
-      next: msg_attacker
-    - id: msg_attacker
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 7
-      params:
-        type: ACTIONBAR
-        message: '&6&lPharaoh''s Curse! &7You have been stunned!'
-        target: '@Attacker'
-      next: msg_self
-    - id: msg_self
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 8
-      params:
-        type: ACTIONBAR
-        message: '&6&lPharaoh''s Curse! &7Attacker stunned!'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 9
+  flows:
+    - type: SIGNAL
+      trigger: DEFENSE
+      cooldown: 10
+      startNodeId: start
+      nodes:
+      - id: start
+        type: START
+        x: 0
+        y: 0
+        params:
+          flow_type: SIGNAL
+          signal_type: DEFENSE
+          cooldown: 10
+          chance: '{chance}'
+        next: stun
+      - id: stun
+        type: EFFECT
+        effect: STUN
+        x: 0
+        y: 1
+        params:
+          duration: '{duration}'
+          target: '@Attacker'
+        next: change_skin
+      - id: change_skin
+        type: EFFECT
+        effect: CHANGE_SKIN
+        x: 1
+        y: 1
+        params:
+          skin: SandOfSand
+          duration: '{duration}'
+          target: '@Attacker'
+        next: sound_curse
+      - id: sound_curse
+        type: EFFECT
+        effect: SOUND
+        x: 0
+        y: 5
+        params:
+          sound: ENTITY_VEX_CHARGE
+          volume: 1
+          pitch: 0.5
+        next: sound_sand
+      - id: sound_sand
+        type: EFFECT
+        effect: SOUND
+        x: 0
+        y: 6
+        params:
+          sound: BLOCK_SAND_BREAK
+          volume: 1.2
+          pitch: 0.4
+        next: msg_attacker
+      - id: msg_attacker
+        type: EFFECT
+        effect: MESSAGE
+        x: 0
+        y: 7
+        params:
+          type: CHAT
+          message: '&6&lPharaoh''s Curse! &7You have been stunned!'
+          target: '@Attacker'
+        next: msg_self
+      - id: msg_self
+        type: EFFECT
+        effect: MESSAGE
+        x: 0
+        y: 8
+        params:
+          type: CHAT
+          message: '&6&lPharaoh''s Curse! &7Attacker stunned!'
+        next: end
+      - id: end
+        type: END
+        x: 0
+        y: 9
 
 # ============================================
 # SANDSTORM - Chestplate
@@ -284,7 +288,7 @@ sandstorm:
       y: 4
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&6&lSandstorm! &7Pharaoh''s Mark applied!'
       next: end
     - id: end
@@ -399,7 +403,7 @@ royal_bolster:
       y: 5
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&b&lRoyal Bolster! &7You are protected!'
       next: end
   - type: SIGNAL
@@ -466,7 +470,7 @@ royal_bolster:
       y: 5
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&b&lRoyal Bolster! &7You are protected!'
       next: end
   slot: HELMET
@@ -477,10 +481,11 @@ royal_bolster:
 quick_sand:
   name: <gradient:#FFD700:#CD853F>Quick Sand</gradient>
   description:
-  - '&7Summon a square of quicksand'
-  - '&7that follows you. Enemies in it'
-  - '&7are slowed, and each time you''re'
-  - '&7hit, they get pulled toward you!'
+  - '&7Summon a ring of sand that'
+  - '&7follows you. Enemies inside'
+  - '&7are slowed. Each time you hit'
+  - '&7someone, they get marked and'
+  - '&7pulled toward you!'
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
@@ -539,11 +544,11 @@ quick_sand:
       - 0.35
       - 0.35
       pull_strength:
-      - 0.8
-      - 1
-      - 1.2
-      - 1.4
       - 1.6
+      - 2.0
+      - 2.4
+      - 2.8
+      - 3.2
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -563,22 +568,25 @@ quick_sand:
       y: 0
       params:
         flow_type: ABILITY
-      next: spawn_aura
-    - id: spawn_aura
+      next: register_no_kb
+    - id: register_no_kb
       type: EFFECT
       x: 0
       y: 1
-      effect: SPAWN_AURA
+      effect: REGISTER_NO_KNOCKBACK
       params:
         duration: 6
-        radius: '{radius}'
-        effect_type: SLOWNESS
-        amplifier: '{slowness_amp}'
-        affects: ENEMIES_PLAYERS_ONLY
-        show_particles: false
-        follow_owner: true
-        pull_on_attack: true
-        pull_strength: '{pull_strength}'
+      next: set_active_flag
+    - id: set_active_flag
+      type: VARIABLE
+      x: 0
+      y: 1.5
+      params:
+        name: quicksand_active
+        operation: SET
+        value: 1
+        scope: PLAYER
+        duration: 6
       next: place_sand
     - id: place_sand
       type: EFFECT
@@ -647,7 +655,7 @@ quick_sand:
       y: 7
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&6&lQuick Sand! &7Trap activated!'
       next: end
     - id: end
@@ -655,8 +663,8 @@ quick_sand:
       x: 0
       y: 8
   - type: SIGNAL
-    trigger: flow
-    id: quick_sand_ability
+    trigger: ATTACK
+    id: quicksand_mark_on_hit
     startNodeId: start
     nodes:
     - id: start
@@ -664,98 +672,32 @@ quick_sand:
       x: 0
       y: 0
       params:
-        flow_type: ABILITY
-      next: spawn_aura
-    - id: spawn_aura
-      type: EFFECT
+        flow_type: SIGNAL
+        signal_type: ATTACK
+      next: check_variable
+    - id: check_variable
+      type: CONDITION
       x: 0
       y: 1
-      effect: SPAWN_AURA
-      params:
-        duration: 6
-        radius: '{radius}'
-        effect_type: SLOWNESS
-        amplifier: '{slowness_amp}'
-        affects: ENEMIES_PLAYERS_ONLY
-        show_particles: false
-        follow_owner: true
-        pull_on_attack: true
-        pull_strength: '{pull_strength}'
-      next: place_sand
-    - id: place_sand
+      condition: "HAS_PLAYER_VARIABLE:quicksand_active"
+      connections:
+        'yes': apply_mark
+        'no': end
+    - id: apply_mark
       type: EFFECT
-      x: 0
+      x: 1
       y: 2
-      effect: SPAWN_DISPLAY
+      effect: MARK
       params:
-        display_type: BLOCK
-        material: RED_SAND
-        duration: 6
-        shape: disc
-        radius: 1.5
-        spacing: 0.4
-        scale_x: 1.0
-        scale_y: 0.2
-        scale_z: 1.0
-        follow_owner: true
-        snap_to_ground: true
-        ground_offset: 0
-        billboard: INWARD
-        animate: none
-      next: ground_ring
-    - id: ground_ring
-      type: EFFECT
-      x: 0
-      y: 3
-      effect: PARTICLE
-      params:
-        particle_type: DUST
-        count: 1
-        red: 194
-        green: 96
-        blue: 56
-        shape: circle
-        radius: 1.5
-        points: 30
-        spacing: 0.1
-        duration: 6
-        follow_target: true
-        snap_to_ground: true
-        ground_offset: 0.1
-      next: sound_sand
-    - id: sound_sand
-      type: EFFECT
-      x: 0
-      y: 5
-      effect: SOUND
-      params:
-        sound: BLOCK_SAND_PLACE
-        volume: 1
-        pitch: 0.8
-      next: sound_rumble
-    - id: sound_rumble
-      type: EFFECT
-      x: 0
-      y: 6
-      effect: SOUND
-      params:
-        sound: ENTITY_ENDER_DRAGON_GROWL
-        volume: 0.3
-        pitch: 0.5
-      next: msg
-    - id: msg
-      type: EFFECT
-      x: 0
-      y: 7
-      effect: MESSAGE
-      params:
-        type: ACTIONBAR
-        message: '&6&lQuick Sand! &7Trap activated!'
+        mark_name: QUICKSAND_MARK
+        duration: 1
+        behavior: quicksand_pull_behavior
+        target: '@Victim'
       next: end
     - id: end
       type: END
       x: 0
-      y: 8
+      y: 3
   slot: HELMET
 
 # ============================================
@@ -809,11 +751,6 @@ rulers_hand:
   flows:
   - type: SIGNAL
     trigger: ATTACK
-    chance: '{chance}'
-    conditions:
-      logic: AND
-      list:
-      - HAS_MARK:PHARAOH_MARK
     id: rulers_hand_trigger
     startNodeId: start
     nodes:
@@ -821,12 +758,24 @@ rulers_hand:
       type: START
       x: 0
       y: 0
-      next: dust_burst
+      params:
+        flow_type: SIGNAL
+        signal_type: ATTACK
+        chance: '{chance}'
+      next: check_mark
+    - id: check_mark
+      type: CONDITION
+      x: 0
+      y: 1
+      condition: "HAS_MARK:PHARAOH_MARK:@Victim"
+      connections:
+        'yes': dust_burst
+        'no': end
     - id: dust_burst
       type: EFFECT
       effect: PARTICLE
-      x: 0
-      y: 1
+      x: 1
+      y: 2
       params:
         particle_type: DUST
         count: 50
@@ -904,7 +853,7 @@ rulers_hand:
       x: 0
       y: 11
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&6&lRuler''s Hand! &cExplosive hit!'
       next: msg_victim
     - id: msg_victim
@@ -913,7 +862,7 @@ rulers_hand:
       x: 0
       y: 12
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&4&lRuler''s Hand! &7You have been cursed!'
         target: '@Victim'
       next: end
@@ -947,30 +896,24 @@ royal_guard:
   tier:
     mode: PARAMETER
     params:
-      duration:
+      mark_chance:
+      - 5
       - 10
       - 15
       - 20
       - 25
-      - 30
-      hp:
-      - 30
-      - 35
-      - 40
-      - 45
-      - 50
-      speed:
-      - 0.32
-      - 0.34
-      - 0.36
-      - 0.38
-      - 0.4
-      damage:
+      curse_chance:
+      - 1
+      - 2
+      - 3
       - 4
       - 5
-      - 6
-      - 7
-      - 8
+      curse_duration:
+      - 1
+      - 1.5
+      - 2
+      - 2.5
+      - 3
     xp_enabled: true
     xp:
       gain_per_activation: 1
@@ -981,7 +924,7 @@ royal_guard:
   - axe
   flows:
   - type: ABILITY
-    cooldown: 45.0
+    cooldown: 120.0
     id: royal_guard_ability
     startNodeId: start
     nodes:
@@ -990,7 +933,7 @@ royal_guard:
       x: 0
       y: 0
       params:
-        cooldown: 45.0
+        cooldown: 120.0
         flow_type: ABILITY
       next: spawn
     - id: spawn
@@ -1002,18 +945,20 @@ royal_guard:
         entity_type: HUSK
         baby: true
         count: 2
-        duration: '{duration}'
-        hp: '{hp}'
-        speed: '{speed}'
-        damage: '{damage}'
+        duration: 10
+        hp: 50
+        speed: 0.435
+        damage: 6
         knockback_resist: 1.0
-        target_mode: NEARBY
+        fast_attack_speed: 2.0
+        target_mode: OWNER_TARGET
         force_target: true
         exclude_owner: true
         custom_name: '&6&lMummified Guard'
         glowing: true
         fire_immune: true
         behavior: royal_guard_behavior
+        behavior_params: 'mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}'
         no_drops: true
       next: sound_summon
     - id: sound_summon
@@ -1062,7 +1007,7 @@ royal_guard:
       y: 10
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&6&lRoyal Guard! &7Mummies summoned!'
       next: msg_chat
     - id: msg_chat
@@ -1076,7 +1021,7 @@ royal_guard:
       next: end
   - type: SIGNAL
     trigger: flow
-    cooldown: 45.0
+    cooldown: 120.0
     id: royal_guard_ability
     startNodeId: start
     nodes:
@@ -1085,7 +1030,7 @@ royal_guard:
       x: 0
       y: 0
       params:
-        cooldown: 45.0
+        cooldown: 120.0
         flow_type: SIGNAL
         signal_type: flow
       next: spawn
@@ -1098,18 +1043,20 @@ royal_guard:
         entity_type: HUSK
         baby: true
         count: 2
-        duration: '{duration}'
-        hp: '{hp}'
-        speed: '{speed}'
-        damage: '{damage}'
+        duration: 10
+        hp: 50
+        speed: 0.435
+        damage: 6
         knockback_resist: 1.0
-        target_mode: NEARBY
+        fast_attack_speed: 2.0
+        target_mode: OWNER_TARGET
         force_target: true
         exclude_owner: true
         custom_name: '&6&lMummified Guard'
         glowing: true
         fire_immune: true
         behavior: royal_guard_behavior
+        behavior_params: 'mark_chance={mark_chance},curse_chance={curse_chance},curse_duration={curse_duration}'
         no_drops: true
       next: sound_summon
     - id: sound_summon
@@ -1158,7 +1105,7 @@ royal_guard:
       y: 10
       effect: MESSAGE
       params:
-        type: ACTIONBAR
+        type: CHAT
         message: '&6&lRoyal Guard! &7Mummies summoned!'
       next: msg_chat
     - id: msg_chat
@@ -1172,546 +1119,3 @@ royal_guard:
       next: end
   slot: HELMET
 
-# ============================================
-# ANCIENT BREAK - Pickaxe
-# ============================================
-ancient_break:
-  name: <gradient:#FFD700:#CD853F>Ancient Break</gradient>
-  description:
-  - '&7When mining blocks, has a'
-  - '&7chance to grant Haste.'
-  rarity: MYTHIC
-  exclusive: true
-  exclusive_type: PICKAXE
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
-  item:
-    material: ECHO_SHARD
-    custom_model_data: 1007
-  max_tier: 5
-  tier:
-    mode: PARAMETER
-    params:
-      chance:
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      haste_amp:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-  socketables:
-  - pickaxe
-  flow:
-    type: SIGNAL
-    trigger: BLOCK_BREAK
-    chance: '{chance}'
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: haste
-    - id: haste
-      type: EFFECT
-      effect: POTION
-      x: 0
-      y: 1
-      params:
-        potion_type: HASTE
-        duration: 10
-        amplifier: '{haste_amp}'
-      next: spiral_gold
-    - id: spiral_gold
-      type: EFFECT
-      effect: PARTICLE
-      x: 0
-      y: 2
-      params:
-        particle_type: DUST
-        count: 25
-        red: 255
-        green: 215
-        blue: 0
-        shape: spiral
-        radius: 0.6
-        height: 1.5
-        turns: 1
-        points: 25
-      next: sound
-    - id: sound
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 3
-      params:
-        sound: BLOCK_STONE_BREAK
-        volume: 0.5
-        pitch: 1.5
-      next: msg
-    - id: msg
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 4
-      params:
-        type: ACTIONBAR
-        message: '&6&lAncient Break! &7Haste granted!'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 5
-
-# ============================================
-# RA'S BLESSING - Shovel
-# ============================================
-ras_blessing:
-  name: <gradient:#FFD700:#CD853F>Ra's Blessing</gradient>
-  description:
-  - '&7While holding this item,'
-  - '&7has a chance to grant Speed.'
-  rarity: MYTHIC
-  exclusive: true
-  exclusive_type: SHOVEL
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
-  item:
-    material: ECHO_SHARD
-    custom_model_data: 1008
-  max_tier: 5
-  tier:
-    mode: PARAMETER
-    params:
-      chance:
-      - 0.5
-      - 1
-      - 1.5
-      - 2
-      - 2.5
-      speed_amp:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-      duration:
-      - 2
-      - 4
-      - 6
-      - 8
-      - 10
-  socketables:
-  - shovel
-  flow:
-    type: SIGNAL
-    trigger: TICK
-    chance: '{chance}'
-    cooldown: 1
-    conditions:
-      logic: AND
-      list:
-      - HOLDING_SIGIL_ITEM
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: speed
-    - id: speed
-      type: EFFECT
-      effect: POTION
-      x: 0
-      y: 1
-      params:
-        potion_type: SPEED
-        duration: '{duration}'
-        amplifier: '{speed_amp}'
-      next: circle_gold
-    - id: circle_gold
-      type: EFFECT
-      effect: PARTICLE
-      x: 0
-      y: 2
-      params:
-        particle_type: DUST
-        count: 15
-        red: 255
-        green: 215
-        blue: 0
-        shape: circle
-        radius: 0.5
-        points: 15
-      next: msg
-    - id: msg
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 3
-      params:
-        type: ACTIONBAR
-        message: '&6&lRa''s Blessing! &7Speed granted!'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 4
-
-# ============================================
-# KING'S JEWEL - Fishing Rod
-# ============================================
-kings_jewel:
-  name: <gradient:#FFD700:#CD853F>King's Jewel</gradient>
-  description:
-  - '&7When fishing, has a chance to'
-  - '&7uncover Sigil Fragments.'
-  rarity: MYTHIC
-  exclusive: true
-  exclusive_type: FISHING_ROD
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
-  item:
-    material: ECHO_SHARD
-    custom_model_data: 1009
-  max_tier: 10
-  tier:
-    mode: PARAMETER
-    params:
-      chance:
-      - 1
-      - 2
-      - 3
-      - 4
-      - 5
-      - 6
-      - 7
-      - 8
-      - 9
-      - 10
-      min_fragments:
-      - 1
-      - 1
-      - 1
-      - 2
-      - 2
-      - 3
-      - 3
-      - 4
-      - 4
-      - 4
-      max_fragments:
-      - 1
-      - 2
-      - 3
-      - 3
-      - 4
-      - 5
-      - 6
-      - 6
-      - 7
-      - 8
-  socketables:
-  - fishing_rod
-  flow:
-    type: SIGNAL
-    trigger: FISH_CATCH
-    chance: '{chance}'
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: give_item
-    - id: give_item
-      type: EFFECT
-      effect: GIVE_ITEM
-      x: 0
-      y: 1
-      params:
-        material: AMETHYST_SHARD
-        name: '&d&lSigil Fragment'
-        lore:
-        - '&7A mysterious fragment'
-        - '&7used for upgrades.'
-        amount_min: '{min_fragments}'
-        amount_max: '{max_fragments}'
-        custom_model_data: 2001
-      next: spiral_gold
-    - id: spiral_gold
-      type: EFFECT
-      effect: PARTICLE
-      x: 0
-      y: 2
-      params:
-        particle_type: DUST
-        count: 30
-        red: 255
-        green: 215
-        blue: 0
-        shape: spiral
-        radius: 0.8
-        height: 2.0
-        turns: 2
-        points: 30
-      next: sound
-    - id: sound
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 3
-      params:
-        sound: ENTITY_PLAYER_LEVELUP
-        volume: 0.7
-        pitch: 1.5
-      next: msg
-    - id: msg
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 4
-      params:
-        type: ACTIONBAR
-        message: '&6&lKing''s Jewel! &dSigil Fragments found!'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 5
-
-# ============================================
-# HORUS'S ARROW - Bow
-# ============================================
-horus_arrow:
-  name: <gradient:#FFD700:#CD853F>Horus's Arrow</gradient>
-  description:
-  - '&7When shooting a player, has'
-  - '&7a chance to apply Pharaoh''s'
-  - '&7Mark for an extended duration.'
-  rarity: MYTHIC
-  exclusive: true
-  exclusive_type: BOW
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
-  item:
-    material: ECHO_SHARD
-    custom_model_data: 1010
-  max_tier: 5
-  tier:
-    mode: PARAMETER
-    params:
-      chance:
-      - 5
-      - 7.5
-      - 10
-      - 12.5
-      - 15
-      mark_duration:
-      - 2
-      - 4
-      - 6
-      - 8
-      - 10
-  socketables:
-  - bow
-  flow:
-    type: SIGNAL
-    trigger: BOW_HIT
-    chance: '{chance}'
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: mark
-    - id: mark
-      type: EFFECT
-      effect: MARK
-      x: 0
-      y: 1
-      params:
-        mark_name: PHARAOH_MARK
-        duration: '{mark_duration}'
-        target: '@Victim'
-      next: slowness
-    - id: slowness
-      type: EFFECT
-      effect: MODIFY_ATTRIBUTE
-      x: 0
-      y: 2
-      params:
-        attribute: GENERIC_MOVEMENT_SPEED
-        operation: MULTIPLY_SCALAR_1
-        value: -0.25
-        duration: '{mark_duration}'
-        target: '@Victim'
-      next: sound
-    - id: sound
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 4
-      params:
-        sound: ENTITY_ARROW_HIT_PLAYER
-        volume: 1
-        pitch: 0.7
-      next: msg_self
-    - id: msg_self
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 5
-      params:
-        type: ACTIONBAR
-        message: '&6&lHorus''s Arrow! &7Target marked!'
-      next: msg_victim
-    - id: msg_victim
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 6
-      params:
-        type: ACTIONBAR
-        message: '&6&lHorus''s Arrow! &7You have been marked!'
-        target: '@Victim'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 7
-
-# ============================================
-# CURSED PILLAR - Crossbow
-# ============================================
-cursed_pillar:
-  name: <gradient:#FFD700:#CD853F>Cursed Pillar</gradient>
-  description:
-  - '&7Summon a cursed pillar. Enemies'
-  - '&7within 3 blocks receive Weakness'
-  - '&7while near it. Lasts 10 seconds.'
-  rarity: MYTHIC
-  exclusive: true
-  exclusive_type: CROSSBOW
-  crate: <gradient:#FFD700:#CD853F>Pharaoh Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>⚖</gradient>
-  item:
-    material: ECHO_SHARD
-    custom_model_data: 1011
-  max_tier: 5
-  tier:
-    mode: PARAMETER
-    params:
-      weakness_amp:
-      - 0
-      - 1
-      - 2
-      - 3
-      - 4
-    xp_enabled: true
-    xp:
-      gain_per_activation: 1
-      curve_type: EXPONENTIAL
-      base_xp: 100
-      growth_rate: 1.5
-  socketables:
-  - crossbow
-  flows:
-  - type: ABILITY
-    cooldown: 180
-    id: cursed_pillar_ability
-    startNodeId: start
-    nodes:
-    - id: start
-      type: START
-      x: 0
-      y: 0
-      next: spawn_display
-    - id: spawn_display
-      type: EFFECT
-      effect: SPAWN_DISPLAY
-      x: 0
-      y: 1
-      params:
-        display_type: BLOCK
-        block: GOLD_BLOCK
-        duration: 10
-        scale: 0.5
-        glow: true
-      next: spawn_aura
-    - id: spawn_aura
-      type: EFFECT
-      effect: SPAWN_AURA
-      x: 0
-      y: 2
-      params:
-        duration: 10
-        radius: 3
-        affects: ENEMIES
-        interval: 1
-        effect_type: POTION
-        potion_type: WEAKNESS
-        potion_duration: 2
-        potion_amplifier: '{weakness_amp}'
-      next: helix_purple
-    - id: helix_purple
-      type: EFFECT
-      effect: PARTICLE
-      x: 0
-      y: 3
-      params:
-        particle_type: DUST
-        count: 40
-        red: 128
-        green: 0
-        blue: 128
-        shape: helix
-        radius: 1.0
-        height: 2.5
-        turns: 2
-        points: 40
-      next: circle_curse
-    - id: circle_curse
-      type: EFFECT
-      effect: PARTICLE
-      x: 0
-      y: 4
-      params:
-        particle_type: DUST
-        count: 30
-        red: 75
-        green: 0
-        blue: 130
-        shape: circle
-        radius: 3.0
-        points: 30
-      next: sound
-    - id: sound
-      type: EFFECT
-      effect: SOUND
-      x: 0
-      y: 5
-      params:
-        sound: BLOCK_BEACON_ACTIVATE
-        volume: 1
-        pitch: 0.5
-      next: msg
-    - id: msg
-      type: EFFECT
-      effect: MESSAGE
-      x: 0
-      y: 6
-      params:
-        type: ACTIONBAR
-        message: '&5&lCursed Pillar! &7Pillar summoned!'
-      next: end
-    - id: end
-      type: END
-      x: 0
-      y: 7

@@ -40,6 +40,7 @@ public class NodePaletteHandler extends AbstractHandler {
     private static final int SLOT_DELAY = 2;
     private static final int SLOT_LOOP = 3;
     private static final int SLOT_SKIP_COOLDOWN = 4;
+    private static final int SLOT_END = 5;
 
     // Data nodes (row 1)
     private static final int SLOT_VARIABLE = 9;
@@ -82,6 +83,7 @@ public class NodePaletteHandler extends AbstractHandler {
             case SLOT_DELAY -> NodeType.DELAY;
             case SLOT_LOOP -> NodeType.LOOP;
             case SLOT_SKIP_COOLDOWN -> NodeType.SKIP_COOLDOWN;
+            case SLOT_END -> NodeType.END;
             case SLOT_VARIABLE -> NodeType.VARIABLE;
             default -> null;
         };
@@ -154,6 +156,7 @@ public class NodePaletteHandler extends AbstractHandler {
             case LOOP -> new LoopNode(nodeId);
             case VARIABLE -> new VariableNode(nodeId);
             case SKIP_COOLDOWN -> new SkipCooldownNode(nodeId);
+            case END -> new EndNode(nodeId);
         };
     }
 
@@ -198,6 +201,13 @@ public class NodePaletteHandler extends AbstractHandler {
                 "§7" + NodeType.SKIP_COOLDOWN.getDescription(),
                 "§8Place on condition 'no' branch",
                 "§8to skip cooldown on failure",
+                "", "§eClick to add"));
+
+        // End node - marks flow termination
+        inv.setItem(SLOT_END, ItemBuilder.createItem(NodeType.END.getMaterial(),
+                "§c" + NodeType.END.getDisplayName(),
+                "§7" + NodeType.END.getDescription(),
+                "§8Terminal node - no connections",
                 "", "§eClick to add"));
 
         // Data nodes

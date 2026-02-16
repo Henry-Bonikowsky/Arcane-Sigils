@@ -41,7 +41,8 @@ public class HitSoundFilterModule extends AbstractCombatModule implements Listen
     private static final Set<String> HIT_SOUND_PATTERNS = Set.of(
         "attack",
         "hurt",
-        "hit"
+        "hit",
+        "weak"  // Weak attack sounds (weak1, weak2, weak3, weak4)
     );
 
     public HitSoundFilterModule(LegacyCombatManager manager) {
@@ -139,14 +140,36 @@ public class HitSoundFilterModule extends AbstractCombatModule implements Listen
                         // Get entity ID from packet
                         int entityId = event.getPacket().getIntegers().read(0);
                         
-                        // Find entity by ID
-                        Player player = event.getPlayer();
-                        for (Entity nearby : player.getWorld().getEntities()) {
-                            if (nearby.getEntityId() == entityId && wasRecentlyCancelled(nearby.getUniqueId())) {
+                        // Get status byte if ENTITY_STATUS
+                        if (type == PacketType.Play.Server.ENTITY_STATUS) {
+                            byte status = event.getPacket().getBytes().read(0);
+                            
+                            // ALWAYS block weak attack animation (status 33) - doesn't exist in 1.8
+                            if (status == 33) {
                                 event.setCancelled(true);
-                                cancelledAttackers.remove(nearby.getUniqueId());
-                                cancelledVictims.remove(nearby.getUniqueId());
                                 return;
+                            }
+                            
+                            // Only block hurt animation (status 2) if hit was cancelled
+                            if (status == 2) {
+                                Player player = event.getPlayer();
+                                for (Entity nearby : player.getWorld().getEntities()) {
+                                    if (nearby.getEntityId() == entityId && wasRecentlyCancelled(nearby.getUniqueId())) {
+                                        event.setCancelled(true);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // HURT_ANIMATION always cancel if recently cancelled
+                        if (type == PacketType.Play.Server.HURT_ANIMATION) {
+                            Player player = event.getPlayer();
+                            for (Entity nearby : player.getWorld().getEntities()) {
+                                if (nearby.getEntityId() == entityId && wasRecentlyCancelled(nearby.getUniqueId())) {
+                                    event.setCancelled(true);
+                                    return;
+                                }
                             }
                         }
                     }

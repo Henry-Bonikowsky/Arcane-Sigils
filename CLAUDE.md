@@ -2,7 +2,7 @@
 
 Paper plugin - magical abilities (sigils) socketed into armor.
 
-**Version**: 1.0.489 | Paper 1.21 | Java 21
+**Version**: 1.0.531 | Paper 1.21 | Java 21
 
 ---
 
@@ -17,11 +17,33 @@ export JAVA_HOME="/c/Users/henry/AppData/Local/Programs/Eclipse Adoptium/jdk-25.
 
 ---
 
+## Deployment
+
+**Server**: GravelHost (dedicatedny.gravelhost.com:2022)
+
+Deploy to server:
+```bash
+python deploy.py deploy          # Upload JAR (auto-deletes old JARs)
+python deploy.py push <local> <remote>   # Upload specific file
+python deploy.py ls [path]       # List remote directory
+python deploy.py rm <path>       # Delete remote file
+python deploy.py pull <remote> [local]  # Download from server
+```
+
+**SFTP password** is in `.env` file (not committed to git).
+
+**Manual restart required** after deployment.
+
+---
+
 ## YAML Files
 
-Sigils and behaviors are in `src/main/resources/`:
+Sigils, behaviors, and marks are in `src/main/resources/`:
 - `sigils/*.yml` - Sigil definitions
 - `behaviors/*.yml` - Entity AI behaviors
+- `marks/*.yml` - Mark configurations (PHARAOH_MARK, etc.)
+
+**Note**: `weapons/` folder removed in v1.0.531 (no longer used)
 
 ---
 
@@ -83,6 +105,75 @@ Add Paper API jar to Libraries. Test obfuscated JAR before distributing.
 - **Tier** - Sigil level with scaling parameters
 
 **Commands**: `/as` (menu), `/as give sigil <id> [tier]`, `/as socket <id> [tier]`, `/binds`
+
+---
+
+## Sigil Design Rules
+
+### Message Types
+**CRITICAL**: ALL player-facing messages MUST use `type: CHAT`, never `type: ACTIONBAR`.
+
+Action bars are reserved for transient UI elements only. Chat messages provide better readability and are persistent in chat history.
+
+**Example:**
+```yaml
+- id: msg
+  type: EFFECT
+  effect: MESSAGE
+  params:
+    type: CHAT  # ✓ Always use CHAT
+    message: "&5&lCleopatra! &7Buffs stolen!"
+```
+
+### Target Resolution for ABILITY Flows
+ABILITY-type flows use the bind menu target system:
+- Use `target: "@Target"` to reference the player's selected target from `/binds`
+- Do NOT use `@Victim` in ABILITY flows (that's for SIGNAL/ATTACK flows only)
+
+**Example:**
+```yaml
+flows:
+  - type: ABILITY
+    id: my_ability
+    nodes:
+      - effect: STEAL_BUFFS
+        params:
+          target: "@Target"  # ✓ Correct for abilities
+```
+
+---
+
+## Debugging
+
+**Enable debug mode** in `config.yml`:
+```yaml
+settings:
+  debug: true
+```
+
+Debug logs cover:
+- **SpawnEntityEffect**: Entity spawning, targeting, BehaviorManager registration
+- **BehaviorManager**: Entity registration, signal firing, flow execution
+- **MarkManager**: Mark application, stacking, duration, EFFECT_STATIC execution
+
+All debug messages prefixed with `[DEBUG]` and tagged by component (e.g., `[SpawnEntity]`, `[MarkManager]`).
+
+---
+
+## Recent Fixes (v1.0.531)
+
+### Royal Guard Ability (Pharaoh Axe)
+- ✓ Fixed cooldown: 45s → 120s (2 minutes)
+- ✓ Fixed target mode: NEARBY → OWNER_TARGET (now uses bind menu selection)
+- ✓ **CRITICAL BUG FIX**: Zombies now attack selected target from bind menu, not random nearby enemies
+  - Bug was in `SpawnEntityEffect.setupForceTargeting()` - was calling `findNearestEnemy()` instead of `TargetGlowManager.getTarget()`
+- ✓ Added PHARAOH_MARK to `marks/marks.yml` configuration
+- ✓ Added comprehensive debugging to all spawn/targeting/behavior logic
+
+### File Structure
+- ✓ Removed `weapons/` directory (obsolete)
+- ✓ Moved `marks.yml` → `marks/marks.yml` (organized into folder)
+- ✓ Updated ConfigManager to load marks from new location
 
 ---
 

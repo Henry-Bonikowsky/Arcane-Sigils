@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -22,6 +23,10 @@ public class ReduceDamageEffect extends AbstractEffect {
 
             event.setDamage(reducedDamage);
             context.setDamage(reducedDamage);
+
+            // INFO level logging for visibility
+            LogHelper.info(String.format("[AncientCrown] Reduced %s damage: %.2f → %.2f (-%.0f%%)",
+                event.getCause(), currentDamage, reducedDamage, reduction));
 
             // Visual feedback
             context.getPlayer().getWorld().spawnParticle(

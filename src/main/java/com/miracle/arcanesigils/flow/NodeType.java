@@ -49,7 +49,13 @@ public enum NodeType {
      * Place on condition "no" branch to skip cooldown when condition fails.
      * Uses BARRIER to indicate "stop/block cooldown".
      */
-    SKIP_COOLDOWN("Skip Cooldown", "Prevent cooldown from triggering", Material.BARRIER, NodeCategory.CONTROL);
+    SKIP_COOLDOWN("Skip Cooldown", "Prevent cooldown from triggering", Material.BARRIER, NodeCategory.CONTROL),
+
+    /**
+     * End node - marks the termination point of a flow.
+     * Uses RED_CONCRETE for stop/end visual.
+     */
+    END("End", "Marks the end of the flow", Material.RED_CONCRETE, NodeCategory.CONTROL);
 
     private final String displayName;
     private final String description;

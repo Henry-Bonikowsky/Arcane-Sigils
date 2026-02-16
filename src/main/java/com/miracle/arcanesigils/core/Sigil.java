@@ -483,17 +483,47 @@ public class Sigil {
             sigil.setItemForm(ItemForm.fromConfig(itemFormSection));
         }
 
-        // Load flows
+        // Load flows - only "flows" (plural) is supported
         List<?> flowsList = section.getList("flows");
         if (flowsList != null && !flowsList.isEmpty()) {
             List<FlowConfig> loadedFlows = FlowSerializer.deserializeFlowConfigs(flowsList);
+            com.miracle.arcanesigils.utils.LogHelper.info("[Sigil] %s: Deserialized %d flows from YAML", id, loadedFlows.size());
+            
+            int addedCount = 0;
             for (FlowConfig flow : loadedFlows) {
                 // Sync flow-level cooldown/chance to START node params
                 syncFlowSettingsToStartNode(flow);
-                sigil.addFlow(flow);
+                
+                // Log flow details BEFORE adding
+                String flowId = flow.getGraph() != null ? flow.getGraph().getId() : "unknown";
+                String trigger = flow.getTrigger() != null ? flow.getTrigger() : "none";
+                com.miracle.arcanesigils.utils.LogHelper.info("[FlowAdd] %s: Attempting to add flow: type=%s, trigger=%s, id=%s", 
+                    id, flow.getType(), trigger, flowId);
+                
+                boolean added = sigil.addFlow(flow);
+                if (added) {
+                    addedCount++;
+                    com.miracle.arcanesigils.utils.LogHelper.info("[FlowAdd] %s: ✓ Successfully added flow %s", id, flowId);
+                } else {
+                    com.miracle.arcanesigils.utils.LogHelper.warning("[FlowAdd] %s: ✗ FAILED to add flow %s (rejected by validation)", id, flowId);
+                }
             }
-            com.miracle.arcanesigils.utils.LogHelper.debug("[Sigil] %s: Loaded %d flows",
-                id, loadedFlows.size());
+            com.miracle.arcanesigils.utils.LogHelper.info("[Sigil] %s: Final flow count = %d (added %d of %d)", 
+                id, sigil.getFlows().size(), addedCount, loadedFlows.size());
+        } else if (section.contains("flow")) {
+            // Backward compatibility: load single flow from "flow" key
+            Object flowObj = section.get("flow");
+            if (flowObj instanceof ConfigurationSection) {
+                // Deserialize single flow
+                ConfigurationSection flowSection = (ConfigurationSection) flowObj;
+                FlowConfig flow = FlowSerializer.deserializeFlowConfig(flowSection);
+                if (flow != null) {
+                    syncFlowSettingsToStartNode(flow);
+                    sigil.addFlow(flow);
+                    com.miracle.arcanesigils.utils.LogHelper.info("[Sigil] %s: Loaded 1 flow (legacy format)",
+                        id);
+                }
+            }
         }
 
         return sigil;

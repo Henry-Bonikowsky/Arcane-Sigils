@@ -23,7 +23,7 @@ royal_guard_behavior:
           x: 0
           y: 0
           next: mark
-        # 25% chance to inflict Pharaoh's Mark
+        # Tier-scaled chance to inflict Pharaoh's Mark
         - id: mark
           type: EFFECT
           effect: MARK
@@ -32,7 +32,7 @@ royal_guard_behavior:
           params:
             mark_name: PHARAOH_MARK
             duration: 5
-            chance: 25
+            chance: '{mark_chance}'
             target: '@Victim'
           next: slowness
         - id: slowness
@@ -44,7 +44,7 @@ royal_guard_behavior:
             potion_type: SLOWNESS
             duration: 5
             amplifier: 0
-            chance: 25
+            chance: '{mark_chance}'
             target: '@Victim'
           next: glowing
         - id: glowing
@@ -56,7 +56,7 @@ royal_guard_behavior:
             potion_type: GLOWING
             duration: 5
             amplifier: 0
-            chance: 25
+            chance: '{mark_chance}'
             target: '@Victim'
           next: mark_sound
         - id: mark_sound
@@ -68,47 +68,58 @@ royal_guard_behavior:
             sound: ENTITY_HUSK_HURT
             volume: 0.8
             pitch: 1.2
-            chance: 25
+            chance: '{mark_chance}'
             target: '@Victim'
           next: stun
-        # 5% chance to inflict Pharaoh's Curse (stun)
+        # Tier-scaled chance to inflict Pharaoh's Curse (stun)
         - id: stun
           type: EFFECT
           effect: STUN
           x: 0
           y: 5
           params:
-            duration: 3
-            chance: 5
+            duration: '{curse_duration}'
+            chance: '{curse_chance}'
+            target: '@Victim'
+          next: skin_change
+        - id: skin_change
+          type: EFFECT
+          effect: CHANGE_SKIN
+          x: 0
+          y: 6
+          params:
+            skin: SandOfSand
+            duration: '{curse_duration}'
+            chance: '{curse_chance}'
             target: '@Victim'
           next: stun_sound
         - id: stun_sound
           type: EFFECT
           effect: SOUND
           x: 0
-          y: 6
+          y: 7
           params:
             sound: ENTITY_VEX_CHARGE
             volume: 1.0
             pitch: 0.5
-            chance: 5
+            chance: '{curse_chance}'
             target: '@Victim'
           next: stun_msg
         - id: stun_msg
           type: EFFECT
           effect: MESSAGE
           x: 0
-          y: 7
+          y: 8
           params:
             type: ACTIONBAR
             message: '&6&lPharaoh''s Curse! &7You are stunned!'
-            chance: 5
+            chance: '{curse_chance}'
             target: '@Victim'
           next: end
         - id: end
           type: END
           x: 0
-          y: 8
+          y: 9
 
     # When mummy takes damage - sound only
     - type: SIGNAL

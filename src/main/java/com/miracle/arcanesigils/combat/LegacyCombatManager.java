@@ -39,6 +39,7 @@ public class LegacyCombatManager implements Listener {
 
     private void initializeModules() {
         // Register all combat modules
+        registerModule(new DamageScalingModule(this));
         registerModule(new AttackCooldownModule(this));
         registerModule(new SweepAttackModule(this));
         registerModule(new HitSoundFilterModule(this));
@@ -49,6 +50,7 @@ public class LegacyCombatManager implements Listener {
         registerModule(new SwordBlockingModule(this));
         registerModule(new FishingRodModule(this));
         registerModule(new KnockbackModule(this));
+        registerModule(new ClientSideKnockbackModule(this));
         registerModule(new ToolDamageModule(this));
         registerModule(new GoldenAppleModule(this));
         registerModule(new AttackIndicatorModule(this));

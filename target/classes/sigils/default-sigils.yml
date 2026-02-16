@@ -756,23 +756,30 @@ well_fed:
   flows:
   - type: SIGNAL
     trigger: ATTACK
-    chance: '{chance}'
-    conditions:
-      logic: AND
-      list:
-      - VICTIM_IS_PLAYER
     startNodeId: start
     nodes:
     - id: start
       type: START
       x: 0
       y: 0
-      next: saturate
+      params:
+        flow_type: SIGNAL
+        signal_type: ATTACK
+        chance: '{chance}'
+      next: check_player
+    - id: check_player
+      type: CONDITION
+      x: 0
+      y: 1
+      condition: "VICTIM_IS_PLAYER"
+      connections:
+        'yes': saturate
+        'no': end
     - id: saturate
       type: EFFECT
       effect: SATURATE
-      x: 0
-      y: 1
+      x: 1
+      y: 2
       params:
         amount: '{food}'
       tierValues:
@@ -829,13 +836,16 @@ decapitation:
   flows:
   - type: SIGNAL
     trigger: KILL_PLAYER
-    chance: '{chance}'
     startNodeId: start
     nodes:
     - id: start
       type: START
       x: 0
       y: 0
+      params:
+        flow_type: SIGNAL
+        signal_type: KILL_PLAYER
+        chance: '{chance}'
       next: drop_head
     - id: drop_head
       type: EFFECT
