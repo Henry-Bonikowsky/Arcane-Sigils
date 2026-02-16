@@ -17,7 +17,7 @@
 # - Always active, no trigger, no cooldown
 # ============================================
 ancient_crown:
-  name: "<gradient:#9400D3:#4B0082>Ancient Crown</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Ancient Crown</gradient>"
   description:
     - "&7Passive &520-100% immunity"
     - "&7to negative status effects"
@@ -25,8 +25,8 @@ ancient_crown:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: HELMET
-  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
-  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3001
@@ -84,7 +84,7 @@ ancient_crown:
 # - If <100 charges: show message "X charges left until ability is ready"
 # ============================================
 kings_brace:
-  name: "<gradient:#9400D3:#4B0082>King's Brace</gradient>"
+  name: "<gradient:#FFD700:#CD853F>King's Brace</gradient>"
   description:
     - "&7Gain &51 charge &7when taking damage"
     - "&7Each charge grants &50.05-0.20% DR"
@@ -93,8 +93,8 @@ kings_brace:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CHESTPLATE
-  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
-  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3002
@@ -371,7 +371,7 @@ kings_brace:
 # - 3 minute cooldown
 # ============================================
 cleopatra:
-  name: "<gradient:#9400D3:#4B0082>Cleopatra</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Cleopatra</gradient>"
   description:
     - "&7Activate to strip your target:"
     - "&7Remove all defensive buffs"
@@ -380,8 +380,8 @@ cleopatra:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: LEGGINGS
-  crate: "<gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>"
-  lore_prefix: "<gradient:#FFD700:#CD853F>☽</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3003
@@ -476,7 +476,7 @@ cleopatra:
 # DIVINE INTERVENTION - Sword (Exclusive)
 # ============================================
 divine_intervention:
-  name: "<gradient:#4169E1:#1E90FF>Divine Intervention</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Divine Intervention</gradient>"
   description:
     - "&7When taking damage while blocking,"
     - "&7gain invulnerability for the"
@@ -484,8 +484,8 @@ divine_intervention:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: SWORD
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3010
@@ -623,7 +623,7 @@ divine_intervention:
 # NILE'S GRACE - Axe (Exclusive)
 # ============================================
 niles_grace:
-  name: "<gradient:#32CD32:#228B22>Nile's Grace</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Nile's Grace</gradient>"
   description:
     - "&7Activate to grant yourself and"
     - "&7nearby allies Regeneration III"
@@ -631,8 +631,8 @@ niles_grace:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: AXE
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3011
@@ -701,7 +701,7 @@ niles_grace:
             potion_type: REGENERATION
             duration: "{duration}"
             amplifier: 2
-            target: "@NearbyEntities:10"
+            target: "@NearbyAllies:10"
           next: resist_nearby
         - id: resist_nearby
           type: EFFECT
@@ -712,7 +712,7 @@ niles_grace:
             potion_type: RESISTANCE
             duration: "{duration}"
             amplifier: 2
-            target: "@NearbyEntities:10"
+            target: "@NearbyAllies:10"
           next: pulse_particles
         - id: pulse_particles
           type: EFFECT
@@ -777,8 +777,8 @@ ancient_break:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: PICKAXE
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3012
@@ -853,8 +853,8 @@ horus_arrow_stun:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: BOW
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3013
@@ -953,15 +953,15 @@ horus_arrow_stun:
 # MAELSTROM - Crossbow (Exclusive)
 # ============================================
 maelstrom:
-  name: "<gradient:#4682B4:#00BFFF>Maelstrom</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Maelstrom</gradient>"
   description:
     - "&7When shooting a player,"
     - "&7pulls them toward you."
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CROSSBOW
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3014
@@ -1033,15 +1033,15 @@ maelstrom:
 # SANDWALKER - Boots (Exclusive)
 # ============================================
 sandwalker:
-  name: "<gradient:#9400D3:#4B0082>Sandwalker</gradient>"
+  name: "<gradient:#FFD700:#CD853F>Sandwalker</gradient>"
   description:
     - "&7When on sand, has a chance"
     - "&7to grant Speed effect."
   rarity: MYTHIC
   exclusive: true
   exclusive_type: BOOTS
-  crate: "<gradient:#9400D3:#4B0082>Seasonal Pass Exclusive</gradient>"
-  lore_prefix: "<gradient:#9400D3:#4B0082>♔</gradient>"
+  crate: "<gradient:#FFD700:#CD853F>Ancient Season Exclusive</gradient>"
+  lore_prefix: "<gradient:#FFD700:#CD853F>🌙</gradient>"
   item:
     material: AMETHYST_SHARD
     custom_model_data: 3004

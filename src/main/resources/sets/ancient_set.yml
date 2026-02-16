@@ -4,8 +4,8 @@ ancient_set:
   
   # Crates that belong to this set
   crates:
-  - Pharaoh Crate Exclusive
-  - Seasonal Pass Exclusive
+  - Ancient Season Exclusive
+  - Ancient Exclusive
   
   # Minimum pieces required for set bonus
   min_pieces: 2

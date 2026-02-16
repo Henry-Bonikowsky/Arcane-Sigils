@@ -350,7 +350,7 @@ public class SocketManager implements Listener {
                     String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(line);
 
                     // Skip old sigil lines (will be rebuilt)
-                    if (plain.contains("➤") || plain.startsWith("▶") || plain.contains("☆") || plain.contains("⚖") || plain.contains("☽") ||
+                    if (plain.contains("➤") || plain.startsWith("▶") || plain.contains("☆") || plain.contains("⚖") || plain.contains("☽") || plain.contains("🌙") ||
                         plain.contains("Sigils:") || plain.contains("[Sigil]") ||
                         plain.contains("Socketed:") || plain.contains("Exclusive") ||
                         plain.contains("Right-click with sigil shard")) {

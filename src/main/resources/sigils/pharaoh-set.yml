@@ -8,7 +8,7 @@
 # PHARAOH'S CURSE - Helmet
 # ============================================
 pharaoh_curse:
-  name: <gradient:#FFD700:#CD853F>Pharaoh's Curse</gradient>
+  name: <gradient:#9400D3:#4B0082>Pharaoh's Curse</gradient>
   description:
   - '&7When hit, has a chance to'
   - '&7completely freeze the attacker'
@@ -17,8 +17,8 @@ pharaoh_curse:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: HELMET
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1001
@@ -134,7 +134,7 @@ pharaoh_curse:
 # SANDSTORM - Chestplate
 # ============================================
 sandstorm:
-  name: <gradient:#FFD700:#CD853F>Sandstorm</gradient>
+  name: <gradient:#9400D3:#4B0082>Sandstorm</gradient>
   description:
   - '&7When attacking, has a chance to'
   - '&7unleash a sand aura, applying'
@@ -143,8 +143,8 @@ sandstorm:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1002
@@ -311,7 +311,7 @@ sandstorm:
 # ROYAL BOLSTER - Leggings
 # ============================================
 royal_bolster:
-  name: <gradient:#FFD700:#CD853F>Royal Bolster</gradient>
+  name: <gradient:#9400D3:#4B0082>Royal Bolster</gradient>
   description:
   - '&7Activate to gain absorption hearts'
   - '&7and 20-30% flat damage reduction.'
@@ -319,8 +319,8 @@ royal_bolster:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1003
@@ -443,7 +443,7 @@ royal_bolster:
 # QUICK SAND - Boots
 # ============================================
 quick_sand:
-  name: <gradient:#FFD700:#CD853F>Quick Sand</gradient>
+  name: <gradient:#9400D3:#4B0082>Quick Sand</gradient>
   description:
   - '&7Summon a ring of sand that'
   - '&7follows you. Enemies inside'
@@ -453,8 +453,8 @@ quick_sand:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: EFFECT
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1006
@@ -672,7 +672,7 @@ quick_sand:
 # RULER'S HAND - Sword
 # ============================================
 rulers_hand:
-  name: <gradient:#FFD700:#CD853F>Ruler's Hand</gradient>
+  name: <gradient:#9400D3:#4B0082>Ruler's Hand</gradient>
   description:
   - '&7When attacking marked enemies,'
   - '&7has a chance to trigger an'
@@ -681,8 +681,8 @@ rulers_hand:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: SWORD
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1004
@@ -843,7 +843,7 @@ rulers_hand:
 # ROYAL GUARD - Axe
 # ============================================
 royal_guard:
-  name: <gradient:#FFD700:#CD853F>Royal Guard</gradient>
+  name: <gradient:#9400D3:#4B0082>Royal Guard</gradient>
   description:
   - '&7Summon mummified zombie guards'
   - '&7that attack your target. Their'
@@ -852,8 +852,8 @@ royal_guard:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: AXE
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1005
@@ -1098,15 +1098,15 @@ royal_guard:
 # ANCIENT BREAK - Pickaxe
 # ============================================
 ancient_break:
-  name: <gradient:#FFD700:#CD853F>Ancient Break</gradient>
+  name: <gradient:#9400D3:#4B0082>Ancient Break</gradient>
   description:
   - '&7When mining blocks, has a'
   - '&7chance to grant Haste.'
   rarity: MYTHIC
   exclusive: true
   exclusive_type: PICKAXE
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1007
@@ -1194,15 +1194,15 @@ ancient_break:
 # RA'S BLESSING - Shovel
 # ============================================
 ras_blessing:
-  name: <gradient:#FFD700:#CD853F>Ra's Blessing</gradient>
+  name: <gradient:#9400D3:#4B0082>Ra's Blessing</gradient>
   description:
   - '&7While holding this item,'
   - '&7has a chance to grant Speed.'
   rarity: MYTHIC
   exclusive: true
   exclusive_type: SHOVEL
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1008
@@ -1289,15 +1289,15 @@ ras_blessing:
 # KING'S JEWEL - Fishing Rod
 # ============================================
 kings_jewel:
-  name: <gradient:#FFD700:#CD853F>King's Jewel</gradient>
+  name: <gradient:#9400D3:#4B0082>King's Jewel</gradient>
   description:
   - '&7When fishing, has a chance to'
   - '&7uncover Sigil Fragments.'
   rarity: MYTHIC
   exclusive: true
   exclusive_type: FISHING_ROD
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1009
@@ -1411,7 +1411,7 @@ kings_jewel:
 # HORUS'S ARROW - Bow
 # ============================================
 horus_arrow:
-  name: <gradient:#FFD700:#CD853F>Horus's Arrow</gradient>
+  name: <gradient:#9400D3:#4B0082>Horus's Arrow</gradient>
   description:
   - '&7When shooting a player, has'
   - '&7a chance to apply Pharaoh''s'
@@ -1419,8 +1419,8 @@ horus_arrow:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: BOW
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1010
@@ -1513,7 +1513,7 @@ horus_arrow:
 # CURSED PILLAR - Crossbow
 # ============================================
 cursed_pillar:
-  name: <gradient:#FFD700:#CD853F>Cursed Pillar</gradient>
+  name: <gradient:#9400D3:#4B0082>Cursed Pillar</gradient>
   description:
   - '&7Summon a cursed pillar. Enemies'
   - '&7within 3 blocks receive Weakness'
@@ -1521,8 +1521,8 @@ cursed_pillar:
   rarity: MYTHIC
   exclusive: true
   exclusive_type: CROSSBOW
-  crate: <gradient:#FFD700:#CD853F>Ancient Crate Exclusive</gradient>
-  lore_prefix: <gradient:#FFD700:#CD853F>☽</gradient>
+  crate: <gradient:#9400D3:#4B0082>Ancient Exclusive</gradient>
+  lore_prefix: <gradient:#9400D3:#4B0082>⚖</gradient>
   item:
     material: ECHO_SHARD
     custom_model_data: 1011
