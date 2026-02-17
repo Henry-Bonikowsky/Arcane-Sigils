@@ -1,5 +1,7 @@
 package com.miracle.arcanesigils;
 
+import com.miracle.arcanesigils.api.ArcaneSigilsAPI;
+import com.miracle.arcanesigils.api.ArcaneSigilsAPIImpl;
 import com.miracle.arcanesigils.addon.AddonManager;
 import com.miracle.arcanesigils.ai.AITrainingManager;
 import com.miracle.arcanesigils.debug.PluginDebugger;
@@ -44,6 +46,7 @@ import java.util.logging.Level;
 public class ArmorSetsPlugin extends JavaPlugin {
 
     private static ArmorSetsPlugin instance;
+    private static ArcaneSigilsAPI api;
 
     private ConfigManager configManager;
     private EffectManager effectManager;
@@ -103,6 +106,10 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
         // Load addons after all core systems are ready
         loadAddons();
+
+        // Initialize public API (after all managers are ready)
+        api = new ArcaneSigilsAPIImpl(this);
+        getLogger().info("ArcaneSigils API initialized");
 
         getLogger().info("ArcaneSigils has been enabled!");
         getLogger().info("Loaded " + sigilManager.getSigilCount() + " sigils, " + sigilManager.getBehaviorCount() + " behaviors");
@@ -183,6 +190,7 @@ public class ArmorSetsPlugin extends JavaPlugin {
         ScreenShakeUtil.cleanup();
 
         getLogger().info("ArcaneSigils has been disabled!");
+        api = null;
         instance = null;
     }
 
@@ -295,8 +303,12 @@ public class ArmorSetsPlugin extends JavaPlugin {
             // Enchanter Manager (tier upgrade system)
             enchanterManager = new EnchanterManager(this);
 
-            // Initialize optional hooks
-            com.miracle.arcanesigils.hooks.FactionsHook.init();
+            // Initialize optional hooks (guarded to avoid NoClassDefFoundError when Factions absent)
+            try {
+                com.miracle.arcanesigils.hooks.FactionsHook.init();
+            } catch (NoClassDefFoundError ignored) {
+                // Factions not present - skip hook
+            }
 
         } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Failed to initialize managers!", e);
@@ -412,6 +424,14 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
     public static ArmorSetsPlugin getInstance() {
         return instance;
+    }
+
+    /**
+     * Get the public API for querying sigil state.
+     * @return API instance, or null if plugin not enabled
+     */
+    public static ArcaneSigilsAPI getAPI() {
+        return api;
     }
 
     public ConfigManager getConfigManager() {

@@ -361,6 +361,15 @@ public class BindsListener implements Listener {
     // ==================== ACTIVATION LOGIC ====================
 
     /**
+     * Programmatically activate a bind slot for a player.
+     * Called by the public API (ArcaneSigilsAPI.activateAbility).
+     */
+    public boolean activateBindSlot(Player player, int bindSlot) {
+        activateBind(player, bindSlot);
+        return true;
+    }
+
+    /**
      * Toggle the binds system ON/OFF for a player.
      */
     private void toggleBinds(Player player) {
