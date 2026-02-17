@@ -3,7 +3,6 @@ package com.miracle.arcanesigils;
 import com.miracle.arcanesigils.api.ArcaneSigilsAPI;
 import com.miracle.arcanesigils.api.ArcaneSigilsAPIImpl;
 import com.miracle.arcanesigils.addon.AddonManager;
-import com.miracle.arcanesigils.ai.AITrainingManager;
 import com.miracle.arcanesigils.debug.PluginDebugger;
 import com.miracle.arcanesigils.binds.BindsBossBarManager;
 import com.miracle.arcanesigils.binds.BindsListener;
@@ -77,7 +76,6 @@ public class ArmorSetsPlugin extends JavaPlugin {
     private LegacyCombatManager legacyCombatManager;
     private PluginDebugger pluginDebugger;
     private com.miracle.arcanesigils.listeners.CollisionDisabler collisionDisabler;
-    private AITrainingManager aiTrainingManager;
     private InterceptionManager interceptionManager;
     private com.miracle.arcanesigils.effects.AttributeModifierManager attributeModifierManager;
     private com.miracle.arcanesigils.effects.PotionEffectTracker potionEffectTracker;
@@ -175,9 +173,6 @@ public class ArmorSetsPlugin extends JavaPlugin {
         }
         if (collisionDisabler != null) {
             collisionDisabler.shutdown();
-        }
-        if (aiTrainingManager != null) {
-            aiTrainingManager.shutdown();
         }
         if (playerVariableManager != null) {
             playerVariableManager.shutdown();
@@ -293,9 +288,6 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
             // Collision disabler (prevent player collisions for effects like quicksand)
             collisionDisabler = new com.miracle.arcanesigils.listeners.CollisionDisabler();
-
-            // AI Training Manager (reward signals for AI training)
-            aiTrainingManager = new AITrainingManager(this);
 
             // Interception Manager (effect interception system for Ancient Crown, Cleopatra, etc.)
             interceptionManager = new InterceptionManager();
@@ -544,10 +536,6 @@ public class ArmorSetsPlugin extends JavaPlugin {
 
     public BindsListener getBindsListener() {
         return bindsListener;
-    }
-
-    public AITrainingManager getAITrainingManager() {
-        return aiTrainingManager;
     }
 
     public InterceptionManager getInterceptionManager() {

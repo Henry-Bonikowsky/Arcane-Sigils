@@ -106,10 +106,8 @@ public class StunEffect extends AbstractEffect {
             return false;
         }
 
-        // Apply the stun - pass attacker and bind slot for AI training
-        Player attacker = context.getPlayer();
-        Integer bindSlot = context.getMetadata("aiTraining_bindSlot", -1);
-        stunManager.stunPlayer(targetPlayer, duration, attacker, bindSlot);
+        // Apply the stun
+        stunManager.stunPlayer(targetPlayer, duration);
 
         // Screen shake on stun impact
         ScreenShakeUtil.shake(targetPlayer, 0.4, 8);

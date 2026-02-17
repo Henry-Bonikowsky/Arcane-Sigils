@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.events;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
-import com.miracle.arcanesigils.ai.AITrainingManager;
-import com.miracle.arcanesigils.ai.RewardSignal;
 import com.miracle.arcanesigils.binds.BindsListener;
 import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.core.Sigil;
@@ -399,18 +397,6 @@ public class SignalHandler implements Listener {
 
         processArmorEffects(killer, signalType, context);
 
-        // AI Training: Send kill signal if kill happened within 5s of bind activation
-        BindsListener bindsListener = plugin.getBindsListener();
-        if (bindsListener != null) {
-            Integer bindSlot = bindsListener.getLastActivatedBindSlot(killer.getUniqueId(), 5000);
-            if (bindSlot != null) {
-                AITrainingManager aiTraining = plugin.getAITrainingManager();
-                if (aiTraining != null) {
-                    String entityType = dead.getType().name();
-                    aiTraining.sendKillSignal(killer, bindSlot, entityType);
-                }
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -552,8 +538,16 @@ public class SignalHandler implements Listener {
         // ItemStack durability: 0 = full, max = broken
         if (item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable damageable) {
             int currentDamage = damageable.getDamage();
-            int maxDurability = item.getType().getMaxDurability();
+            // Use custom max damage if set (for ItemsAdder/custom items), else material default
+            int maxDurability = damageable.hasMaxDamage()
+                ? damageable.getMaxDamage()
+                : item.getType().getMaxDurability();
             int newDamage = currentDamage + event.getDamage();
+
+            // Skip if item has no durability concept (maxDurability 0 = non-damageable)
+            if (maxDurability <= 0) {
+                return;
+            }
 
             // Only fire ITEM_BREAK signal if this damage would destroy the item
             if (newDamage < maxDurability) {
@@ -561,6 +555,10 @@ public class SignalHandler implements Listener {
             }
 
             // Item WOULD break - fire the signal (cancellable!)
+            com.miracle.arcanesigils.utils.LogHelper.info(
+                "[ITEM_BREAK] %s: %s damage=%d/%d (+%d), customMax=%b - firing signal",
+                player.getName(), item.getType(), currentDamage, maxDurability,
+                event.getDamage(), damageable.hasMaxDamage());
             EffectContext context = EffectContext.builder(player, SignalType.ITEM_BREAK)
                     .event(event)
                     .location(player.getLocation())
@@ -654,7 +652,10 @@ public class SignalHandler implements Listener {
         if (allFlows.isEmpty()) return;
 
         // For STATIC/passive signals, ALL flows should execute (no priority competition)
-        // For active signals (ATTACK, DEFENSE, SHIFT, etc.), use priority - only ONE activates
+        // For active signals (ATTACK, DEFENSE, SHIFT, etc.), use priority tiers:
+        //   - All flows at the highest priority level execute together
+        //   - If any activated at that level, lower priority flows are skipped
+        //   - If none activated, try the next priority level
         boolean isPassiveSignal = signalType == SignalType.EFFECT_STATIC ||
                                    signalType == SignalType.TICK;
 
@@ -664,7 +665,14 @@ public class SignalHandler implements Listener {
         }
 
         // Execute flows
+        int activatedPriority = Integer.MIN_VALUE;
         for (FlowEntry entry : allFlows) {
+            // For active signals, skip lower-priority flows once a higher priority activated
+            if (!isPassiveSignal && activatedPriority != Integer.MIN_VALUE
+                    && entry.flow.getPriority() < activatedPriority) {
+                break;
+            }
+
             context.setMetadata("sourceSigilId", entry.sigil.getId());
             context.setMetadata("sourceSigilTier", entry.sigil.getTier());
             context.setMetadata("sourceItem", entry.sourceItem);
@@ -681,7 +689,6 @@ public class SignalHandler implements Listener {
                 }
             }
 
-
             String flowId = entry.flow.getGraph() != null ? entry.flow.getGraph().getId() : "unknown";
             String cooldownKey = "sigil_" + entry.sigil.getId() + "_" + signalType.getConfigKey() + "_" + flowId;
 
@@ -692,9 +699,9 @@ public class SignalHandler implements Listener {
                 if (entry.sourceItem != null) {
                     plugin.getTierProgressionManager().awardXP(player, entry.sourceItem, entry.sigil.getId(), entry.sigil.getTier());
                 }
-                // For active signals, stop after first activation (only ONE flow activates)
+                // Track the priority level that activated
                 if (!isPassiveSignal) {
-                    break;
+                    activatedPriority = entry.flow.getPriority();
                 }
             }
         }
@@ -861,23 +868,19 @@ public class SignalHandler implements Listener {
                 if (chanceParam != null && chanceParam.toString().contains("{")) {
                     // Unified tier system - resolve from TierScalingConfig
                     String placeholder = chanceParam.toString().replace("{", "").replace("}", "");
-                    com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolving chance placeholder: %s", placeholder);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[executeFlow] Resolving chance placeholder: %s", placeholder);
                     if (tierConfig != null && tierConfig.hasParam(placeholder)) {
                         chance = tierConfig.getParamValue(placeholder, tier);
-                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from tierConfig: %.1f", chance);
                     } else {
                         // Also check context variables (for set bonuses and other param sources)
                         Object varValue = context.getVariable(placeholder);
-                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] tierConfig null/missing param, checking variables: %s", varValue);
                         if (varValue instanceof Number) {
                             chance = ((Number) varValue).doubleValue();
-                            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from variables: %.1f", chance);
                         }
                     }
                 } else if (chanceParam != null) {
                     chance = startNode.getDoubleParam("chance", chance);
                 }
-                com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Final chance value: %.1f%%", chance);
             }
         }
 
@@ -889,7 +892,7 @@ public class SignalHandler implements Listener {
         // Check chance
         if (chance < 100) {
             double roll = ThreadLocalRandom.current().nextDouble() * 100;
-            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Chance roll: %.1f vs %.1f (pass=%s)", roll, chance, roll <= chance);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[executeFlow] Chance roll: %.1f vs %.1f (pass=%s)", roll, chance, roll <= chance);
             if (roll > chance) {
                 return false;
             }
@@ -947,7 +950,7 @@ public class SignalHandler implements Listener {
 
         java.util.Map<String, Integer> activeBonuses = setBonusManager.getActiveBonuses(player);
 
-        com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Processing for player %s, active bonuses: %d",
+        com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Processing for player %s, active bonuses: %d",
             player.getName(), activeBonuses.size());
 
         for (java.util.Map.Entry<String, Integer> entry : activeBonuses.entrySet()) {
@@ -956,11 +959,11 @@ public class SignalHandler implements Listener {
 
             com.miracle.arcanesigils.sets.SetBonus setBonus = setBonusManager.getSetBonus(setName);
             if (setBonus == null) {
-                com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Set '%s' not found in manager!", setName);
+                com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Set '%s' not found in manager!", setName);
                 continue;
             }
 
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Executing %s (tier %d) for %s",
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Executing %s (tier %d) for %s",
                 setName, tier, player.getName());
 
             // Inject set bonus tier into context as metadata
@@ -974,15 +977,15 @@ public class SignalHandler implements Listener {
                 Double value = paramEntry.getValue().get(tier);
                 if (value != null) {
                     context.setVariable(paramName, value);
-                    com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus]   Param: %s = %.1f", paramName, value);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus]   Param: %s = %.1f", paramName, value);
                 }
             }
 
             // Execute set bonus flow (use executeFlow to handle chance/cooldown)
             String cooldownKey = "setbonus_" + setName + "_EFFECT_STATIC";
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] About to execute flow for %s", setName);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] About to execute flow for %s", setName);
             boolean activated = executeFlow(player, setBonus.getFlow().getGraph(), setBonus.getFlow(), context, cooldownKey);
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Finished executing flow for %s (activated=%s)", setName, activated);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Finished executing flow for %s (activated=%s)", setName, activated);
         }
     }
 

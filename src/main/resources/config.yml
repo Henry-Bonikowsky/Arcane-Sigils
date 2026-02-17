@@ -125,34 +125,6 @@ integrations:
   # Respect WorldGuard PvP flags
   respect-pvp-flags: true
 
-# AI Training Settings
-ai_training:
-  # Enable AI training integration (reward signals, scoreboard updates)
-  enabled: true
-
-  # Update interval for scoreboard (in ticks, 20 = 1 second)
-  scoreboard_update_interval: 20
-
-  # Kill attribution window (milliseconds) - kills within this time after bind activation count
-  kill_attribution_window: 5000
-
-  # Signal display format
-  signals:
-    # Show signals as action bar messages
-    action_bar: true
-    
-    # Show signals in scoreboard
-    scoreboard: true
-    
-    # Signal message formats (placeholders: %slot%, %type%, %value%)
-    formats:
-      hit: "&a[Slot %slot%] HIT +%.1f dmg"
-      miss: "&7[Slot %slot%] MISS"
-      heal: "&e[Slot %slot%] HEAL +%.1f hp"
-      kill: "&c[Slot %slot%] KILL"
-      cc: "&5[Slot %slot%] CC %.1fs"
-      cooldown: "&8[Slot %slot%] CD %.1fs"
-
 # Notification Settings
 notifications:
   enabled: true
