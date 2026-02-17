@@ -138,9 +138,10 @@ public class MarkManager implements Listener {
         UUID entityId = entity.getUniqueId();
         String normalizedMark = markName.toUpperCase();
 
-        LogHelper.debug("[MarkManager] Applying mark '%s' to %s: duration=%.1fs, behavior=%s, owner=%s",
+        LogHelper.info("[MarkManager] APPLY mark '%s' to %s (UUID=%s): duration=%.1fs, behavior=%s, owner=%s",
             normalizedMark,
             entity instanceof Player p ? p.getName() : entity.getType().name(),
+            entityId.toString().substring(0, 8),
             durationSeconds,
             behaviorId != null ? behaviorId : "none",
             owner != null ? owner.getName() : "none");
@@ -515,6 +516,15 @@ public class MarkManager implements Listener {
         String normalizedMark = markName.toUpperCase();
 
         Map<String, MarkData> marks = entityMarks.get(entityId);
+
+        // TEMP DEBUG: only log for PHARAOH_MARK
+        if (normalizedMark.equals("PHARAOH_MARK")) {
+            LogHelper.info("[hasMark] Checking %s (UUID=%s) for PHARAOH_MARK - marksMap=%s, allEntities=%d",
+                entity.getName(), entityId.toString().substring(0, 8),
+                marks != null ? marks.keySet().toString() : "NULL",
+                entityMarks.size());
+        }
+
         if (marks == null) return false;
 
         MarkData data = marks.get(normalizedMark);
@@ -612,6 +622,71 @@ public class MarkManager implements Listener {
         }
 
         return activeMarks;
+    }
+
+    /**
+     * Get detailed info about all active marks on an entity.
+     * Used by the public API.
+     */
+    public List<com.miracle.arcanesigils.api.MarkInfo> getActiveMarkInfo(LivingEntity entity) {
+        if (entity == null) return Collections.emptyList();
+
+        UUID entityId = entity.getUniqueId();
+        Map<String, MarkData> marks = entityMarks.get(entityId);
+        if (marks == null) return Collections.emptyList();
+
+        long now = System.currentTimeMillis();
+        List<com.miracle.arcanesigils.api.MarkInfo> result = new ArrayList<>();
+
+        for (Map.Entry<String, MarkData> entry : marks.entrySet()) {
+            MarkData data = entry.getValue();
+            if (data.isMultiSource) {
+                for (SourceData source : data.sources.values()) {
+                    if (source.expiryTime == Long.MAX_VALUE || now < source.expiryTime) {
+                        result.add(new com.miracle.arcanesigils.api.MarkInfo(
+                            entry.getKey(),
+                            source.multiplier,
+                            source.expiryTime,
+                            null
+                        ));
+                    }
+                }
+            } else {
+                if (now <= data.expiryTime) {
+                    result.add(new com.miracle.arcanesigils.api.MarkInfo(
+                        entry.getKey(),
+                        data.damageMultiplier,
+                        data.expiryTime,
+                        data.ownerUUID
+                    ));
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Check if target has any mark applied by the specified attacker.
+     */
+    public boolean isMarkedBy(LivingEntity target, Player attacker) {
+        if (target == null || attacker == null) return false;
+
+        UUID targetId = target.getUniqueId();
+        UUID attackerId = attacker.getUniqueId();
+        Map<String, MarkData> marks = entityMarks.get(targetId);
+        if (marks == null) return false;
+
+        long now = System.currentTimeMillis();
+        for (MarkData data : marks.values()) {
+            if (data.isMultiSource) {
+                continue;
+            } else {
+                if (attackerId.equals(data.ownerUUID) && now <= data.expiryTime) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
