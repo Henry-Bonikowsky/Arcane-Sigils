@@ -1,15 +1,14 @@
 package com.miracle.arcanesigils.effects.impl;
 
+import com.miracle.arcanesigils.combat.ModifierType;
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
 
 /**
- * Applies a universal damage mark (DAMAGE_AMPLIFICATION or DAMAGE_REDUCTION).
- * Supports multi-source stacking where multiple sigils can contribute to the same mark.
- * Each sigil can only contribute once (re-applying refreshes duration).
+ * Applies a universal damage modifier (DAMAGE_AMPLIFICATION or DAMAGE_REDUCTION)
+ * via ModifierRegistry. Supports multi-source stacking where multiple sigils
+ * can contribute to the same modifier type.
  *
  * Parameters:
  * - mark_type: "DAMAGE_AMPLIFICATION" or "DAMAGE_REDUCTION"
@@ -21,41 +20,65 @@ import org.bukkit.entity.Player;
 public class ApplyUniversalMarkEffect extends AbstractEffect {
 
     public ApplyUniversalMarkEffect() {
-        super("APPLY_UNIVERSAL_MARK", "Apply universal damage mark (amplification or reduction)");
+        super("APPLY_UNIVERSAL_MARK", "Apply universal damage modifier (amplification or reduction)");
     }
 
     @Override
     public boolean execute(EffectContext context) {
-        // Get parameters
         String markType = context.getParams().getString("mark_type", "DAMAGE_AMPLIFICATION");
         String sigilId = context.getParams().getString("sigil_id", "unknown");
         double percent = context.getParams().getDouble("percent", 10.0);
         double duration = context.getParams().getDouble("duration", 5.0);
 
+        // Info-level for diagnosis: show tier and computed percent
+        Integer tier = context.getMetadata("sourceSigilTier", null);
+        LogHelper.info("[APPLY_UNIVERSAL_MARK] %s | sigil=%s tier=%s | percent=%.4f | duration=%.1fs",
+                markType, sigilId, tier, percent, duration);
+
         LivingEntity target = getTarget(context);
         if (target == null) {
-            debug("No target for APPLY_UNIVERSAL_MARK");
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] No target! Aborting.");
             return false;
         }
 
-        Player owner = context.getPlayer();
+        LogHelper.debug("[APPLY_UNIVERSAL_MARK] target=%s (UUID=%s)",
+                target.getName(), target.getUniqueId());
 
-        // Convert percent to multiplier based on mark type
-        double multiplier;
+        ModifierType type;
+        double fraction;
         if (markType.equals("DAMAGE_AMPLIFICATION")) {
-            multiplier = 1.0 + (percent / 100.0); // +20% -> 1.20
+            type = ModifierType.DAMAGE_AMPLIFICATION;
+            fraction = percent / 100.0;
         } else if (markType.equals("DAMAGE_REDUCTION")) {
-            multiplier = 1.0 - (percent / 100.0); // +20% DR -> 0.80
+            type = ModifierType.DAMAGE_REDUCTION;
+            fraction = percent / 100.0;
         } else {
-            debug("Unknown mark type: " + markType);
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] Unknown mark type: %s", markType);
             return false;
         }
 
-        // Apply multi-source mark
-        getPlugin().getMarkManager().applyMultiSourceMark(
-            target, markType, sigilId, multiplier, duration, owner
-        );
-
+        if (fraction <= 0.0001) {
+            // Zero or negligible value — remove the modifier entirely
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] Removing: type=%s, source=%s (fraction=%.4f ≈ 0)",
+                    type, sigilId, fraction);
+            getPlugin().getModifierRegistry().removeModifier(
+                    target.getUniqueId(),
+                    type,
+                    sigilId
+            );
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] REMOVED modifier for %s", target.getName());
+        } else {
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] Storing: type=%s, source=%s, fraction=%.4f, durationMs=%d",
+                    type, sigilId, fraction, (long) (duration * 1000));
+            getPlugin().getModifierRegistry().applyModifier(
+                    target.getUniqueId(),
+                    type,
+                    sigilId,
+                    fraction,
+                    (long) (duration * 1000)
+            );
+            LogHelper.debug("[APPLY_UNIVERSAL_MARK] SUCCESS - modifier stored for %s", target.getName());
+        }
         return true;
     }
 }

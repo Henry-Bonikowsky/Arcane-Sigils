@@ -161,35 +161,35 @@ def main():
     sub = parser.add_subparsers(dest="cmd")
 
     p_deploy = sub.add_parser("deploy", help="Upload latest JAR (auto-deletes old JARs)")
-    p_deploy.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                          help='Target server (default: dev)')
+    p_deploy.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                          help='Target server (default: main)')
 
     p_ls = sub.add_parser("ls", help="List remote directory")
     p_ls.add_argument("path", nargs="?", help="Remote path (default: modules dir)")
-    p_ls.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                      help='Target server (default: dev)')
+    p_ls.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                      help='Target server (default: main)')
 
     p_cat = sub.add_parser("cat", help="Read remote file")
     p_cat.add_argument("path", help="Remote file path")
-    p_cat.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                       help='Target server (default: dev)')
+    p_cat.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                       help='Target server (default: main)')
 
     p_pull = sub.add_parser("pull", help="Download file from server")
     p_pull.add_argument("remote", help="Remote file path")
     p_pull.add_argument("local", nargs="?", help="Local path (default: same name)")
-    p_pull.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                        help='Target server (default: dev)')
+    p_pull.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                        help='Target server (default: main)')
 
     p_push = sub.add_parser("push", help="Upload file to server")
     p_push.add_argument("local", help="Local file path")
     p_push.add_argument("remote", nargs="?", help="Remote path (default: modules dir)")
-    p_push.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                        help='Target server (default: dev)')
+    p_push.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                        help='Target server (default: main)')
 
     p_rm = sub.add_parser("rm", help="Delete remote file")
     p_rm.add_argument("path", help="Remote file path")
-    p_rm.add_argument('--server', '-s', choices=['dev', 'main'], default='dev',
-                      help='Target server (default: dev)')
+    p_rm.add_argument('--server', '-s', choices=['dev', 'main'], default='main',
+                      help='Target server (default: main)')
 
     args = parser.parse_args()
 

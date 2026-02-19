@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deploy ArcaneSigils to BisectHosting via SFTP"""
+"""Deploy ArcaneSigils to GravelHost via SFTP"""
 import os
 import sys
 import glob
@@ -106,7 +106,7 @@ def cmd_rm(args):
         transport.close()
 
 def main():
-    parser = argparse.ArgumentParser(description="BisectHosting SFTP tool")
+    parser = argparse.ArgumentParser(description="GravelHost SFTP tool")
     sub = parser.add_subparsers(dest="cmd")
 
     p_deploy = sub.add_parser("deploy", help="Upload latest JAR")

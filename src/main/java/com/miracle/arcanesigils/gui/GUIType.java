@@ -5,6 +5,7 @@ package com.miracle.arcanesigils.gui;
  */
 public enum GUIType {
     // Sigil GUIs
+    SIGIL_FOLDER_BROWSER,
     SIGILS_MENU,
     SIGIL_EDITOR,
     SIGIL_CONFIG,
@@ -74,9 +75,12 @@ public enum GUIType {
     EXPRESSION_VALUE_SELECTOR,
     EXPRESSION_OPERATOR_SELECTOR,
 
-    // Combat Settings GUIs
-    COMBAT_SETTINGS,
-    COMBAT_MODULE_CONFIG,
+
+    // Combat GUIs
+    COMBAT_CONFIG,
+    ENCHANT_SCALING,
+    DURABILITY_CONFIG,
+    MODIFIER_VIEWER,
 
     // Enchanter GUIs
     ENCHANTER_MAIN,

@@ -1,7 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
 import org.bukkit.event.entity.EntityDamageEvent;
 
 public class ResistEffectsEffect extends AbstractEffect {
@@ -22,10 +21,6 @@ public class ResistEffectsEffect extends AbstractEffect {
                 double currentDamage = event.getDamage();
                 double reducedDamage = currentDamage * (1 - reduction / 100.0);
                 event.setDamage(Math.max(0, reducedDamage));
-
-                context.getPlayer().getWorld().spawnParticle(
-                        Particle.ENCHANT, context.getPlayer().getLocation().add(0, 1, 0), 20
-                );
 
                 debug("Resisted effect damage from " + currentDamage + " to " + reducedDamage);
                 return true;

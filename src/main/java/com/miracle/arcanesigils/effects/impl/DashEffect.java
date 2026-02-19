@@ -2,8 +2,6 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -100,9 +98,6 @@ public class DashEffect extends AbstractEffect {
         // Apply velocity
         player.setVelocity(velocityVec);
 
-        // Visual and sound effects
-        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 15, 0.5, 0.2, 0.5, 0.1);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_BREEZE_WIND_BURST, 1.0f, 1.2f);
         return true;
     }
 }

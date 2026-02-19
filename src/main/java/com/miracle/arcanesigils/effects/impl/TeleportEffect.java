@@ -4,8 +4,6 @@ import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -179,18 +177,8 @@ public class TeleportEffect extends AbstractEffect {
             return false;
         }
 
-        Location currentLoc = teleportee.getLocation();
-
-        // Play effects at old location
-        currentLoc.getWorld().spawnParticle(Particle.PORTAL, currentLoc, 50);
-        currentLoc.getWorld().playSound(currentLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-
         // Teleport
         teleportee.teleport(safeLoc);
-
-        // Play effects at new location
-        safeLoc.getWorld().spawnParticle(Particle.PORTAL, safeLoc, 50);
-        safeLoc.getWorld().playSound(safeLoc, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
 
         debug(debugMessage);
         return true;

@@ -1,9 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import com.miracle.arcanesigils.events.SignalType;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -14,12 +11,17 @@ import org.bukkit.entity.LivingEntity;
  */
 public class ReflectDamageEffect extends AbstractEffect {
 
+    private static final ThreadLocal<Boolean> REFLECTING = ThreadLocal.withInitial(() -> false);
+
     public ReflectDamageEffect() {
         super("REFLECT_DAMAGE", "Return damage to attacker");
     }
 
     @Override
     public boolean execute(EffectContext context) {
+        // Re-entry guard: prevent infinite reflect bounce between two players
+        if (REFLECTING.get()) return false;
+
         double percent = context.getParams() != null ? context.getParams().getValue() : 25.0;
         percent = Math.min(percent, 100.0); // Cap at 100%
 
@@ -40,16 +42,13 @@ public class ReflectDamageEffect extends AbstractEffect {
         // Calculate reflected damage
         double reflectedDamage = incomingDamage * (percent / 100.0);
 
-        // Deal damage back to attacker
-        attacker.damage(reflectedDamage, context.getPlayer());
-
-        // Visual effects
-        context.getPlayer().getWorld().spawnParticle(Particle.ENCHANTED_HIT,
-            context.getPlayer().getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5, 0.1);
-        attacker.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR,
-            attacker.getLocation().add(0, 1, 0), 5, 0.3, 0.3, 0.3, 0.1);
-        context.getPlayer().getWorld().playSound(context.getPlayer().getLocation(),
-            Sound.ENCHANT_THORNS_HIT, 1.0f, 1.2f);
+        // Deal damage back to attacker (guarded against re-entry)
+        try {
+            REFLECTING.set(true);
+            attacker.damage(reflectedDamage, context.getPlayer());
+        } finally {
+            REFLECTING.set(false);
+        }
 
         debug("Reflected " + String.format("%.1f", reflectedDamage) + " damage (" +
             percent + "% of " + String.format("%.1f", incomingDamage) + ") to " + attacker.getName());

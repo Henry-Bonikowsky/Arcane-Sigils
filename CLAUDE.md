@@ -106,15 +106,31 @@ Add Paper API jar to Libraries. Test obfuscated JAR before distributing.
 
 ---
 
+## Architecture
+
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full architecture rulebook covering:
+- Core patterns (effects, managers, GUI handlers, conditions)
+- Dependency rules (no `getInstance()` in new code, no circular imports)
+- Target package layout and god class decomposition map
+- Naming conventions and incremental migration protocol
+
+Key abstractions:
+- **`Lifecycle`** interface — managers implement for auto shutdown/reload
+- **`ParamDefinition`** record — effects self-describe their params (replaces EffectParamHandler switch)
+- **`RarityUtil`** — single source of truth for rarity colors/ordering
+
+---
+
 ## Package Structure
 
 | Package | Purpose |
 |---------|---------|
-| `core/` | Sigil, SigilManager, SocketManager |
-| `effects/` | EffectManager + 44 effects in `impl/` |
+| `core/` | Sigil, SigilManager, SocketManager, RarityUtil |
+| `effects/` | EffectManager, ParamDefinition + 44 effects in `impl/` |
 | `events/` | SignalHandler, SignalType, ConditionManager, CooldownManager |
 | `gui/` | GUIManager, GUISession, all handlers |
 | `tier/` | TierScalingCalculator, TierProgressionManager |
+| `utils/` | TextUtil, RomanNumerals, LogHelper |
 
 ---
 

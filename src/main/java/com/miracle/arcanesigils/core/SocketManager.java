@@ -23,6 +23,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.core.RarityUtil;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 
 import net.kyori.adventure.text.Component;
@@ -31,9 +33,6 @@ public class SocketManager implements Listener {
 
     private final ArmorSetsPlugin plugin;
     private final NamespacedKey SOCKETED_SIGILS_KEY;
-
-    // Roman numerals for display
-    private static final String[] ROMAN_NUMERALS = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
 
     // Enchantment display order per item type
     private static final Map<Enchantment, Integer> SWORD_ENCHANT_ORDER = Map.of(
@@ -391,13 +390,13 @@ public class SocketManager implements Listener {
         }
 
         // Sort both lists by rarity (highest first)
-        exclusiveSigils.sort((a, b) -> getRarityOrder(b.getRarity()) - getRarityOrder(a.getRarity()));
-        regularSigils.sort((a, b) -> getRarityOrder(b.getRarity()) - getRarityOrder(a.getRarity()));
+        exclusiveSigils.sort((a, b) -> RarityUtil.getOrder(b.getRarity()) - RarityUtil.getOrder(a.getRarity()));
+        regularSigils.sort((a, b) -> RarityUtil.getOrder(b.getRarity()) - RarityUtil.getOrder(a.getRarity()));
 
         // Build sigil lore - exclusive sigils first with custom prefix (from YAML lore_prefix)
         for (Sigil sigil : exclusiveSigils) {
             String baseName = sigil.getName().replaceAll("\\s*&8\\[T\\d+\\]", "").trim();
-            String roman = toRomanNumeral(sigil.getTier());
+            String roman = RomanNumerals.toRoman(sigil.getTier());
             // Use prefix from YAML with its own formatting (no rarity color override)
             String prefix = sigil.getLorePrefix() != null ? sigil.getLorePrefix() : "<gradient:#FFD700:#CD853F>⚖</gradient>";
 
@@ -422,8 +421,8 @@ public class SocketManager implements Listener {
         // Regular sigils with ➤ prefix (rarity color)
         for (Sigil sigil : regularSigils) {
             String baseName = sigil.getName().replaceAll("\\s*&8\\[T\\d+\\]", "").trim();
-            String roman = toRomanNumeral(sigil.getTier());
-            String rarityColor = getRarityColor(sigil.getRarity());
+            String roman = RomanNumerals.toRoman(sigil.getTier());
+            String rarityColor = RarityUtil.getColor(sigil.getRarity());
 
             // Make tier white and bold if at max tier, otherwise aqua
             boolean isMaxTier = sigil.getTier() >= sigil.getMaxTier();
@@ -448,7 +447,7 @@ public class SocketManager implements Listener {
                 Enchantment enchant = entry.getKey();
                 int level = entry.getValue();
                 String enchantName = formatEnchantmentName(enchant);
-                String roman = toRomanNumeral(level);
+                String roman = RomanNumerals.toRoman(level);
                 enchantLore.add(TextUtil.parseComponent("§8➤ §7" + enchantName + " §b" + roman));
             }
             // Hide vanilla enchantment display
@@ -535,37 +534,6 @@ public class SocketManager implements Listener {
             name.append(word.substring(0, 1).toUpperCase()).append(word.substring(1).toLowerCase());
         }
         return name.toString();
-    }
-
-    private String toRomanNumeral(int num) {
-        if (num >= 1 && num <= 10) {
-            return ROMAN_NUMERALS[num - 1];
-        }
-        return String.valueOf(num);
-    }
-
-    private String getRarityColor(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "§7";
-            case "UNCOMMON" -> "§a";
-            case "RARE" -> "§9";
-            case "EPIC" -> "§5";
-            case "LEGENDARY" -> "§6";
-            case "MYTHIC" -> "§d";
-            default -> "§7";
-        };
-    }
-
-    private int getRarityOrder(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> 0;
-            case "UNCOMMON" -> 1;
-            case "RARE" -> 2;
-            case "EPIC" -> 3;
-            case "LEGENDARY" -> 4;
-            case "MYTHIC" -> 5;
-            default -> 0;
-        };
     }
 
     public String getArmorSlot(Material material) {
@@ -699,10 +667,61 @@ public class SocketManager implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null && meta.hasEquippable()) {
             EquipmentSlot slot = meta.getEquippable().getSlot();
-            return slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST
+            boolean isArmorSlot = slot == EquipmentSlot.HEAD || slot == EquipmentSlot.CHEST
                 || slot == EquipmentSlot.LEGS || slot == EquipmentSlot.FEET;
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SocketManager] Custom item check: type=%s, hasEquippable=true, slot=%s, isArmor=%b",
+                item.getType(), slot, isArmorSlot);
+            return isArmorSlot;
         }
+        // Check for ItemsAdder custom armor/hat items via ItemsAdder API
+        if (getItemsAdderArmorSlot(item) != null) {
+            return true;
+        }
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            "[SocketManager] Custom item check: type=%s, hasEquippable=%b - not armor",
+            item.getType(), meta != null && meta.hasEquippable());
         return false;
+    }
+
+    /**
+     * Detect ItemsAdder armor/hat items using the ItemsAdder API via reflection.
+     * ItemsAdder items have empty PDC - they use their own internal storage.
+     * Returns the armor slot name (HELMET, CHESTPLATE, etc.) or null if not an ItemsAdder armor item.
+     */
+    private String getItemsAdderArmorSlot(ItemStack item) {
+        try {
+            Class<?> customStackClass = Class.forName("dev.lone.itemsadder.api.CustomStack");
+            java.lang.reflect.Method byItemStack = customStackClass.getMethod("byItemStack", org.bukkit.inventory.ItemStack.class);
+            Object customStack = byItemStack.invoke(null, item);
+            if (customStack == null) return null;
+
+            java.lang.reflect.Method getNamespacedID = customStackClass.getMethod("getNamespacedID");
+            String id = (String) getNamespacedID.invoke(customStack);
+            if (id == null) return null;
+
+            String lower = id.toLowerCase();
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SocketManager] ItemsAdder item detected: id=%s", id);
+
+            if (lower.contains("_hat") || lower.contains("_helmet") || lower.contains("_crown") || lower.contains("_mask") || lower.contains("_hood"))
+                return "HELMET";
+            if (lower.contains("_chestplate") || lower.contains("_tunic") || lower.contains("_jacket"))
+                return "CHESTPLATE";
+            if (lower.contains("_leggings") || lower.contains("_pants"))
+                return "LEGGINGS";
+            if (lower.contains("_boots") || lower.contains("_shoes") || lower.contains("_sandals"))
+                return "BOOTS";
+
+            return null;
+        } catch (ClassNotFoundException e) {
+            // ItemsAdder not installed
+            return null;
+        } catch (Exception e) {
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SocketManager] Error checking ItemsAdder API: %s", e.getMessage());
+            return null;
+        }
     }
 
     public String getArmorSlot(ItemStack item) {
@@ -720,13 +739,32 @@ public class SocketManager implements Listener {
                 default -> "UNKNOWN";
             };
         }
+        // Check for ItemsAdder armor/hat items via ItemsAdder API
+        String iaSlot = getItemsAdderArmorSlot(item);
+        if (iaSlot != null) return iaSlot;
         return "UNKNOWN";
     }
 
     public boolean isSocketable(ItemStack item) {
         if (item == null) return false;
         if (isSocketable(item.getType())) return true;
-        return isArmor(item);
+        boolean customArmor = isArmor(item);
+        if (!customArmor && item.hasItemMeta()) {
+            // Only log for items with custom data (skip vanilla items like ENDER_PEARL)
+            ItemMeta m = item.getItemMeta();
+            if (m.hasDisplayName() || m.hasCustomModelData() || !m.getPersistentDataContainer().isEmpty()) {
+                StringBuilder pdcKeys = new StringBuilder();
+                for (org.bukkit.NamespacedKey key : m.getPersistentDataContainer().getKeys()) {
+                    pdcKeys.append(key.toString()).append(", ");
+                }
+                com.miracle.arcanesigils.utils.LogHelper.debug(
+                    "[SocketManager] isSocketable REJECTED custom item: type=%s, hasEquippable=%b, displayName=%s, pdcKeys=[%s]",
+                    item.getType(), m.hasEquippable(),
+                    m.hasDisplayName() ? net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(m.displayName()) : "none",
+                    pdcKeys);
+            }
+        }
+        return customArmor;
     }
 
     public String getItemType(ItemStack item) {
@@ -740,10 +778,18 @@ public class SocketManager implements Listener {
     public boolean canSigilSocketInto(Sigil sigil, ItemStack item) {
         if (sigil == null || item == null) return false;
         if (!getItemType(item.getType()).equals("unknown")) {
-            return canSigilSocketInto(sigil, item.getType());
+            boolean result = canSigilSocketInto(sigil, item.getType());
+            com.miracle.arcanesigils.utils.LogHelper.debug(
+                "[SocketManager] canSigilSocketInto: sigil=%s, material=%s, materialType=%s, result=%b",
+                sigil.getId(), item.getType(), getItemType(item.getType()), result);
+            return result;
         }
         String itemType = getItemType(item);
-        return sigil.getSocketables().contains(itemType);
+        boolean result = sigil.getSocketables().contains(itemType);
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            "[SocketManager] canSigilSocketInto (custom): sigil=%s, material=%s, itemType=%s, socketables=%s, result=%b",
+            sigil.getId(), item.getType(), itemType, sigil.getSocketables(), result);
+        return result;
     }
 
     private void handleSocketResult(Player player, SocketResult result, Sigil sigil) {

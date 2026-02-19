@@ -36,6 +36,13 @@ ancient_set:
         potion_type: RESISTANCE
         amplifier: 1
         duration: '{set_duration}'
+      next: message
+    - id: message
+      type: EFFECT
+      effect: MESSAGE
+      params:
+        type: CHAT
+        message: "&6&lAncient Shield! &7Resistance activated!"
       next: particles
     - id: particles
       type: EFFECT

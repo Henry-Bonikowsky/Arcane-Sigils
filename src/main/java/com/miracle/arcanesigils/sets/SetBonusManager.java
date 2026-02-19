@@ -84,9 +84,9 @@ public class SetBonusManager {
                     FlowNode startNode = flow.getGraph().getStartNode();
                     if (startNode != null) {
                         String nextConn = startNode.getConnection("next");
-                        LogHelper.info("[SetBonus] Loaded flow for %s: START node 'next' -> %s",
+                        LogHelper.debug("[SetBonus] Loaded flow for %s: START node 'next' -> %s",
                             setKey, nextConn);
-                        LogHelper.info("[SetBonus] Flow has %d nodes",
+                        LogHelper.debug("[SetBonus] Flow has %d nodes",
                             flow.getGraph().getNodes().size());
                     }
                 }

@@ -724,11 +724,11 @@ public class SkinChangeManager implements Listener {
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamageFixSkinChangeDesync(EntityDamageByEntityEvent event) {
         if (!event.isCancelled()) return;
-        
+
         // Get involved parties
         Player attacker = null;
         Player victim = null;
-        
+
         if (event.getDamager() instanceof Player p) {
             attacker = p;
         } else if (event.getDamager() instanceof org.bukkit.entity.Projectile proj) {
@@ -736,77 +736,49 @@ public class SkinChangeManager implements Listener {
                 attacker = shooter;
             }
         }
-        
+
         if (event.getEntity() instanceof Player p) {
             victim = p;
         }
-        
+
         if (attacker == null) return;
-        
+
+        // Respect Minecraft's built-in immunity frames (noDamageTicks)
+        // This prevents uncancelling legitimate immunity-based cancellations
+        // which was causing the "multiple hits" bug on skin restore
+        if (event.getEntity() instanceof org.bukkit.entity.LivingEntity le && le.getNoDamageTicks() > 0) {
+            return;
+        }
+
+
         // Check if attacker has recent skin change
         long attackerMs = getTimeSinceSkinChange(attacker);
         if (attackerMs >= 0 && attackerMs < 5000) {
-            // Respect immunity - don't uncancel immunity-based cancellations
-            if (victim != null) {
-                var combatManager = plugin.getLegacyCombatManager();
-                if (combatManager != null) {
-                    var immunityModule = combatManager.getModule("custom-immunity");
-                    if (immunityModule != null &&
-                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
-                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
-                        return;
-                    }
-                }
-            }
-
             event.setCancelled(false);
             plugin.getLogger().info("[SkinFix] Uncancelled: attacker " + attacker.getName() +
                 " had skin change " + attackerMs + "ms ago");
             return;
         }
-        
-        // NEW: Check if victim has recent skin change
+
+        // Check if victim has recent skin change
         if (victim != null) {
             long victimMs = getTimeSinceSkinChange(victim);
             if (victimMs >= 0 && victimMs < 5000) {
-                // Respect immunity - don't uncancel immunity-based cancellations
-                var combatManager = plugin.getLegacyCombatManager();
-                if (combatManager != null) {
-                    var immunityModule = combatManager.getModule("custom-immunity");
-                    if (immunityModule != null &&
-                        ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
-                        plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
-                        return;
-                    }
-                }
-
                 event.setCancelled(false);
                 plugin.getLogger().info("[SkinFix] Uncancelled: victim " + victim.getName() +
                     " had skin change " + victimMs + "ms ago");
                 return;
             }
         }
-        
-        // NEW: Check if any player NEAR the victim had recent skin change
-        // (addresses the cross-player desync propagation issue)
+
+        // Check if any player NEAR the victim had recent skin change
         if (victim != null) {
             for (Player nearby : victim.getWorld().getPlayers()) {
                 if (nearby == attacker || nearby == victim) continue;
-                if (nearby.getLocation().distanceSquared(victim.getLocation()) > 2500) continue; // 50 block radius
+                if (nearby.getLocation().distanceSquared(victim.getLocation()) > 2500) continue;
 
                 long nearbyMs = getTimeSinceSkinChange(nearby);
                 if (nearbyMs >= 0 && nearbyMs < 3000) {
-                    // Respect immunity - don't uncancel immunity-based cancellations
-                    var combatManager = plugin.getLegacyCombatManager();
-                    if (combatManager != null) {
-                        var immunityModule = combatManager.getModule("custom-immunity");
-                        if (immunityModule != null &&
-                            ((com.miracle.arcanesigils.combat.modules.CustomImmunityModule)immunityModule).isImmune(victim)) {
-                            plugin.getLogger().info("[SkinFix] NOT uncancelling - victim has immunity");
-                            return;
-                        }
-                    }
-
                     event.setCancelled(false);
                     plugin.getLogger().info("[SkinFix] Uncancelled: nearby player " + nearby.getName() +
                         " had skin change " + nearbyMs + "ms ago (victim=" + victim.getName() + ")");

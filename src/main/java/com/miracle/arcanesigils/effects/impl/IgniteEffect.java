@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -28,10 +26,6 @@ public class IgniteEffect extends AbstractEffect {
         }
 
         target.setFireTicks(ticks);
-
-        // Effects
-        target.getWorld().spawnParticle(Particle.FLAME, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.05);
-        target.getWorld().playSound(target.getLocation(), Sound.ITEM_FIRECHARGE_USE, 1.0f, 1.0f);
 
         debug("Ignited " + target.getName() + " for " + ticks + " ticks");
         return true;

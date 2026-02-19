@@ -2,9 +2,8 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.LivingEntity;
 
 /**
@@ -15,6 +14,8 @@ import org.bukkit.entity.LivingEntity;
  * - bonus_damage: Extra damage dealt when executing (default 10)
  */
 public class ExecuteEffect extends AbstractEffect {
+
+    private static final ThreadLocal<Boolean> EXECUTING = ThreadLocal.withInitial(() -> false);
 
     public ExecuteEffect() {
         super("EXECUTE", "Bonus damage to low health targets");
@@ -58,6 +59,9 @@ public class ExecuteEffect extends AbstractEffect {
 
     @Override
     public boolean execute(EffectContext context) {
+        // Re-entry guard: prevent damage() from re-triggering ATTACK flows that chain EXECUTE
+        if (EXECUTING.get()) return false;
+
         double threshold = context.getParams() != null ? context.getParams().getValue() : 30.0;
         double bonusDamage = context.getParams() != null ?
             ((Number) context.getParams().get("bonusDamage", 10.0)).doubleValue() : 10.0;
@@ -70,17 +74,23 @@ public class ExecuteEffect extends AbstractEffect {
         }
 
         // Calculate target's health percentage
-        double maxHealth = target.getAttribute(Attribute.MAX_HEALTH).getValue();
+        AttributeInstance maxHealthAttr = target.getAttribute(Attribute.MAX_HEALTH);
+        if (maxHealthAttr == null) {
+            debug("Execute failed - target has no MAX_HEALTH attribute");
+            return false;
+        }
+        double maxHealth = maxHealthAttr.getValue();
         double currentHealth = target.getHealth();
         double healthPercent = (currentHealth / maxHealth) * 100;
 
         if (healthPercent <= threshold) {
-            // Execute! Deal bonus damage
-            target.damage(bonusDamage, context.getPlayer());
-
-            // Visual effects
-            target.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.1);
-            target.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 0.8f);
+            // Execute! Deal bonus damage (guarded against re-entry)
+            try {
+                EXECUTING.set(true);
+                target.damage(bonusDamage, context.getPlayer());
+            } finally {
+                EXECUTING.set(false);
+            }
 
             debug("Executed " + target.getName() + " (at " + String.format("%.1f", healthPercent) +
                 "% health) for " + bonusDamage + " bonus damage");

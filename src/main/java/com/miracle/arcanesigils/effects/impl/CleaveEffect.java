@@ -2,8 +2,6 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -80,11 +78,6 @@ public class CleaveEffect extends AbstractEffect {
         }
 
         if (hitCount > 0) {
-            // Visual effects
-            player.getWorld().spawnParticle(Particle.SWEEP_ATTACK,
-                player.getLocation().add(0, 1, 0), 5, radius / 2, 0.5, radius / 2, 0);
-            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.0f, 1.0f);
-
             debug("Cleave hit " + hitCount + " enemies for " + damage + " damage");
             return true;
         }

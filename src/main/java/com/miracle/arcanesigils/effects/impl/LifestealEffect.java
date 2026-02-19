@@ -1,7 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -33,9 +32,6 @@ public class LifestealEffect extends AbstractEffect {
         double maxHealth = player.getAttribute(Attribute.MAX_HEALTH).getValue();
         double newHealth = Math.min(player.getHealth() + healAmount, maxHealth);
         player.setHealth(newHealth);
-
-        // Visual
-        player.getWorld().spawnParticle(Particle.DAMAGE_INDICATOR, player.getLocation().add(0, 1, 0), 5);
 
         debug("Lifesteal healed " + player.getName() + " for " + healAmount);
         return true;

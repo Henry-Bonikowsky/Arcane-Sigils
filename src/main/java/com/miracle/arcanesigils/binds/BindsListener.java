@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.binds;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
-import com.miracle.arcanesigils.ai.AITrainingManager;
-import com.miracle.arcanesigils.ai.RewardSignal;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.events.SignalType;
@@ -58,7 +56,7 @@ public class BindsListener implements Listener {
     // Track last held slot to detect when player is already on a slot
     private final Map<UUID, Integer> lastHeldSlot = new HashMap<>();
 
-    // Track last activated bind for AI training kill attribution
+    // Track last activated bind for kill attribution
     private final Map<UUID, Integer> lastActivatedBindSlot = new HashMap<>();
     private final Map<UUID, Long> lastActivationTime = new HashMap<>();
 
@@ -361,6 +359,15 @@ public class BindsListener implements Listener {
     // ==================== ACTIVATION LOGIC ====================
 
     /**
+     * Programmatically activate a bind slot for a player.
+     * Called by the public API (ArcaneSigilsAPI.activateAbility).
+     */
+    public boolean activateBindSlot(Player player, int bindSlot) {
+        activateBind(player, bindSlot);
+        return true;
+    }
+
+    /**
      * Toggle the binds system ON/OFF for a player.
      */
     private void toggleBinds(Player player) {
@@ -524,7 +531,7 @@ public class BindsListener implements Listener {
      * @param sigilId The sigil ID
      * @param equippedItem The item containing the sigil (pre-found)
      * @param capturedTarget Optional target captured at schedule time (for delayed abilities)
-     * @param slotOrId The bind slot or ID (for AI training tracking)
+     * @param slotOrId The bind slot or ID
      */
     private void activateSigilWithItem(Player player, String sigilId, ItemStack equippedItem, org.bukkit.entity.LivingEntity capturedTarget, int slotOrId) {
         // Get the sigil template
@@ -586,8 +593,6 @@ public class BindsListener implements Listener {
         context.setMetadata("sourceSigilId", sigil.getId());
         context.setMetadata("sourceSigilTier", equippedTier);
         context.setMetadata("sourceItem", equippedItem);
-        context.setMetadata("aiTraining_bindSlot", slotOrId);
-
         // CRITICAL: Set tier scaling config for {param} placeholder replacement
         // Without this, tier params like {damage}, {speed}, {cooldown} won't resolve!
         if (sigil.getTierScalingConfig() != null) {
@@ -633,11 +638,6 @@ public class BindsListener implements Listener {
                 if (remaining > longestRemainingCooldown) {
                     longestRemainingCooldown = remaining;
                 }
-                // Send cooldown signal for AI training
-                AITrainingManager aiTraining = plugin.getAITrainingManager();
-                if (aiTraining != null && slotOrId >= 0) {
-                    aiTraining.sendCooldownSignal(player, slotOrId, remaining);
-                }
                 continue; // Try next flow
             }
 
@@ -646,35 +646,9 @@ public class BindsListener implements Listener {
             FlowExecutor executor = new FlowExecutor(plugin);
             FlowContext flowContext = executor.executeWithContext(flow.getGraph(), context);
 
-            // AI Training: Send reward signals based on execution results
-            AITrainingManager aiTraining = plugin.getAITrainingManager();
-            if (aiTraining != null && slotOrId >= 0) {
-                // Track this bind activation for kill attribution
-                lastActivatedBindSlot.put(player.getUniqueId(), slotOrId);
-                lastActivationTime.put(player.getUniqueId(), System.currentTimeMillis());
-
-                // Check if any effects executed
-                if (flowContext != null && flowContext.hasEffectsExecuted()) {
-                    // Get accumulated damage/healing from context
-                    Object damageObj = flowContext.getVariable("aiTraining_totalDamage");
-                    Object healObj = flowContext.getVariable("aiTraining_totalHeal");
-                    
-                    Double totalDamage = (damageObj instanceof Double) ? (Double) damageObj : null;
-                    Double totalHeal = (healObj instanceof Double) ? (Double) healObj : null;
-
-                    if (totalDamage != null && totalDamage > 0) {
-                        aiTraining.sendHitSignal(player, slotOrId, totalDamage);
-                    } else if (totalHeal != null && totalHeal > 0) {
-                        aiTraining.sendHealSignal(player, slotOrId, totalHeal);
-                    } else {
-                        // Effects executed but no damage/heal - generic success
-                        aiTraining.sendHitSignal(player, slotOrId, 0.0);
-                    }
-                } else {
-                    // No effects executed - MISS
-                    aiTraining.sendMissSignal(player, slotOrId);
-                }
-            }
+            // Track this bind activation for kill attribution
+            lastActivatedBindSlot.put(player.getUniqueId(), slotOrId);
+            lastActivationTime.put(player.getUniqueId(), System.currentTimeMillis());
 
             // Set cooldown - use sigil's display name, not the ugly ID
             // Only set cooldown if flow wasn't cancelled (e.g., missing target)

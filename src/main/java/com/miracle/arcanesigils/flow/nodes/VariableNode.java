@@ -211,8 +211,10 @@ public class VariableNode extends FlowNode {
             // Flow-scoped - existing behavior
             context.setVariable(varName, result);
 
-            LogHelper.debug("[VariableNode] FLOW %s %s: %s (%.2f -> %.2f)",
-                    operation, varName, rawValue, currentValue, result);
+            LogHelper.info("[VariableNode] FLOW %s %s: raw=%s, current=%s, result=%s",
+                    operation, varName, rawValue,
+                    java.math.BigDecimal.valueOf(currentValue).stripTrailingZeros().toPlainString(),
+                    java.math.BigDecimal.valueOf(result).stripTrailingZeros().toPlainString());
         }
 
         return "next";

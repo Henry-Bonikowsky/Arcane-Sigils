@@ -7,6 +7,7 @@ import com.miracle.arcanesigils.gui.GUISession;
 import com.miracle.arcanesigils.gui.GUIType;
 import com.miracle.arcanesigils.gui.common.AbstractHandler;
 import com.miracle.arcanesigils.gui.common.ItemBuilder;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -132,7 +133,7 @@ public class BrowseAllSigilsHandler extends AbstractHandler {
 
     private ItemStack createSigilItem(Sigil sigil) {
         List<String> lore = new ArrayList<>();
-        lore.add("§7Max Tier: §e" + toRomanNumeral(sigil.getMaxTier()));
+        lore.add("§7Max Tier: §e" + RomanNumerals.toRoman(sigil.getMaxTier()));
 
         // Show tier-scaled parameter ranges if they exist
         if (sigil.getTierScalingConfig() != null && sigil.getTierScalingConfig().hasParams()) {
@@ -218,8 +219,4 @@ public class BrowseAllSigilsHandler extends AbstractHandler {
         return null;
     }
 
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-        return tier >= 1 && tier <= 10 ? numerals[tier - 1] : String.valueOf(tier);
-    }
 }

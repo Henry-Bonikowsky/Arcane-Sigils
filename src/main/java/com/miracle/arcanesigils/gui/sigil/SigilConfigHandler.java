@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.gui.sigil;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.core.RarityUtil;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.gui.GUIManager;
 import com.miracle.arcanesigils.gui.GUISession;
@@ -88,7 +89,7 @@ public class SigilConfigHandler extends AbstractHandler {
         String newRarity = RARITIES[nextIndex];
         sigil.setRarity(newRarity);
 
-        String rarityColor = getRarityColor(newRarity);
+        String rarityColor = RarityUtil.getColor(newRarity);
         player.sendMessage(TextUtil.colorize("§7Rarity set to: " + rarityColor + newRarity));
         playSound(player, "click");
 
@@ -155,7 +156,7 @@ public class SigilConfigHandler extends AbstractHandler {
 
         // Rarity (slot 14)
         String currentRarity = sigil.getRarity() != null ? sigil.getRarity() : "COMMON";
-        String rarityColor = getRarityColor(currentRarity);
+        String rarityColor = RarityUtil.getColor(currentRarity);
         inv.setItem(14, ItemBuilder.createItem(getRarityMaterial(currentRarity), rarityColor + "Rarity",
                 "§7Current: " + rarityColor + currentRarity,
                 "",
@@ -177,22 +178,6 @@ public class SigilConfigHandler extends AbstractHandler {
         session.put("sigilId", sigil.getId());
 
         guiManager.openGUI(player, inv, session);
-    }
-
-    /**
-     * Get color code for rarity.
-     */
-    private static String getRarityColor(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "§7";
-            case "UNCOMMON" -> "§a";
-            case "RARE" -> "§9";
-            case "EPIC" -> "§5";
-            case "LEGENDARY" -> "§6";
-            case "MYTHIC" -> "§d";
-            case "SPECIAL" -> "§b";
-            default -> "§7";
-        };
     }
 
     /**

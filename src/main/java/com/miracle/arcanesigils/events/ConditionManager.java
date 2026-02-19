@@ -30,21 +30,19 @@ public class ConditionManager {
             return true; // No conditions = always pass
         }
 
-        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] Checking %d conditions: %s", 
+        com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] Checking %d conditions: %s",
             conditions.size(), conditions);
 
         // All conditions must pass (AND logic)
         for (String condition : conditions) {
             boolean result = evaluateCondition(condition, context);
-            com.miracle.arcanesigils.utils.LogHelper.info("[Conditions]   %s = %s", condition, result);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions]   %s = %s", condition, result);
             if (!result) {
-                com.miracle.arcanesigils.utils.LogHelper.warning("[Conditions] Failed condition: %s", condition);
-                // AI Training: Set failure reason for learning
-                context.setMetadata("aiTraining_conditionFail", getConditionFailureReason(condition));
+                com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] Failed condition: %s", condition);
                 return false; // Any failed condition blocks execution
             }
         }
-        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] All conditions passed");
+        com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] All conditions passed");
         return true; // All conditions passed
     }
 
@@ -173,13 +171,7 @@ public class ConditionManager {
                     int playerTier = setBonusManager.getSetBonusTier(context.getPlayer(), setName);
                     yield playerTier >= minTier;
                 }
-                case "IS_BLOCKING_SWORD" -> {
-                    Player p = context.getPlayer();
-                    if (p == null) yield false;
-                    var blocking = plugin.getLegacyCombatManager().getModule("sword-blocking");
-                    if (blocking == null) yield false;
-                    yield ((com.miracle.arcanesigils.combat.modules.SwordBlockingModule) blocking).isPlayerBlocking(p);
-                }
+                case "IS_BLOCKING_SWORD" -> false; // Legacy combat removed
 
                 // ===== ADDITIONAL COMBAT CONDITIONS =====
                 case "HAS_MARK" -> checkHasMark(context, parts);
@@ -202,7 +194,7 @@ public class ConditionManager {
 
                 // Default: unknown condition FAILS (safety)
                 default -> {
-                    com.miracle.arcanesigils.utils.LogHelper.warning("[Conditions] UNKNOWN CONDITION TYPE: %s - FAILING", type);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] UNKNOWN CONDITION TYPE: %s - FAILING", type);
                     yield false;
                 }
             };
@@ -229,7 +221,7 @@ public class ConditionManager {
         String condition = parts[1];
         boolean result = evaluateComparison(percentHealth, condition);
 
-        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] HEALTH_PERCENT check: player=%s, current=%.1f, max=%.1f, percent=%.1f%%, condition=%s, result=%s",
+        com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] HEALTH_PERCENT check: player=%s, current=%.1f, max=%.1f, percent=%.1f%%, condition=%s, result=%s",
             player.getName(), currentHealth, maxHealth, percentHealth, condition, result);
 
         return result;
@@ -454,11 +446,11 @@ public class ConditionManager {
 
         String markName = parts[1].toUpperCase().trim();
 
-        com.miracle.arcanesigils.effects.MarkManager markManager =
-            com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getMarkManager();
+        com.miracle.arcanesigils.combat.ModifierRegistry registry =
+            com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getModifierRegistry();
 
-        if (markManager == null) {
-            com.miracle.arcanesigils.utils.LogHelper.warning("[HAS_MARK] MarkManager is null!");
+        if (registry == null) {
+            com.miracle.arcanesigils.utils.LogHelper.warning("[HAS_MARK] ModifierRegistry is null!");
             return false;
         }
 
@@ -494,16 +486,18 @@ public class ConditionManager {
         }
 
         if (targetEntity == null || targetEntity.isDead()) {
-            com.miracle.arcanesigils.utils.LogHelper.info("[HAS_MARK] No valid target entity (null or dead)");
+            com.miracle.arcanesigils.utils.LogHelper.debug("[HAS_MARK] No valid target entity (null or dead)");
             return false;
         }
 
-        boolean hasMark = markManager.hasMark(targetEntity, markName);
-        
-        com.miracle.arcanesigils.utils.LogHelper.info(
-            String.format("[HAS_MARK] Checking %s for mark '%s': %s", 
+        boolean hasMark = registry.hasMark(targetEntity, markName);
+
+        com.miracle.arcanesigils.utils.LogHelper.debug(
+            String.format("[HAS_MARK] Checking %s for mark '%s': %s",
                 targetEntity.getName(), markName, hasMark ? "YES" : "NO"));
-        
+
+
+
         return hasMark;
     }
 
@@ -636,7 +630,9 @@ public class ConditionManager {
         // Calculate durability percentage
         // Damage = how much is lost, MaxDurability = total
         // Durability% = (MaxDurability - Damage) / MaxDurability * 100
-        int maxDurability = sourceItem.getType().getMaxDurability();
+        int maxDurability = damageable.hasMaxDamage()
+            ? damageable.getMaxDamage()
+            : sourceItem.getType().getMaxDurability();
         if (maxDurability <= 0) {
             return true; // Items with no durability always pass
         }
@@ -868,7 +864,7 @@ public class ConditionManager {
         boolean isPotionDamage = cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.POISON ||
                                  cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.WITHER;
 
-        com.miracle.arcanesigils.utils.LogHelper.info(
+        com.miracle.arcanesigils.utils.LogHelper.debug(
             "[AncientCrown] IS_POTION_DAMAGE check: cause=%s, isPotionDamage=%s",
             cause, isPotionDamage);
 
@@ -877,51 +873,6 @@ public class ConditionManager {
             cause, isPotionDamage);
 
         return isPotionDamage;
-    }
-
-    /**
-     * Get user-friendly failure reason for AI training.
-     * Converts technical condition strings to readable failure reasons.
-     */
-    private String getConditionFailureReason(String condition) {
-        if (condition == null) return "UNKNOWN";
-        
-        String[] parts = condition.split(":");
-        String type = parts[0].toUpperCase().trim();
-        
-        return switch (type) {
-            case "HEALTH_PERCENT", "HEALTH" -> parts.length > 1 && parts[1].startsWith("<")
-                ? "HEALTH_TOO_LOW" : "HEALTH_TOO_HIGH";
-            case "VICTIM_HEALTH_PERCENT" -> "VICTIM_HEALTH_WRONG";
-            case "HAS_POTION" -> "MISSING_POTION";
-            case "NO_POTION" -> "HAS_POTION";
-            case "BIOME" -> "WRONG_BIOME";
-            case "BLOCK_BELOW" -> "WRONG_BLOCK_BELOW";
-            case "LIGHT_LEVEL" -> "WRONG_LIGHT_LEVEL";
-            case "IN_WATER" -> "NOT_IN_WATER";
-            case "ON_GROUND" -> "NOT_ON_GROUND";
-            case "IN_AIR" -> "NOT_IN_AIR";
-            case "SIGIL_ON_COOLDOWN" -> parts.length > 1
-                ? "SIGIL_NOT_ON_COOLDOWN_" + parts[1].toUpperCase()
-                : "SIGIL_NOT_ON_COOLDOWN";
-            case "HUNGER" -> "WRONG_HUNGER";
-            case "WEATHER" -> "WRONG_WEATHER";
-            case "TIME" -> parts.length > 1 && parts[1].contains("DAY")
-                ? "NOT_DAYTIME" : "NOT_NIGHTTIME";
-            case "HAS_VICTIM" -> "NO_VICTIM";
-            case "VICTIM_IS_PLAYER" -> "VICTIM_NOT_PLAYER";
-            case "VICTIM_IS_HOSTILE" -> "VICTIM_NOT_HOSTILE";
-            case "SNEAKING" -> "NOT_SNEAKING";
-            case "SPRINTING" -> "NOT_SPRINTING";
-            case "FLYING" -> "NOT_FLYING";
-            case "SWIMMING" -> "NOT_SWIMMING";
-            case "WEARING_FULL_SET" -> "NOT_FULL_SET";
-            case "Y_LEVEL" -> "WRONG_Y_LEVEL";
-            case "EXPERIENCE_LEVEL" -> "WRONG_XP_LEVEL";
-            case "IS_NEGATIVE_EFFECT" -> "NOT_NEGATIVE_EFFECT";
-            case "IS_NEGATIVE_MODIFIER" -> "NOT_NEGATIVE_MODIFIER";
-            default -> type;
-        };
     }
 
 }

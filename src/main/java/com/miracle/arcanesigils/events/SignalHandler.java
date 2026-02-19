@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.events;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
-import com.miracle.arcanesigils.ai.AITrainingManager;
-import com.miracle.arcanesigils.ai.RewardSignal;
 import com.miracle.arcanesigils.binds.BindsListener;
 import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.core.Sigil;
@@ -33,6 +31,8 @@ import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import com.miracle.arcanesigils.utils.LogHelper;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -152,6 +152,19 @@ public class SignalHandler implements Listener {
             for (String sigilId : removedSigilIds) {
                 if (!stillEquippedSigils.contains(sigilId)) {
                     removeSigilAttributeModifiers(player, sigilId);
+
+                    // Unregister Ancient Crown interceptor when helmet is removed
+                    if (sigilId.equals("ancient_crown") && plugin.getInterceptionManager() != null) {
+                        for (com.miracle.arcanesigils.interception.EffectInterceptor interceptor :
+                                plugin.getInterceptionManager().getInterceptors(player)) {
+                            if (interceptor instanceof com.miracle.arcanesigils.interception.AncientCrownImmunityInterceptor crown) {
+                                crown.deactivate();
+                                plugin.getInterceptionManager().unregisterInterceptor(player, interceptor);
+                                com.miracle.arcanesigils.utils.LogHelper.info("[AncientCrown] Unregistered immunity for " + player.getName() + " (helmet removed)");
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -292,95 +305,127 @@ public class SignalHandler implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDefend(EntityDamageEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
-        // Check invulnerability hits (Divine Intervention)
+        // 1. Invulnerability check — exempt VOID, KILL, SUICIDE
         if (com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.isInvulnerable(player.getUniqueId())) {
+            EntityDamageEvent.DamageCause cause = event.getCause();
+            if (cause != EntityDamageEvent.DamageCause.VOID
+                    && cause != EntityDamageEvent.DamageCause.KILL
+                    && cause != EntityDamageEvent.DamageCause.SUICIDE) {
+                event.setCancelled(true);
+                com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.decrementHits(player.getUniqueId());
+
+                player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.2f);
+                player.getWorld().spawnParticle(Particle.ENCHANTED_HIT,
+                    player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+                return;
+            }
+        }
+
+        // 2. Fall damage toggle
+        if (event.getCause() == EntityDamageEvent.DamageCause.FALL
+                && plugin.getCombatUtil().isFallDamageDisabled()) {
             event.setCancelled(true);
-            com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.decrementHits(player.getUniqueId());
-
-            // Visual/sound feedback
-            player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.2f);
-            player.getWorld().spawnParticle(Particle.ENCHANTED_HIT,
-                player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
-
             return;
         }
 
+        // 3. Signal type
         SignalType signalType = event.getCause() == EntityDamageEvent.DamageCause.FALL
                 ? SignalType.FALL_DAMAGE
                 : SignalType.DEFENSE;
 
-        // Log poison/wither damage for debugging Ancient Crown
-        if (event.getCause() == EntityDamageEvent.DamageCause.POISON ||
-            event.getCause() == EntityDamageEvent.DamageCause.WITHER) {
-            com.miracle.arcanesigils.utils.LogHelper.info(
-                "[AncientCrown] DEFENSE signal firing for %s damage: %.2f",
-                event.getCause(), event.getDamage());
+        // 4. Read individual damage modifiers for proper pipeline
+        double baseDamage = event.getDamage(EntityDamageEvent.DamageModifier.BASE);
+        double armorReduction = event.isApplicable(EntityDamageEvent.DamageModifier.ARMOR)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.ARMOR) : 0;
+        double magicReduction = event.isApplicable(EntityDamageEvent.DamageModifier.MAGIC)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.MAGIC) : 0;
+        @SuppressWarnings("deprecation")
+        double resistanceReduction = event.isApplicable(EntityDamageEvent.DamageModifier.RESISTANCE)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.RESISTANCE) : 0;
+        boolean isBlocking = event.isApplicable(EntityDamageEvent.DamageModifier.BLOCKING)
+                && event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING) != 0;
+
+        // Post-armor damage (before blocking and absorption) — includes Resistance potion
+        double postArmorDamage = baseDamage + armorReduction + magicReduction + resistanceReduction;
+        LogHelper.debug("[DMG-PIPELINE] === DEFEND EVENT: %s took %s, base=%.2f, armor=%.2f, magic=%.2f, resist=%.2f, postArmor=%.2f, blocking=%s ===",
+                player.getName(), event.getCause(), baseDamage, armorReduction, magicReduction, resistanceReduction, postArmorDamage, isBlocking);
+
+        // 5. Apply configurable blocking damage reduction
+        if (isBlocking) {
+            double blockingDR = plugin.getCombatUtil().getBlockingDamageReduction();
+            postArmorDamage *= (1.0 - blockingDR);
+            LogHelper.debug("[DMG-PIPELINE] Blocking DR=%.0f%%, postBlocking=%.2f", blockingDR * 100, postArmorDamage);
         }
 
-        LivingEntity attacker = null;
-        if (event instanceof EntityDamageByEntityEvent byEntity) {
-            org.bukkit.entity.Entity damager = byEntity.getDamager();
+        // 6. Apply plugin modifiers ON TOP of post-armor damage
+        double modifiedDamage = plugin.getCombatUtil().applyPluginModifiers(player, postArmorDamage);
+        if (Math.abs(modifiedDamage - postArmorDamage) > 0.001) {
+            LogHelper.debug("[DMG-PIPELINE] Modifiers changed damage: %.2f -> %.2f", postArmorDamage, modifiedDamage);
+        }
 
-            if (damager instanceof LivingEntity living) {
-                // Direct hit from a mob or player
-                attacker = living;
-            } else if (damager instanceof org.bukkit.entity.Projectile projectile) {
-                // Hit by projectile (arrow, trident, etc.) - get the shooter
-                ProjectileSource shooter = projectile.getShooter();
-                if (shooter instanceof LivingEntity livingShooter) {
-                    attacker = livingShooter;
-                }
+        // 7. Set final damage, properly handling absorption
+        // Zero armor/magic/blocking (already calculated above), recalculate absorption
+        event.setDamage(modifiedDamage);
+        for (EntityDamageEvent.DamageModifier mod : EntityDamageEvent.DamageModifier.values()) {
+            if (mod == EntityDamageEvent.DamageModifier.BASE) continue;
+            if (!event.isApplicable(mod)) continue;
+
+            if (mod == EntityDamageEvent.DamageModifier.ABSORPTION) {
+                // Recalculate absorption based on our modified damage so vanilla consumes hearts correctly
+                double currentAbsorption = player.getAbsorptionAmount();
+                double absorbAmount = Math.min(currentAbsorption, modifiedDamage);
+                event.setDamage(mod, -absorbAmount);
+            } else {
+                event.setDamage(mod, 0);
             }
         }
+        LogHelper.debug("[DMG-PIPELINE] Set final damage=%.2f (getFinalDamage()=%.2f)",
+                modifiedDamage, event.getFinalDamage());
 
-        // Apply damage modifiers BEFORE processing sigil effects
-        double currentDamage = event.getDamage();
+        // 7. Resolve attacker for context
+        LivingEntity attacker = resolveAttacker(event);
 
-        // 1. Apply damage amplification (Cleopatra debuff - target takes MORE damage)
-        double amplificationPercent = com.miracle.arcanesigils.effects.impl.DamageAmplificationEffect.getDamageAmplification(player.getUniqueId());
-        if (amplificationPercent > 0) {
-            currentDamage = currentDamage * (1 + amplificationPercent / 100.0);
-        }
-
-        // 2. Apply damage reduction buff (temporary buff effect)
-        double reductionPercent = com.miracle.arcanesigils.effects.impl.DamageReductionBuffEffect.getDamageReduction(player.getUniqueId());
-        if (reductionPercent > 0) {
-            currentDamage = currentDamage * (1 - reductionPercent / 100.0);
-        }
-
-        // 3. Apply charge-based DR (King's Brace passive)
-        double chargeDR = com.miracle.arcanesigils.effects.impl.UpdateChargeDREffect.getChargeDR(player.getUniqueId());
-        if (chargeDR > 0) {
-            currentDamage = currentDamage * (1 - chargeDR / 100.0);
-        }
-
-        // 4. Apply mark-based damage multipliers (Cleopatra debuff, King's Brace marks, etc.)
-        double markMultiplier = plugin.getMarkManager().getDamageMultiplier(player);
-        if (markMultiplier != 1.0) {
-            currentDamage = currentDamage * markMultiplier;
-            com.miracle.arcanesigils.utils.LogHelper.debug(
-                "[SignalHandler] Applied mark multiplier %.3f to %s: %.2f -> %.2f",
-                markMultiplier, player.getName(), event.getDamage(), currentDamage);
-        }
-
-        event.setDamage(Math.max(0, currentDamage));
-
-        // Notify AuraManager of owner hit (triggers pull-on-hit auras)
+        // 8. AuraManager notification
         if (plugin.getAuraManager() != null) {
             plugin.getAuraManager().onOwnerHit(player.getUniqueId());
         }
 
+        // 9. Build context and fire signals
         EffectContext context = EffectContext.builder(player, signalType)
                 .event(event)
                 .attacker(attacker)
-                .damage(event.getDamage())
+                .damage(modifiedDamage)
                 .build();
 
         processArmorEffects(player, signalType, context);
+
+        // 10. Log final damage after all flows executed
+        LogHelper.debug("[DMG-PIPELINE] After flows: event.getDamage()=%.2f, getFinalDamage()=%.2f",
+                event.getDamage(), event.getFinalDamage());
+    }
+
+    /**
+     * Extract the attacker from a damage event (direct hit or projectile shooter).
+     */
+    private LivingEntity resolveAttacker(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent byEntity) {
+            org.bukkit.entity.Entity damager = byEntity.getDamager();
+            if (damager instanceof LivingEntity living) {
+                return living;
+            } else if (damager instanceof org.bukkit.entity.Projectile projectile) {
+                ProjectileSource shooter = projectile.getShooter();
+                if (shooter instanceof LivingEntity livingShooter) {
+                    return livingShooter;
+                }
+            }
+        }
+        return null;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -399,18 +444,6 @@ public class SignalHandler implements Listener {
 
         processArmorEffects(killer, signalType, context);
 
-        // AI Training: Send kill signal if kill happened within 5s of bind activation
-        BindsListener bindsListener = plugin.getBindsListener();
-        if (bindsListener != null) {
-            Integer bindSlot = bindsListener.getLastActivatedBindSlot(killer.getUniqueId(), 5000);
-            if (bindSlot != null) {
-                AITrainingManager aiTraining = plugin.getAITrainingManager();
-                if (aiTraining != null) {
-                    String entityType = dead.getType().name();
-                    aiTraining.sendKillSignal(killer, bindSlot, entityType);
-                }
-            }
-        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -552,8 +585,16 @@ public class SignalHandler implements Listener {
         // ItemStack durability: 0 = full, max = broken
         if (item.getItemMeta() instanceof org.bukkit.inventory.meta.Damageable damageable) {
             int currentDamage = damageable.getDamage();
-            int maxDurability = item.getType().getMaxDurability();
+            // Use custom max damage if set (for ItemsAdder/custom items), else material default
+            int maxDurability = damageable.hasMaxDamage()
+                ? damageable.getMaxDamage()
+                : item.getType().getMaxDurability();
             int newDamage = currentDamage + event.getDamage();
+
+            // Skip if item has no durability concept (maxDurability 0 = non-damageable)
+            if (maxDurability <= 0) {
+                return;
+            }
 
             // Only fire ITEM_BREAK signal if this damage would destroy the item
             if (newDamage < maxDurability) {
@@ -561,6 +602,10 @@ public class SignalHandler implements Listener {
             }
 
             // Item WOULD break - fire the signal (cancellable!)
+            com.miracle.arcanesigils.utils.LogHelper.info(
+                "[ITEM_BREAK] %s: %s damage=%d/%d (+%d), customMax=%b - firing signal",
+                player.getName(), item.getType(), currentDamage, maxDurability,
+                event.getDamage(), damageable.hasMaxDamage());
             EffectContext context = EffectContext.builder(player, SignalType.ITEM_BREAK)
                     .event(event)
                     .location(player.getLocation())
@@ -651,10 +696,28 @@ public class SignalHandler implements Listener {
             }
         }
 
+        // Check virtual bot sigils (no physical items needed)
+        com.miracle.arcanesigils.core.BotSigilRegistry botRegistry = plugin.getBotSigilRegistry();
+        if (botRegistry != null && botRegistry.hasBotSigils(player.getUniqueId())) {
+            for (String sigilId : botRegistry.getRegisteredSigils(player.getUniqueId())) {
+                Sigil sigil = plugin.getSigilManager().getSigil(sigilId);
+                if (sigil == null) continue;
+                // Collect signal flows (normal proc path)
+                collectFlowsForSignal(sigil, signalType, null, allFlows, player);
+                // Also fire ABILITY flows on ATTACK (bots auto-activate abilities when attacking)
+                if (signalType == SignalType.ATTACK) {
+                    collectAbilityFlowsForBot(sigil, allFlows, player);
+                }
+            }
+        }
+
         if (allFlows.isEmpty()) return;
 
         // For STATIC/passive signals, ALL flows should execute (no priority competition)
-        // For active signals (ATTACK, DEFENSE, SHIFT, etc.), use priority - only ONE activates
+        // For active signals (ATTACK, DEFENSE, SHIFT, etc.), use priority tiers:
+        //   - All flows at the highest priority level execute together
+        //   - If any activated at that level, lower priority flows are skipped
+        //   - If none activated, try the next priority level
         boolean isPassiveSignal = signalType == SignalType.EFFECT_STATIC ||
                                    signalType == SignalType.TICK;
 
@@ -664,7 +727,14 @@ public class SignalHandler implements Listener {
         }
 
         // Execute flows
+        int activatedPriority = Integer.MIN_VALUE;
         for (FlowEntry entry : allFlows) {
+            // For active signals, skip lower-priority flows once a higher priority activated
+            if (!isPassiveSignal && activatedPriority != Integer.MIN_VALUE
+                    && entry.flow.getPriority() < activatedPriority) {
+                break;
+            }
+
             context.setMetadata("sourceSigilId", entry.sigil.getId());
             context.setMetadata("sourceSigilTier", entry.sigil.getTier());
             context.setMetadata("sourceItem", entry.sourceItem);
@@ -681,7 +751,6 @@ public class SignalHandler implements Listener {
                 }
             }
 
-
             String flowId = entry.flow.getGraph() != null ? entry.flow.getGraph().getId() : "unknown";
             String cooldownKey = "sigil_" + entry.sigil.getId() + "_" + signalType.getConfigKey() + "_" + flowId;
 
@@ -692,9 +761,9 @@ public class SignalHandler implements Listener {
                 if (entry.sourceItem != null) {
                     plugin.getTierProgressionManager().awardXP(player, entry.sourceItem, entry.sigil.getId(), entry.sigil.getTier());
                 }
-                // For active signals, stop after first activation (only ONE flow activates)
+                // Track the priority level that activated
                 if (!isPassiveSignal) {
-                    break;
+                    activatedPriority = entry.flow.getPriority();
                 }
             }
         }
@@ -742,6 +811,29 @@ public class SignalHandler implements Listener {
             }
 
             allFlows.add(new FlowEntry(flow, sigil, sourceItem));
+        }
+    }
+
+    /**
+     * Collect ABILITY flows from a sigil for bot players.
+     * Bots auto-activate abilities when attacking, bypassing the bind UI.
+     */
+    private void collectAbilityFlowsForBot(Sigil sigil, List<FlowEntry> allFlows, Player player) {
+        List<FlowConfig> flows = sigil.getFlows();
+        if (flows == null) return;
+        for (FlowConfig flow : flows) {
+            if (!flow.isAbility()) continue;
+            if (flow.getGraph() == null) continue;
+            String flowId = flow.getGraph().getId();
+            String cooldownKey = "sigil_" + sigil.getId() + "_" + flowId;
+            double cooldown = flow.getCooldown();
+            if (flow.getGraph().getStartNode() != null) {
+                cooldown = flow.getGraph().getStartNode().getDoubleParam("cooldown", cooldown);
+            }
+            if (cooldown > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
+                continue;
+            }
+            allFlows.add(new FlowEntry(flow, sigil, null));
         }
     }
 
@@ -861,23 +953,19 @@ public class SignalHandler implements Listener {
                 if (chanceParam != null && chanceParam.toString().contains("{")) {
                     // Unified tier system - resolve from TierScalingConfig
                     String placeholder = chanceParam.toString().replace("{", "").replace("}", "");
-                    com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolving chance placeholder: %s", placeholder);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[executeFlow] Resolving chance placeholder: %s", placeholder);
                     if (tierConfig != null && tierConfig.hasParam(placeholder)) {
                         chance = tierConfig.getParamValue(placeholder, tier);
-                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from tierConfig: %.1f", chance);
                     } else {
                         // Also check context variables (for set bonuses and other param sources)
                         Object varValue = context.getVariable(placeholder);
-                        com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] tierConfig null/missing param, checking variables: %s", varValue);
                         if (varValue instanceof Number) {
                             chance = ((Number) varValue).doubleValue();
-                            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Resolved from variables: %.1f", chance);
                         }
                     }
                 } else if (chanceParam != null) {
                     chance = startNode.getDoubleParam("chance", chance);
                 }
-                com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Final chance value: %.1f%%", chance);
             }
         }
 
@@ -889,7 +977,7 @@ public class SignalHandler implements Listener {
         // Check chance
         if (chance < 100) {
             double roll = ThreadLocalRandom.current().nextDouble() * 100;
-            com.miracle.arcanesigils.utils.LogHelper.info("[executeFlow] Chance roll: %.1f vs %.1f (pass=%s)", roll, chance, roll <= chance);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[executeFlow] Chance roll: %.1f vs %.1f (pass=%s)", roll, chance, roll <= chance);
             if (roll > chance) {
                 return false;
             }
@@ -947,7 +1035,7 @@ public class SignalHandler implements Listener {
 
         java.util.Map<String, Integer> activeBonuses = setBonusManager.getActiveBonuses(player);
 
-        com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Processing for player %s, active bonuses: %d",
+        com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Processing for player %s, active bonuses: %d",
             player.getName(), activeBonuses.size());
 
         for (java.util.Map.Entry<String, Integer> entry : activeBonuses.entrySet()) {
@@ -956,11 +1044,11 @@ public class SignalHandler implements Listener {
 
             com.miracle.arcanesigils.sets.SetBonus setBonus = setBonusManager.getSetBonus(setName);
             if (setBonus == null) {
-                com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Set '%s' not found in manager!", setName);
+                com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Set '%s' not found in manager!", setName);
                 continue;
             }
 
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Executing %s (tier %d) for %s",
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Executing %s (tier %d) for %s",
                 setName, tier, player.getName());
 
             // Inject set bonus tier into context as metadata
@@ -974,15 +1062,15 @@ public class SignalHandler implements Listener {
                 Double value = paramEntry.getValue().get(tier);
                 if (value != null) {
                     context.setVariable(paramName, value);
-                    com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus]   Param: %s = %.1f", paramName, value);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus]   Param: %s = %.1f", paramName, value);
                 }
             }
 
             // Execute set bonus flow (use executeFlow to handle chance/cooldown)
             String cooldownKey = "setbonus_" + setName + "_EFFECT_STATIC";
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] About to execute flow for %s", setName);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] About to execute flow for %s", setName);
             boolean activated = executeFlow(player, setBonus.getFlow().getGraph(), setBonus.getFlow(), context, cooldownKey);
-            com.miracle.arcanesigils.utils.LogHelper.info("[SetBonus] Finished executing flow for %s (activated=%s)", setName, activated);
+            com.miracle.arcanesigils.utils.LogHelper.debug("[SetBonus] Finished executing flow for %s (activated=%s)", setName, activated);
         }
     }
 

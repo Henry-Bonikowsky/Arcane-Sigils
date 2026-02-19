@@ -4,7 +4,6 @@ import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import org.bukkit.Bukkit;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -114,17 +113,21 @@ public class AbsorbtionEffect extends AbstractEffect {
             if (player.isOnline()) {
                 double current = player.getAbsorptionAmount();
                 if (current > 0) {
-                    player.setAbsorptionAmount((float) Math.max(0, current - absorptionHP));
-                }
-                // Reset max absorption to what it was
-                if (maxAbsorption != null) {
-                    maxAbsorption.setBaseValue(finalOldMax);
+                    double newAbsorption = Math.max(0, current - absorptionHP);
+                    player.setAbsorptionAmount((float) newAbsorption);
+
+                    // Only reset max absorption if no absorption remains
+                    if (maxAbsorption != null && newAbsorption <= 0) {
+                        maxAbsorption.setBaseValue(finalOldMax);
+                    }
+                } else {
+                    // No absorption left, reset max
+                    if (maxAbsorption != null) {
+                        maxAbsorption.setBaseValue(finalOldMax);
+                    }
                 }
             }
         }, durationSeconds * 20L);
-
-        // Sound only - particles should be added via PARTICLE effect in YAML if desired
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.5f);
 
         debug("Granted " + hearts + " absorption hearts (" + absorptionHP + " HP) to " +
               player.getName() + " for " + durationSeconds + " seconds");

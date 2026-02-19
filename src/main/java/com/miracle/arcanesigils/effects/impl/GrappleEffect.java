@@ -2,8 +2,6 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
 import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -49,22 +47,6 @@ public class GrappleEffect extends AbstractEffect {
         // Apply velocity
         direction.multiply(speed);
         player.setVelocity(direction);
-
-        // Visual effects - draw line to target
-        Location start = player.getLocation().add(0, 1, 0);
-        Vector step = targetLoc.toVector().subtract(start.toVector()).normalize().multiply(0.5);
-        Location current = start.clone();
-        double distance = start.distance(targetLoc);
-
-        for (double d = 0; d < Math.min(distance, 30); d += 0.5) {
-            player.getWorld().spawnParticle(Particle.CRIT, current, 1, 0, 0, 0, 0);
-            current.add(step);
-        }
-
-        player.getWorld().playSound(player.getLocation(),
-            Sound.ENTITY_FISHING_BOBBER_THROW, 1.0f, 0.8f);
-        player.getWorld().playSound(player.getLocation(),
-            Sound.ITEM_TRIDENT_RIPTIDE_1, 0.5f, 1.2f);
 
         debug("Grappled toward " + (target != null ? target.getName() : "block") +
             " with speed " + speed);

@@ -1,17 +1,19 @@
 package com.miracle.arcanesigils.effects.impl;
 
+import com.miracle.arcanesigils.combat.ModifierType;
 import com.miracle.arcanesigils.effects.EffectContext;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
 /**
- * Applies a mark with a damage multiplier to a target.
+ * Applies a mark AND a damage modifier to a target.
+ * The mark is a tag (for HAS_MARK conditions), and the modifier affects damage calculation.
  * Used for effects like Cleopatra's damage amplification and King's Brace damage reduction.
  */
 public class ApplyDamageMarkEffect extends AbstractEffect {
 
     public ApplyDamageMarkEffect() {
-        super("APPLY_DAMAGE_MARK", "Apply mark with damage multiplier");
+        super("APPLY_DAMAGE_MARK", "Apply mark with damage modifier");
     }
 
     @Override
@@ -27,13 +29,37 @@ public class ApplyDamageMarkEffect extends AbstractEffect {
         }
 
         Player owner = context.getPlayer();
+        long durationMs = (long) (duration * 1000);
 
-        getPlugin().getMarkManager().applyMark(
-            target, markName, duration, null, owner, damageMultiplier
-        );
+        // Apply the mark tag (for HAS_MARK condition checks)
+        getPlugin().getModifierRegistry().applyMark(target, markName, duration, null, owner);
+
+        // Apply the damage modifier if not 1.0
+        if (damageMultiplier != 1.0) {
+            String source = markName + "_" + (context.getSigilId() != null ? context.getSigilId() : "unknown");
+            if (damageMultiplier > 1.0) {
+                // Amplification: convert multiplier to fraction (1.20 -> 0.20)
+                getPlugin().getModifierRegistry().applyModifier(
+                        target.getUniqueId(),
+                        ModifierType.DAMAGE_AMPLIFICATION,
+                        source,
+                        damageMultiplier - 1.0,
+                        durationMs
+                );
+            } else {
+                // Reduction: convert multiplier to fraction (0.80 -> 0.20)
+                getPlugin().getModifierRegistry().applyModifier(
+                        target.getUniqueId(),
+                        ModifierType.DAMAGE_REDUCTION,
+                        source,
+                        1.0 - damageMultiplier,
+                        durationMs
+                );
+            }
+        }
 
         debug(String.format("Applied mark %s to %s: multiplier=%.3f, duration=%.1fs",
-              markName, target.getName(), damageMultiplier, duration));
+                markName, target.getName(), damageMultiplier, duration));
 
         return true;
     }

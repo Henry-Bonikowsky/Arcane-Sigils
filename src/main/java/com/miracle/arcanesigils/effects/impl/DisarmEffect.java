@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -47,12 +45,6 @@ public class DisarmEffect extends AbstractEffect {
 
             // Prevent immediate pickup
             droppedItem.setPickupDelay(40); // 2 seconds
-
-            // Effects
-            targetPlayer.getWorld().spawnParticle(Particle.CRIT,
-                targetPlayer.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
-            targetPlayer.getWorld().playSound(targetPlayer.getLocation(),
-                Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
 
             debug("Disarmed " + target.getName());
             return true;

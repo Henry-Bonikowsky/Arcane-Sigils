@@ -73,9 +73,9 @@ public class FlowExecutor {
         FlowContext context = new FlowContext(effectContext);
 
         // Execute the flow
-        LogHelper.info("[FlowExecutor] Starting flow execution from START");
+        LogHelper.debug("[FlowExecutor] Starting flow execution from START");
         executeFromNode(graph, startNode, context, 0);
-        LogHelper.info("[FlowExecutor] Flow execution completed");
+        LogHelper.debug("[FlowExecutor] Flow execution completed");
 
         return context;
     }
@@ -136,7 +136,7 @@ public class FlowExecutor {
                 visitedInCycle.add(currentNode.getId());
             }
 
-            LogHelper.info("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
+            LogHelper.debug("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
 
             try {
                 // Execute the node and get the output port to follow
@@ -228,12 +228,12 @@ public class FlowExecutor {
                 visitedInCycle.add(currentNode.getId());
             }
 
-            LogHelper.info("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
+            LogHelper.debug("[Flow] Executing node: %s (%s)", currentNode.getDisplayName(), currentNode.getId());
 
             try {
                 // Execute the node and get the output port to follow
                 String outputPort = currentNode.execute(context);
-                LogHelper.info("[FlowExecutor] Node %s executed, output port: %s", currentNode.getId(), outputPort);
+                LogHelper.debug("[FlowExecutor] Node %s executed, output port: %s", currentNode.getId(), outputPort);
 
                 // Add trace entry in test mode (for non-condition nodes)
                 if (context.isTestMode() && currentNode.getType() != NodeType.CONDITION) {
@@ -277,7 +277,7 @@ public class FlowExecutor {
                     currentNode = null;
                 } else {
                     String nextNodeId = currentNode.getConnection(outputPort);
-                    LogHelper.info("[FlowExecutor] Looking for connection '%s' from node %s, found: %s",
+                    LogHelper.debug("[FlowExecutor] Looking for connection '%s' from node %s, found: %s",
                         outputPort, currentNode.getId(), nextNodeId);
 
                     if (nextNodeId == null) {

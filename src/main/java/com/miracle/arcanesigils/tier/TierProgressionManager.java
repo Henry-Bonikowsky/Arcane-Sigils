@@ -2,6 +2,7 @@ package com.miracle.arcanesigils.tier;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.core.Sigil;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.NamespacedKey;
@@ -146,7 +147,7 @@ public class TierProgressionManager {
      * Send subtle tier-up feedback to the player.
      */
     private void sendTierUpFeedback(Player player, Sigil sigil, int newTier) {
-        String romanTier = toRomanNumeral(newTier);
+        String romanTier = RomanNumerals.toRoman(newTier);
         String sigilName = sigil.getName();
 
         // Chat message
@@ -182,18 +183,6 @@ public class TierProgressionManager {
         double progress = requiredXP > 0 ? (double) currentXP / requiredXP : 1.0;
 
         return new XPProgressInfo(currentXP, requiredXP, progress, xpConfig.isEnabled(), false);
-    }
-
-    /**
-     * Convert tier number to roman numeral.
-     */
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
     }
 
     /**

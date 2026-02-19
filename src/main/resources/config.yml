@@ -1,10 +1,89 @@
 # ArcaneSigils Configuration
 # Version: 1.0.0
 
+# Combat settings — plugin modifiers layered over vanilla damage
+combat:
+  # Fall damage toggle (true = fall damage disabled for all players)
+  fall-damage-disabled: false
+
+  # Soft damage cap — diminishing returns above threshold
+  # Damage above threshold is multiplied by falloff (0.5 = 50% of excess)
+  # Example: threshold=20, falloff=0.5 → 30 damage becomes 20 + (10 * 0.5) = 25
+  soft-cap:
+    enabled: true
+    threshold: 20.0
+    falloff: 0.5
+
+  # Maximum damage per hit in half-hearts (20 = 10 hearts)
+  # Applied after ALL modifiers as a hard cap
+  max-damage-per-hit: 20.0
+
+  # Blocking damage reduction (0-1, 1.0 = 100% like vanilla, 0.5 = 50%)
+  blocking-damage-reduction: 0.50
+
+  # Critical hit damage multiplier (vanilla = 1.5)
+  crit-multiplier: 1.5
+
+  # Protection enchant scaling — override vanilla Protection DR per level
+  # When enabled, replaces vanilla Protection formula with configurable DR% per piece
+  protection-scaling:
+    enabled: false
+    1: 4.0
+    2: 8.0
+    3: 12.0
+    4: 16.0
+    5: 20.0
+    6: 24.0
+    7: 28.0
+    8: 32.0
+    9: 36.0
+    10: 40.0
+
+  # Sharpness enchant scaling — override vanilla Sharpness bonus per level
+  # When enabled, replaces vanilla Sharpness formula with configurable flat bonus
+  sharpness-scaling:
+    enabled: false
+    1: 1.0
+    2: 1.5
+    3: 2.0
+    4: 2.5
+    5: 3.0
+    6: 3.5
+    7: 4.0
+    8: 4.5
+    9: 5.0
+    10: 5.5
+
+  # Unbreaking enchant scaling — override vanilla Unbreaking ignore chance per level
+  # Vanilla formula for armor: 60% + 40%/(level+1) chance to consume durability
+  # Values below are the chance to IGNORE a durability hit (higher = more durable)
+  unbreaking-scaling:
+    enabled: false
+    1: 0.2000    # 20% ignore chance
+    2: 0.2667    # 26.67%
+    3: 0.3000    # 30%
+    4: 0.3200    # 32%
+    5: 0.3333    # 33.33%
+    6: 0.3429    # 34.29%
+    7: 0.3500    # 35%
+    8: 0.3556    # 35.56%
+    9: 0.3600    # 36%
+    10: 0.3636   # 36.36%
+
+  # Armor durability overrides (legacy flat values)
+  durability:
+    enabled: false
+    leather: 80
+    chainmail: 240
+    iron: 240
+    gold: 112
+    diamond: 528
+    netherite: 592
+
 # General Settings
 settings:
   # Enable debug messages in console
-  debug: false
+  debug: true
 
   # Performance settings
   effect-check-interval: 20  # Ticks between static effect reapplication (20 = 1 second)
@@ -68,6 +147,7 @@ item-cooldowns:
   golden-apple: 9.0           # seconds
   enchanted-golden-apple: 9.0 # same cooldown as regular
   totem-of-undying: 60.0      # seconds
+  ender-pearl: 0.0            # seconds (0 = disabled)
 
 # BossBar Notification Settings
 # Shows animated progress bars for cooldowns and buff durations
@@ -124,34 +204,6 @@ integrations:
 
   # Respect WorldGuard PvP flags
   respect-pvp-flags: true
-
-# AI Training Settings
-ai_training:
-  # Enable AI training integration (reward signals, scoreboard updates)
-  enabled: true
-
-  # Update interval for scoreboard (in ticks, 20 = 1 second)
-  scoreboard_update_interval: 20
-
-  # Kill attribution window (milliseconds) - kills within this time after bind activation count
-  kill_attribution_window: 5000
-
-  # Signal display format
-  signals:
-    # Show signals as action bar messages
-    action_bar: true
-    
-    # Show signals in scoreboard
-    scoreboard: true
-    
-    # Signal message formats (placeholders: %slot%, %type%, %value%)
-    formats:
-      hit: "&a[Slot %slot%] HIT +%.1f dmg"
-      miss: "&7[Slot %slot%] MISS"
-      heal: "&e[Slot %slot%] HEAL +%.1f hp"
-      kill: "&c[Slot %slot%] KILL"
-      cc: "&5[Slot %slot%] CC %.1fs"
-      cooldown: "&8[Slot %slot%] CD %.1fs"
 
 # Notification Settings
 notifications:

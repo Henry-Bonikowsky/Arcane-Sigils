@@ -1071,7 +1071,7 @@ public class SpawnEntityEffect extends AbstractEffect implements Listener {
                 double markDuration = attacker.hasMetadata(ON_HIT_MARK_DURATION_KEY)
                         ? (double) attacker.getMetadata(ON_HIT_MARK_DURATION_KEY).get(0).value()
                         : 5;
-                getPlugin().getMarkManager().applyMark(victim, markName, markDuration);
+                getPlugin().getModifierRegistry().applyMark(victim, markName, markDuration);
             }
         }
 

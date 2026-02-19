@@ -238,17 +238,8 @@ public class NodePaletteHandler extends AbstractHandler {
             inv.setItem(i, ItemBuilder.createBackground());
         }
 
-        // Create session that preserves flow data
-        GUISession session = new GUISession(GUIType.NODE_PALETTE);
-        session.put("sigil", flowSession.get("sigil"));
-        session.put("signalKey", flowSession.get("signalKey"));
-        session.put("flow", flowSession.get("flow"));
-        session.put("originalFlow", flowSession.get("originalFlow"));
-        session.put("selectedNode", flowSession.get("selectedNode"));
-        session.put("viewX", flowSession.get("viewX"));
-        session.put("viewY", flowSession.get("viewY"));
-        session.put("addNodeX", flowSession.get("addNodeX"));
-        session.put("addNodeY", flowSession.get("addNodeY"));
+        // Create session inheriting flow context
+        GUISession session = flowSession.deriveChild(GUIType.NODE_PALETTE);
 
         guiManager.openGUI(player, inv, session);
     }

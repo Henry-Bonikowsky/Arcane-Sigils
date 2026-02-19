@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.gui.sigil;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.core.RarityUtil;
 import com.miracle.arcanesigils.gui.GUIManager;
 import com.miracle.arcanesigils.gui.GUISession;
 import com.miracle.arcanesigils.gui.GUIType;
@@ -125,7 +126,7 @@ public class RarityFilterHandler extends AbstractHandler {
     }
 
     private static ItemStack createRarityButton(String rarity, boolean active) {
-        String color = getRarityColor(rarity);
+        String color = RarityUtil.getColor(rarity);
         Material material = getRarityMaterial(rarity);
 
         List<String> lore = new ArrayList<>();
@@ -142,18 +143,6 @@ public class RarityFilterHandler extends AbstractHandler {
             ItemBuilder.addGlow(item);
         }
         return item;
-    }
-
-    private static String getRarityColor(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "§7";
-            case "UNCOMMON" -> "§a";
-            case "RARE" -> "§9";
-            case "EPIC" -> "§5";
-            case "LEGENDARY" -> "§6";
-            case "MYTHIC" -> "§d";
-            default -> "§7";
-        };
     }
 
     private static Material getRarityMaterial(String rarity) {

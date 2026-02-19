@@ -1,6 +1,5 @@
 package com.miracle.arcanesigils.effects.impl;
 
-import com.miracle.arcanesigils.effects.AttributeModifierManager;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.interception.InterceptionEvent;
@@ -141,15 +140,17 @@ public class ReducePotionPotencyEffect extends AbstractEffect {
         debug(String.format("[ReducePotionPotency] Applying counter-modifier: %s (duration: %d ticks)",
             modifierName, duration));
 
-        // Apply counter-modifier via AttributeModifierManager
-        int durationTicks = duration; // Duration is already in ticks
-        getPlugin().getAttributeModifierManager().setNamedModifier(
+        // Apply counter-modifier via ModifierRegistry
+        // Duration from InterceptionEvent is in ticks — setNamedModifier expects seconds
+        int durationSeconds = duration / 20;
+        if (durationSeconds < 1 && duration > 0) durationSeconds = 1; // At least 1s if any ticks
+        getPlugin().getModifierRegistry().setNamedModifier(
             target,
             mapping.attribute,
             modifierName,
             counterValue,
             mapping.operation,
-            durationTicks
+            durationSeconds
         );
 
         // Track this counter-modifier for cleanup when potion expires

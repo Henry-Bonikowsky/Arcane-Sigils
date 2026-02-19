@@ -2,8 +2,6 @@ package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.events.SignalType;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -62,10 +60,6 @@ public class PhoenixEffect extends AbstractEffect {
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1));
         player.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 800, 0));
 
-        // Visual/audio effects
-        player.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, player.getLocation(), 100);
-        player.playSound(player.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1f);
-
         debug("Phoenix revival: " + player.getName() + " restored to " + health + " health");
         return true;
     }
@@ -78,10 +72,6 @@ public class PhoenixEffect extends AbstractEffect {
         // Apply protective buffs
         player.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 1));
         player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
-
-        // Visual effect
-        player.getWorld().spawnParticle(Particle.HEART, player.getLocation().add(0, 2, 0), 10);
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.5f);
 
         debug("Phoenix protective buff applied to " + player.getName());
         return true;

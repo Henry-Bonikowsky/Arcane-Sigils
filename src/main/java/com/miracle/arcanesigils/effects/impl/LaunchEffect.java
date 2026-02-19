@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -30,10 +28,6 @@ public class LaunchEffect extends AbstractEffect {
 
         // Launch straight up
         target.setVelocity(new Vector(0, height, 0));
-
-        // Effects
-        target.getWorld().spawnParticle(Particle.CLOUD, target.getLocation(), 20, 0.3, 0.1, 0.3, 0.1);
-        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_BAT_TAKEOFF, 1.0f, 0.7f);
 
         debug("Launched " + target.getName() + " with height " + height);
         return true;

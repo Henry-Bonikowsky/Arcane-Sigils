@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -84,14 +82,6 @@ public class StealBuffsEffect extends AbstractEffect {
                 effect.hasParticles()
             ));
         }
-
-        // Effects
-        target.getWorld().spawnParticle(Particle.WITCH,
-            target.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
-        player.getWorld().spawnParticle(Particle.HAPPY_VILLAGER,
-            player.getLocation().add(0, 1, 0), 10, 0.3, 0.5, 0.3, 0.1);
-        player.getWorld().playSound(player.getLocation(),
-            Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1.0f, 1.2f);
 
         debug("Stole " + stolenEffects.size() + " buffs from " + target.getName());
         return true;

@@ -70,7 +70,7 @@ public class PotionEffectTracker implements Listener {
             // Remove the counter-modifier
             Attribute attribute = getAttributeForEffect(effectType);
             if (attribute != null) {
-                plugin.getAttributeModifierManager().removeNamedModifier(player, attribute, modifierName);
+                plugin.getModifierRegistry().removeNamedModifier(player, attribute, modifierName);
             }
         }
 
@@ -108,7 +108,7 @@ public class PotionEffectTracker implements Listener {
         for (Map.Entry<PotionEffectType, String> entry : playerEffects.entrySet()) {
             Attribute attribute = getAttributeForEffect(entry.getKey());
             if (attribute != null) {
-                plugin.getAttributeModifierManager().removeNamedModifier(player, attribute, entry.getValue());
+                plugin.getModifierRegistry().removeNamedModifier(player, attribute, entry.getValue());
             }
         }
     }

@@ -24,14 +24,6 @@ public class HealEffect extends AbstractEffect {
         double actualHealAmount = newHealth - currentHealth;
         
         target.setHealth(newHealth);
-        
-        // AI Training: Accumulate total healing done
-        if (actualHealAmount > 0) {
-            Double currentTotal = context.getVariable("aiTraining_totalHeal");
-            double newTotal = (currentTotal != null ? currentTotal : 0.0) + actualHealAmount;
-            context.setVariable("aiTraining_totalHeal", newTotal);
-        }
-        
         return true;
     }
 }

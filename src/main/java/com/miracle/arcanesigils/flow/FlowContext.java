@@ -212,8 +212,9 @@ public class FlowContext {
 
         if (tierConfig != null && tierConfig.hasParam(placeholder)) {
             double value = tierConfig.getParamValue(placeholder, tier);
-            com.miracle.arcanesigils.utils.LogHelper.debug(
-                "[FlowContext] Resolved '%s' from tierConfig: %.2f", placeholder, value);
+            com.miracle.arcanesigils.utils.LogHelper.info(
+                "[FlowContext] Resolved '%s' from tierConfig at tier %d: %s",
+                placeholder, tier, java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString());
             return value;
         } else if (tierConfig != null) {
             com.miracle.arcanesigils.utils.LogHelper.debug(
@@ -378,7 +379,8 @@ public class FlowContext {
             if (d == d.longValue()) {
                 return String.valueOf(d.longValue());
             }
-            return String.format("%.2f", d);
+            // Full precision to avoid truncating small values (e.g., 0.002 → "0.00")
+            return java.math.BigDecimal.valueOf(d).stripTrailingZeros().toPlainString();
         }
         return String.valueOf(value);
     }

@@ -7,6 +7,7 @@ import com.miracle.arcanesigils.gui.GUIManager;
 import com.miracle.arcanesigils.gui.GUISession;
 import com.miracle.arcanesigils.gui.common.AbstractHandler;
 import com.miracle.arcanesigils.gui.common.ItemBuilder;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -95,7 +96,7 @@ public class TierComparisonHandler extends AbstractHandler {
         tieredSigil.setTier(tier);
 
         List<String> lore = new ArrayList<>();
-        lore.add("§7Tier: §e" + toRomanNumeral(tier));
+        lore.add("§7Tier: §e" + RomanNumerals.toRoman(tier));
         lore.add("");
 
         // Add tier-scaled parameters if they exist
@@ -118,7 +119,7 @@ public class TierComparisonHandler extends AbstractHandler {
         Material material = sigil.getItemForm() != null ?
             sigil.getItemForm().getMaterial() : Material.PAPER;
 
-        return ItemBuilder.createItem(material, "§e" + toRomanNumeral(tier), lore);
+        return ItemBuilder.createItem(material, "§e" + RomanNumerals.toRoman(tier), lore);
     }
 
     /**
@@ -172,15 +173,4 @@ public class TierComparisonHandler extends AbstractHandler {
         return result.toString();
     }
 
-    /**
-     * Convert tier number to roman numeral.
-     */
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
-    }
 }

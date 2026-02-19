@@ -115,8 +115,8 @@ public class InterceptionEvent {
             throw new IllegalStateException("Cannot modify amplifier on non-potion event");
         }
         
-        // Calculate new amplifier and truncate to integer
-        int newAmplifier = (int) (amplifier * multiplier);
+        // Calculate new amplifier and round (not truncate) to integer
+        int newAmplifier = (int) Math.round(amplifier * multiplier);
         
         // Clamp to 0 minimum (can't have negative amplifier)
         this.amplifier = Math.max(0, newAmplifier);
