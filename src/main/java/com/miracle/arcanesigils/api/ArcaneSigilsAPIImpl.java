@@ -7,9 +7,8 @@ import com.miracle.arcanesigils.binds.PlayerBindData;
 import com.miracle.arcanesigils.binds.TargetGlowManager;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.core.SocketManager;
-import com.miracle.arcanesigils.effects.MarkManager;
-import com.miracle.arcanesigils.effects.impl.DamageAmplificationEffect;
-import com.miracle.arcanesigils.effects.impl.DamageReductionBuffEffect;
+import com.miracle.arcanesigils.combat.ModifierRegistry;
+import com.miracle.arcanesigils.combat.ModifierType;
 import com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect;
 import com.miracle.arcanesigils.events.CooldownManager;
 import com.miracle.arcanesigils.flow.FlowConfig;
@@ -224,15 +223,13 @@ public class ArcaneSigilsAPIImpl implements ArcaneSigilsAPI {
     @Override
     public double getDamageAmplifier(Player player) {
         if (player == null) return 1.0;
-        double amp = DamageAmplificationEffect.getDamageAmplification(player.getUniqueId());
-        return 1.0 + (amp / 100.0);
+        return plugin.getModifierRegistry().getMultiplier(player.getUniqueId(), ModifierType.DAMAGE_AMPLIFICATION);
     }
 
     @Override
     public double getDamageReduction(Player player) {
         if (player == null) return 1.0;
-        double red = DamageReductionBuffEffect.getDamageReduction(player.getUniqueId());
-        return 1.0 - (red / 100.0);
+        return plugin.getModifierRegistry().getMultiplier(player.getUniqueId(), ModifierType.DAMAGE_REDUCTION);
     }
 
     @Override
@@ -253,25 +250,30 @@ public class ArcaneSigilsAPIImpl implements ArcaneSigilsAPI {
     @Override
     public boolean isMarked(Player target, Player attacker) {
         if (target == null || attacker == null) return false;
-        return plugin.getMarkManager().isMarkedBy(target, attacker);
+        return plugin.getModifierRegistry().isMarkedBy(target, attacker);
     }
 
     @Override
     public boolean hasMark(LivingEntity entity, String markName) {
         if (entity == null || markName == null) return false;
-        return plugin.getMarkManager().hasMark(entity, markName);
+        return plugin.getModifierRegistry().hasMark(entity, markName);
     }
 
     @Override
     public List<MarkInfo> getActiveMarks(LivingEntity entity) {
         if (entity == null) return Collections.emptyList();
-        return plugin.getMarkManager().getActiveMarkInfo(entity);
+        return plugin.getModifierRegistry().getActiveMarkInfo(entity);
     }
 
     @Override
     public double getMarkDamageMultiplier(LivingEntity entity) {
         if (entity == null) return 1.0;
-        return plugin.getMarkManager().getDamageMultiplier(entity);
+        // Combine all damage modifier types into a single multiplier
+        ModifierRegistry reg = plugin.getModifierRegistry();
+        java.util.UUID id = entity.getUniqueId();
+        return reg.getMultiplier(id, ModifierType.DAMAGE_AMPLIFICATION)
+             * reg.getMultiplier(id, ModifierType.DAMAGE_REDUCTION)
+             * reg.getMultiplier(id, ModifierType.CHARGE_DR);
     }
 
     @Override
@@ -288,5 +290,17 @@ public class ArcaneSigilsAPIImpl implements ArcaneSigilsAPI {
         LastVictimManager lvm = plugin.getLastVictimManager();
         if (lvm == null) return null;
         return lvm.getLastVictim(player);
+    }
+
+    @Override
+    public void registerBotSigils(Player player, List<String> sigilIds) {
+        if (player == null || sigilIds == null) return;
+        plugin.getBotSigilRegistry().register(player.getUniqueId(), sigilIds);
+    }
+
+    @Override
+    public void unregisterBotSigils(Player player) {
+        if (player == null) return;
+        plugin.getBotSigilRegistry().unregister(player.getUniqueId());
     }
 }

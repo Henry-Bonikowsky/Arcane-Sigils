@@ -32,6 +32,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.miracle.arcanesigils.utils.LogHelper;
+
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -150,6 +152,19 @@ public class SignalHandler implements Listener {
             for (String sigilId : removedSigilIds) {
                 if (!stillEquippedSigils.contains(sigilId)) {
                     removeSigilAttributeModifiers(player, sigilId);
+
+                    // Unregister Ancient Crown interceptor when helmet is removed
+                    if (sigilId.equals("ancient_crown") && plugin.getInterceptionManager() != null) {
+                        for (com.miracle.arcanesigils.interception.EffectInterceptor interceptor :
+                                plugin.getInterceptionManager().getInterceptors(player)) {
+                            if (interceptor instanceof com.miracle.arcanesigils.interception.AncientCrownImmunityInterceptor crown) {
+                                crown.deactivate();
+                                plugin.getInterceptionManager().unregisterInterceptor(player, interceptor);
+                                com.miracle.arcanesigils.utils.LogHelper.info("[AncientCrown] Unregistered immunity for " + player.getName() + " (helmet removed)");
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -294,91 +309,84 @@ public class SignalHandler implements Listener {
     public void onPlayerDefend(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
 
-        // Check invulnerability hits (Divine Intervention)
+        // 1. Invulnerability check — exempt VOID, KILL, SUICIDE
         if (com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.isInvulnerable(player.getUniqueId())) {
+            EntityDamageEvent.DamageCause cause = event.getCause();
+            if (cause != EntityDamageEvent.DamageCause.VOID
+                    && cause != EntityDamageEvent.DamageCause.KILL
+                    && cause != EntityDamageEvent.DamageCause.SUICIDE) {
+                event.setCancelled(true);
+                com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.decrementHits(player.getUniqueId());
+
+                player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.2f);
+                player.getWorld().spawnParticle(Particle.ENCHANTED_HIT,
+                    player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+                return;
+            }
+        }
+
+        // 2. Fall damage toggle
+        if (event.getCause() == EntityDamageEvent.DamageCause.FALL
+                && plugin.getCombatUtil().isFallDamageDisabled()) {
             event.setCancelled(true);
-            com.miracle.arcanesigils.effects.impl.InvulnerabilityHitsEffect.decrementHits(player.getUniqueId());
-
-            // Visual/sound feedback
-            player.playSound(player.getLocation(), Sound.ITEM_SHIELD_BLOCK, 1.0f, 1.2f);
-            player.getWorld().spawnParticle(Particle.ENCHANTED_HIT,
-                player.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
-
             return;
         }
 
+        // 3. Signal type
         SignalType signalType = event.getCause() == EntityDamageEvent.DamageCause.FALL
                 ? SignalType.FALL_DAMAGE
                 : SignalType.DEFENSE;
 
-        // Log poison/wither damage for debugging Ancient Crown
-        if (event.getCause() == EntityDamageEvent.DamageCause.POISON ||
-            event.getCause() == EntityDamageEvent.DamageCause.WITHER) {
-            com.miracle.arcanesigils.utils.LogHelper.info(
-                "[AncientCrown] DEFENSE signal firing for %s damage: %.2f",
-                event.getCause(), event.getDamage());
+        // 4. Apply plugin modifiers OVER vanilla damage
+        double vanillaDamage = event.getDamage();
+        LogHelper.info("[DMG-PIPELINE] === DEFEND EVENT: %s took %s, vanillaDmg=%.2f ===",
+                player.getName(), event.getCause(), vanillaDamage);
+        double modifiedDamage = plugin.getCombatUtil().applyPluginModifiers(player, vanillaDamage);
+        if (Math.abs(modifiedDamage - vanillaDamage) > 0.001) {
+            LogHelper.info("[DMG-PIPELINE] Modifiers changed damage: %.2f -> %.2f", vanillaDamage, modifiedDamage);
         }
+        event.setDamage(modifiedDamage);
+        LogHelper.info("[DMG-PIPELINE] event.setDamage(%.2f), getFinalDamage()=%.2f",
+                modifiedDamage, event.getFinalDamage());
 
-        LivingEntity attacker = null;
-        if (event instanceof EntityDamageByEntityEvent byEntity) {
-            org.bukkit.entity.Entity damager = byEntity.getDamager();
+        // 5. Resolve attacker for context
+        LivingEntity attacker = resolveAttacker(event);
 
-            if (damager instanceof LivingEntity living) {
-                // Direct hit from a mob or player
-                attacker = living;
-            } else if (damager instanceof org.bukkit.entity.Projectile projectile) {
-                // Hit by projectile (arrow, trident, etc.) - get the shooter
-                ProjectileSource shooter = projectile.getShooter();
-                if (shooter instanceof LivingEntity livingShooter) {
-                    attacker = livingShooter;
-                }
-            }
-        }
-
-        // Apply damage modifiers BEFORE processing sigil effects
-        double currentDamage = event.getDamage();
-
-        // 1. Apply damage amplification (Cleopatra debuff - target takes MORE damage)
-        double amplificationPercent = com.miracle.arcanesigils.effects.impl.DamageAmplificationEffect.getDamageAmplification(player.getUniqueId());
-        if (amplificationPercent > 0) {
-            currentDamage = currentDamage * (1 + amplificationPercent / 100.0);
-        }
-
-        // 2. Apply damage reduction buff (temporary buff effect)
-        double reductionPercent = com.miracle.arcanesigils.effects.impl.DamageReductionBuffEffect.getDamageReduction(player.getUniqueId());
-        if (reductionPercent > 0) {
-            currentDamage = currentDamage * (1 - reductionPercent / 100.0);
-        }
-
-        // 3. Apply charge-based DR (King's Brace passive)
-        double chargeDR = com.miracle.arcanesigils.effects.impl.UpdateChargeDREffect.getChargeDR(player.getUniqueId());
-        if (chargeDR > 0) {
-            currentDamage = currentDamage * (1 - chargeDR / 100.0);
-        }
-
-        // 4. Apply mark-based damage multipliers (Cleopatra debuff, King's Brace marks, etc.)
-        double markMultiplier = plugin.getMarkManager().getDamageMultiplier(player);
-        if (markMultiplier != 1.0) {
-            currentDamage = currentDamage * markMultiplier;
-            com.miracle.arcanesigils.utils.LogHelper.debug(
-                "[SignalHandler] Applied mark multiplier %.3f to %s: %.2f -> %.2f",
-                markMultiplier, player.getName(), event.getDamage(), currentDamage);
-        }
-
-        event.setDamage(Math.max(0, currentDamage));
-
-        // Notify AuraManager of owner hit (triggers pull-on-hit auras)
+        // 6. AuraManager notification
         if (plugin.getAuraManager() != null) {
             plugin.getAuraManager().onOwnerHit(player.getUniqueId());
         }
 
+        // 7. Build context and fire signals
         EffectContext context = EffectContext.builder(player, signalType)
                 .event(event)
                 .attacker(attacker)
-                .damage(event.getDamage())
+                .damage(modifiedDamage)
                 .build();
 
         processArmorEffects(player, signalType, context);
+
+        // 8. Log final damage after all flows executed
+        LogHelper.info("[DMG-PIPELINE] After flows: event.getDamage()=%.2f, getFinalDamage()=%.2f",
+                event.getDamage(), event.getFinalDamage());
+    }
+
+    /**
+     * Extract the attacker from a damage event (direct hit or projectile shooter).
+     */
+    private LivingEntity resolveAttacker(EntityDamageEvent event) {
+        if (event instanceof EntityDamageByEntityEvent byEntity) {
+            org.bukkit.entity.Entity damager = byEntity.getDamager();
+            if (damager instanceof LivingEntity living) {
+                return living;
+            } else if (damager instanceof org.bukkit.entity.Projectile projectile) {
+                ProjectileSource shooter = projectile.getShooter();
+                if (shooter instanceof LivingEntity livingShooter) {
+                    return livingShooter;
+                }
+            }
+        }
+        return null;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -649,6 +657,21 @@ public class SignalHandler implements Listener {
             }
         }
 
+        // Check virtual bot sigils (no physical items needed)
+        com.miracle.arcanesigils.core.BotSigilRegistry botRegistry = plugin.getBotSigilRegistry();
+        if (botRegistry != null && botRegistry.hasBotSigils(player.getUniqueId())) {
+            for (String sigilId : botRegistry.getRegisteredSigils(player.getUniqueId())) {
+                Sigil sigil = plugin.getSigilManager().getSigil(sigilId);
+                if (sigil == null) continue;
+                // Collect signal flows (normal proc path)
+                collectFlowsForSignal(sigil, signalType, null, allFlows, player);
+                // Also fire ABILITY flows on ATTACK (bots auto-activate abilities when attacking)
+                if (signalType == SignalType.ATTACK) {
+                    collectAbilityFlowsForBot(sigil, allFlows, player);
+                }
+            }
+        }
+
         if (allFlows.isEmpty()) return;
 
         // For STATIC/passive signals, ALL flows should execute (no priority competition)
@@ -749,6 +772,29 @@ public class SignalHandler implements Listener {
             }
 
             allFlows.add(new FlowEntry(flow, sigil, sourceItem));
+        }
+    }
+
+    /**
+     * Collect ABILITY flows from a sigil for bot players.
+     * Bots auto-activate abilities when attacking, bypassing the bind UI.
+     */
+    private void collectAbilityFlowsForBot(Sigil sigil, List<FlowEntry> allFlows, Player player) {
+        List<FlowConfig> flows = sigil.getFlows();
+        if (flows == null) return;
+        for (FlowConfig flow : flows) {
+            if (!flow.isAbility()) continue;
+            if (flow.getGraph() == null) continue;
+            String flowId = flow.getGraph().getId();
+            String cooldownKey = "sigil_" + sigil.getId() + "_" + flowId;
+            double cooldown = flow.getCooldown();
+            if (flow.getGraph().getStartNode() != null) {
+                cooldown = flow.getGraph().getStartNode().getDoubleParam("cooldown", cooldown);
+            }
+            if (cooldown > 0 && plugin.getCooldownManager().isOnCooldown(player, cooldownKey)) {
+                continue;
+            }
+            allFlows.add(new FlowEntry(flow, sigil, null));
         }
     }
 
