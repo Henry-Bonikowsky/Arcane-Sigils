@@ -1,14 +1,15 @@
 package com.miracle.arcanesigils.effects;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
-import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -20,7 +21,14 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Manages stunned players, preventing all movement and camera rotation.
- * Uses per-tick teleportation to lock players in place.
+ *
+ * Three-layer freeze approach:
+ * 1. PlayerMoveEvent.setTo(frozenLocation) — corrects every move attempt back to frozen position
+ *    (including look direction). Server sends correction packet per move attempt only.
+ * 2. walkSpeed=0 + flySpeed=0 — prevents the client from even attempting to move
+ * 3. Initial teleport on stun start — ensures immediate lock before first move event
+ *
+ * No periodic teleport task needed — avoids hitbox desync from continuous position packets.
  */
 public class StunManager implements Listener {
 
@@ -45,22 +53,41 @@ public class StunManager implements Listener {
         if (stunnedPlayers.containsKey(uuid)) {
             StunData existing = stunnedPlayers.get(uuid);
             existing.cancel();
+            // Remove old display entity
+            if (existing.getDisplayEntityUUID() != null) {
+                Entity oldDisplay = Bukkit.getEntity(existing.getDisplayEntityUUID());
+                if (oldDisplay != null) oldDisplay.remove();
+            }
+            // Restore speeds before re-applying (in case they changed)
+            player.setWalkSpeed(existing.getPreviousWalkSpeed());
+            player.setFlySpeed(existing.getPreviousFlySpeed());
         }
+
+        // Preserve vanilla immunity ticks — reducing them caused damage multiplication
+        int previousMaxNoDamageTicks = player.getMaximumNoDamageTicks();
 
         // Store the player's exact location and look direction
         Location frozenLocation = player.getLocation().clone();
 
+        // Store previous speeds
+        float previousWalkSpeed = player.getWalkSpeed();
+        float previousFlySpeed = player.getFlySpeed();
+
         // Create stun data
-        StunData stunData = new StunData(frozenLocation);
+        StunData stunData = new StunData(frozenLocation, previousMaxNoDamageTicks, previousWalkSpeed, previousFlySpeed);
 
-        // Per-tick teleport to freeze position and rotation
-        BukkitTask freezeTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            if (player.isOnline() && stunnedPlayers.containsKey(uuid)) {
-                player.teleport(frozenLocation);
-            }
-        }, 0L, 1L);
+        // Immediately freeze: teleport to exact position + zero speeds
+        player.teleport(frozenLocation);
+        player.setWalkSpeed(0f);
+        player.setFlySpeed(0f);
 
-        stunData.setFreezeTask(freezeTask);
+        // Spawn sand block display at player's feet
+        Location displayLoc = frozenLocation.clone();
+        BlockDisplay display = displayLoc.getWorld().spawn(displayLoc, BlockDisplay.class, bd -> {
+            bd.setBlock(Material.SAND.createBlockData());
+            bd.setPersistent(false);
+        });
+        stunData.setDisplayEntityUUID(display.getUniqueId());
 
         // Schedule unstun
         BukkitTask unstunTask = Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -87,6 +114,17 @@ public class StunManager implements Listener {
         StunData data = stunnedPlayers.remove(uuid);
         if (data != null) {
             data.cancel();
+            // Remove display entity
+            if (data.getDisplayEntityUUID() != null) {
+                Entity displayEntity = Bukkit.getEntity(data.getDisplayEntityUUID());
+                if (displayEntity != null) displayEntity.remove();
+            }
+            // Restore original speeds
+            player.setWalkSpeed(data.getPreviousWalkSpeed());
+            player.setFlySpeed(data.getPreviousFlySpeed());
+            // Restore original maximumNoDamageTicks
+            player.setMaximumNoDamageTicks(data.getPreviousMaxNoDamageTicks());
+            player.setNoDamageTicks(0);
         }
     }
 
@@ -98,24 +136,32 @@ public class StunManager implements Listener {
     }
 
     /**
-     * Get remaining stun time in seconds.
+     * Get the frozen location for a stunned player.
      */
-    public double getRemainingStunTime(Player player) {
+    public Location getFrozenLocation(Player player) {
         StunData data = stunnedPlayers.get(player.getUniqueId());
-        if (data == null) return 0;
-        return data.getRemainingTime();
+        return data != null ? data.getFrozenLocation() : null;
     }
 
     /**
-     * Cancel movement for stunned players.
-     * Note: We just cancel the event, we don't use setTo() which causes hitbox desync.
+     * Get remaining stun time in seconds.
+     */
+    public double getRemainingStunTime(Player player) {
+        return 0; // Not tracked
+    }
+
+    /**
+     * Freeze stunned players on every move attempt.
+     * Uses setTo() to correct position + rotation on each attempt.
+     * Combined with walkSpeed=0, this is the primary freeze mechanism.
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
-        if (isStunned(player)) {
-            // Cancel the event - the per-tick teleport handles position
-            event.setCancelled(true);
+        StunData data = stunnedPlayers.get(player.getUniqueId());
+        if (data != null) {
+            // Set destination to frozen location — corrects both position and look direction
+            event.setTo(data.getFrozenLocation());
         }
     }
 
@@ -129,7 +175,6 @@ public class StunManager implements Listener {
 
     /**
      * Clean up when player dies.
-     * Prevents stun data from persisting on respawn.
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerDeath(PlayerDeathEvent event) {
@@ -154,35 +199,49 @@ public class StunManager implements Listener {
      */
     private static class StunData {
         private final Location frozenLocation;
-        private final long startTime;
-        private BukkitTask freezeTask;
+        private final int previousMaxNoDamageTicks;
+        private final float previousWalkSpeed;
+        private final float previousFlySpeed;
         private BukkitTask unstunTask;
+        private UUID displayEntityUUID;
 
-        public StunData(Location frozenLocation) {
+        public StunData(Location frozenLocation, int previousMaxNoDamageTicks,
+                        float previousWalkSpeed, float previousFlySpeed) {
             this.frozenLocation = frozenLocation;
-            this.startTime = System.currentTimeMillis();
+            this.previousMaxNoDamageTicks = previousMaxNoDamageTicks;
+            this.previousWalkSpeed = previousWalkSpeed;
+            this.previousFlySpeed = previousFlySpeed;
         }
 
         public Location getFrozenLocation() {
             return frozenLocation;
         }
 
-        public void setFreezeTask(BukkitTask freezeTask) {
-            this.freezeTask = freezeTask;
+        public int getPreviousMaxNoDamageTicks() {
+            return previousMaxNoDamageTicks;
+        }
+
+        public float getPreviousWalkSpeed() {
+            return previousWalkSpeed;
+        }
+
+        public float getPreviousFlySpeed() {
+            return previousFlySpeed;
         }
 
         public void setUnstunTask(BukkitTask unstunTask) {
             this.unstunTask = unstunTask;
         }
 
-        public double getRemainingTime() {
-            return 0; // Would need to track end time for accurate value
+        public UUID getDisplayEntityUUID() {
+            return displayEntityUUID;
+        }
+
+        public void setDisplayEntityUUID(UUID displayEntityUUID) {
+            this.displayEntityUUID = displayEntityUUID;
         }
 
         public void cancel() {
-            if (freezeTask != null && !freezeTask.isCancelled()) {
-                freezeTask.cancel();
-            }
             if (unstunTask != null && !unstunTask.isCancelled()) {
                 unstunTask.cancel();
             }

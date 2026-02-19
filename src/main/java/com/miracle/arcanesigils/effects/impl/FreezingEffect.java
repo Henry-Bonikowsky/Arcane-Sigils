@@ -1,7 +1,5 @@
 package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.potion.*;
 
@@ -13,8 +11,6 @@ public class FreezingEffect extends AbstractEffect {
         t.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, d*20, 2));
         t.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, d*20, 1));
         t.setFreezeTicks(d*20);
-        t.getWorld().spawnParticle(Particle.SNOWFLAKE, t.getLocation().add(0,1,0), 30);
-        t.getWorld().playSound(t.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.5f, 1.5f);
         return true;
     }
 }

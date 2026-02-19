@@ -112,7 +112,9 @@ public class ArmorChangeListener implements Listener {
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Cleanup handled by plugin
+        if (plugin.getInterceptionManager() != null) {
+            plugin.getInterceptionManager().unregisterAll(event.getPlayer());
+        }
     }
     
     /**

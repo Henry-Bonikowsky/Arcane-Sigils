@@ -9,6 +9,7 @@ import com.miracle.arcanesigils.gui.GUISession;
 import com.miracle.arcanesigils.gui.GUIType;
 import com.miracle.arcanesigils.gui.common.AbstractHandler;
 import com.miracle.arcanesigils.gui.common.ItemBuilder;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -133,7 +134,7 @@ public class EquipmentSigilsHandler extends AbstractHandler {
      */
     private ItemStack createSigilDisplayItem(Sigil sigil) {
         List<String> lore = new ArrayList<>();
-        lore.add("§7Tier: §e" + toRomanNumeral(sigil.getTier()));
+        lore.add("§7Tier: §e" + RomanNumerals.toRoman(sigil.getTier()));
         lore.addAll(sigil.getDescription());
 
         if (sigil.isExclusive()) {
@@ -174,15 +175,4 @@ public class EquipmentSigilsHandler extends AbstractHandler {
         return null;
     }
 
-    /**
-     * Convert tier number to roman numeral.
-     */
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
-    }
 }

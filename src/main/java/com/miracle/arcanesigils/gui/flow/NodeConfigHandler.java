@@ -745,7 +745,7 @@ public class NodeConfigHandler extends AbstractHandler {
 
     /**
      * Save the current flow to the sigil's YAML file.
-     * This ensures parameter changes made in the node config editor are persisted.
+     * Uses FlowSaveUtil for StartNode sync and sigil persistence.
      */
     private void saveFlow(Player player, GUISession session) {
         FlowGraph graph = session.get("flow", FlowGraph.class);
@@ -757,10 +757,8 @@ public class NodeConfigHandler extends AbstractHandler {
             return;
         }
 
-        // Only save if the graph is valid
         List<String> errors = graph.validate();
         if (!errors.isEmpty()) {
-            // Notify user about validation errors
             if (player != null) {
                 player.sendMessage(TextUtil.colorize("§c[Flow] Cannot save - validation errors:"));
                 for (String error : errors) {
@@ -771,53 +769,13 @@ public class NodeConfigHandler extends AbstractHandler {
             return;
         }
 
-        // Get or create FlowConfig
         FlowConfig flowConfig = session.get("flowConfig", FlowConfig.class);
-        if (flowConfig == null) {
-            flowConfig = new FlowConfig();
-            flowConfig.setType(FlowType.SIGNAL);
-            flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
-            session.put("flowConfig", flowConfig);
-        }
+        flowConfig = FlowSaveUtil.resolveFlowConfig(flowConfig, sigil, signalKey);
+        session.put("flowConfig", flowConfig);
         flowConfig.setGraph(graph);
 
-        // CRITICAL: Sync StartNode chance/cooldown/priority to FlowConfig
-        FlowNode startNodeRaw = graph.getStartNode();
-        if (startNodeRaw instanceof StartNode startNode) {
-            // Handle cooldown - check for tier placeholder first
-            Object cooldownVal = startNode.getParam("cooldown");
-            if (cooldownVal != null && cooldownVal.toString().contains("{")) {
-                flowConfig.setCooldown(-1.0); // Sentinel: tier-scaled
-            } else {
-                flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
-            }
-
-            // Handle chance - check for tier placeholder first
-            Object chanceVal = startNode.getParam("chance");
-            if (chanceVal != null && chanceVal.toString().contains("{")) {
-                flowConfig.setChance(-1.0); // Sentinel: tier-scaled
-            } else {
-                flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
-            }
-
-            flowConfig.setPriority(startNode.getIntParam("priority", 1));
-
-            // Also sync signal_type to trigger
-            String signalType = startNode.getStringParam("signal_type", null);
-            if (signalType != null && flowConfig.getType() == FlowType.SIGNAL) {
-                flowConfig.setTrigger(signalType);
-            }
-        }
-
-        // Update sigil's flows list and save to file
-        sigil.removeFlowByTrigger(flowConfig.getTrigger());
-        sigil.addFlow(flowConfig);
-        plugin.getSigilManager().saveSigil(sigil);
-
-        // Log successful save
-        LogHelper.debug("[NodeConfig] Saved flow for sigil '%s' trigger '%s' - nodes: %d",
-            sigil.getId(), flowConfig.getTrigger(),
-            flowConfig.getGraph() != null ? flowConfig.getGraph().getNodes().size() : 0);
+        FlowSaveUtil.syncStartNodeToConfig(graph, flowConfig);
+        FlowSaveUtil.saveFlowToSigil(sigil, flowConfig);
     }
 
     private void refreshGUI(Player player, GUISession session, FlowNode node) {
@@ -934,15 +892,8 @@ public class NodeConfigHandler extends AbstractHandler {
         // Back button
         inv.setItem(SLOT_BACK, ItemBuilder.createBackButton("Flow Builder"));
 
-        // Create session
-        GUISession session = new GUISession(GUIType.NODE_CONFIG);
-        session.put("sigil", flowSession.get("sigil"));
-        session.put("signalKey", flowSession.get("signalKey"));
-        session.put("flow", flowSession.get("flow"));
-        session.put("originalFlow", flowSession.get("originalFlow"));
-        session.put("selectedNode", flowSession.get("selectedNode"));
-        session.put("viewX", flowSession.get("viewX"));
-        session.put("viewY", flowSession.get("viewY"));
+        // Create session inheriting flow context
+        GUISession session = flowSession.deriveChild(GUIType.NODE_CONFIG);
         session.put("configNode", node);
         session.put("paramPage", page);
         if (currentScaledParam != null) {

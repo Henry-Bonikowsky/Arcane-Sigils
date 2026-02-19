@@ -7,8 +7,6 @@ import com.miracle.arcanesigils.effects.PotionEffectTracker;
 import com.miracle.arcanesigils.interception.CleopatraSuppressionInterceptor;
 import com.miracle.arcanesigils.interception.InterceptionManager;
 import org.bukkit.Bukkit;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -114,23 +112,6 @@ public class ApplySuppressionEffect extends AbstractEffect {
                         }
                     }
 
-                    // Visual feedback on expiration
-                    player.getWorld().spawnParticle(
-                        Particle.CLOUD,
-                        player.getLocation().add(0, 1, 0),
-                        15,
-                        0.4, 0.5, 0.4,
-                        0.03
-                    );
-
-                    // Sound - relief
-                    player.getWorld().playSound(
-                        player.getLocation(),
-                        Sound.ENTITY_EXPERIENCE_ORB_PICKUP,
-                        0.6f,
-                        1.0f
-                    );
-
                     // Notification
                     player.sendMessage("§a§lSuppression Lifted!");
                 }
@@ -138,33 +119,6 @@ public class ApplySuppressionEffect extends AbstractEffect {
                 debug("Suppression expired on " + player.getName());
             }
         }.runTaskLater(plugin, durationSeconds * 20L);
-        
-        // Visual feedback - dark purple/black particles (oppressive)
-        player.getWorld().spawnParticle(
-            Particle.DUST,
-            player.getLocation().add(0, 1, 0),
-            40,
-            0.5, 0.8, 0.5,
-            0.1,
-            new Particle.DustOptions(org.bukkit.Color.fromRGB(25, 0, 51), 1.8f)
-        );
-        
-        // Smoke particles - swirling around
-        player.getWorld().spawnParticle(
-            Particle.SQUID_INK,
-            player.getLocation().add(0, 1, 0),
-            20,
-            0.4, 0.6, 0.4,
-            0.05
-        );
-        
-        // Sound effect - ominous suppression
-        player.getWorld().playSound(
-            player.getLocation(),
-            Sound.ENTITY_WITHER_AMBIENT,
-            0.8f,
-            0.8f
-        );
         
         // Notification
         player.sendMessage("§5§lSUPPRESSED! §7Defensive buffs blocked for " + durationSeconds + "s");

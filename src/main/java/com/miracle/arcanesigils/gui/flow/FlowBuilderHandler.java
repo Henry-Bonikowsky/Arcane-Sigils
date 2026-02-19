@@ -181,23 +181,18 @@ public class FlowBuilderHandler extends AbstractHandler {
     }
 
     /**
-     * Auto-save the flow graph to the sigil's YAML file.
+     * Save the flow graph to the sigil's YAML file.
      * Only saves if the graph is valid (has start, end, and proper connections).
-     * Notifies the player if validation fails.
      */
     private void autoSave(Player player, GUISession session) {
         FlowGraph graph = session.get("flow", FlowGraph.class);
         Sigil sigil = session.get("sigil", Sigil.class);
         String signalKey = session.get("signalKey", String.class);
 
-        if (graph == null || sigil == null) {
-            return;
-        }
+        if (graph == null || sigil == null) return;
 
-        // Only auto-save if the graph is valid
         List<String> errors = graph.validate();
         if (!errors.isEmpty()) {
-            // Notify user that save didn't happen (use chat message)
             if (player != null) {
                 player.sendMessage(net.kyori.adventure.text.Component.text(
                     TextUtil.colorize("&eFlow has errors - changes not saved")));
@@ -205,153 +200,21 @@ public class FlowBuilderHandler extends AbstractHandler {
             return;
         }
 
-        // Get or create FlowConfig
         FlowConfig flowConfig = session.get("flowConfig", FlowConfig.class);
-
-        if (flowConfig == null) {
-            // Try to get existing flowConfig from sigil before creating new
-            FlowConfig existingConfig = sigil.getFlowForTrigger(signalKey);
-            if (existingConfig != null) {
-                flowConfig = existingConfig;
-            } else {
-                flowConfig = new FlowConfig();
-                // Create ABILITY flow for exclusive sigils, SIGNAL flow otherwise
-                if (sigil.isExclusive() && "ABILITY".equals(signalKey)) {
-                    flowConfig.setType(FlowType.ABILITY);
-                } else {
-                    flowConfig.setType(FlowType.SIGNAL);
-                    flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
-                }
-            }
-            session.put("flowConfig", flowConfig);
-        }
+        flowConfig = FlowSaveUtil.resolveFlowConfig(flowConfig, sigil, signalKey);
+        session.put("flowConfig", flowConfig);
         flowConfig.setGraph(graph);
 
-        // NOTE: Top-level conditions are preserved - they're set in YAML or via condition editor
-        // CONDITION nodes in the flow are for branching logic, not pre-activation checks
+        FlowSaveUtil.syncStartNodeToConfig(graph, flowConfig);
 
-        // CRITICAL: Sync StartNode chance/cooldown/priority to FlowConfig
-        // This is the ONLY place where chance/cooldown/priority should be configured
-        FlowNode startNodeRaw = graph.getStartNode();
-        StartNode startNode = startNodeRaw instanceof StartNode ? (StartNode) startNodeRaw : null;
-        if (startNode != null) {
-            // Handle cooldown - check for tier placeholder first
-            Object cooldownVal = startNode.getParam("cooldown");
-            if (cooldownVal != null && cooldownVal.toString().contains("{")) {
-                flowConfig.setCooldown(-1.0); // Sentinel: tier-scaled
-            } else {
-                flowConfig.setCooldown(startNode.getDoubleParam("cooldown", 0.0));
-            }
-
-            // Handle chance - check for tier placeholder first
-            Object chanceVal = startNode.getParam("chance");
-            if (chanceVal != null && chanceVal.toString().contains("{")) {
-                flowConfig.setChance(-1.0); // Sentinel: tier-scaled
-            } else {
-                flowConfig.setChance(startNode.getDoubleParam("chance", 100.0));
-            }
-
-            flowConfig.setPriority(startNode.getIntParam("priority", 1));
-
-            // Also sync signal_type to trigger if changed in StartNode
-            String signalType = startNode.getStringParam("signal_type", null);
-            if (signalType != null && flowConfig.getType() == FlowType.SIGNAL) {
-                flowConfig.setTrigger(signalType);
-            }
-        }
-
-        // Update sigil's flows list
-        // For ABILITY flows, we need to remove the existing ability flow first
-        // For SIGNAL flows, removeFlowByTrigger handles it
-        com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Saving flow for sigil '%s', type=%s, trigger=%s",
-            sigil.getId(), flowConfig.getType(), flowConfig.getTrigger());
-        com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Flow has %d nodes, graph=%s",
-            graph.getNodeCount(), graph != null);
-
-        if (flowConfig.isAbility()) {
-            // Remove existing ability flow to allow adding the updated one
-            FlowConfig existingAbility = sigil.getAbilityFlow();
-            if (existingAbility != null) {
-                boolean removed = sigil.removeFlow(existingAbility);
-                com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Removed existing ABILITY flow: %s", removed);
-            }
-        } else {
-            boolean removed = sigil.removeFlowByTrigger(flowConfig.getTrigger());
-            com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Removed existing SIGNAL flow for trigger '%s': %s",
-                flowConfig.getTrigger(), removed);
-        }
-
-        boolean added = sigil.addFlow(flowConfig);
-        com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Added flow to sigil: %s, sigil now has %d flows",
-            added, sigil.getFlows().size());
-
-        if (!added) {
+        if (!FlowSaveUtil.saveFlowToSigil(sigil, flowConfig)) {
             if (player != null) {
                 player.sendMessage(TextUtil.colorize("&cFailed to save flow! Check console for errors."));
             }
             return;
         }
 
-        com.miracle.arcanesigils.utils.LogHelper.debug("[FlowBuilder] Sigil hasFlows=%s before save", sigil.hasFlows());
-        plugin.getSigilManager().saveSigil(sigil);
-
-        // Update originalFlow to reflect saved state
         session.put("originalFlow", cloneGraph(graph));
-    }
-
-    /**
-     * Static version of autoSave for use in openGUIInternal.
-     * Saves flow to YAML when returning to Flow Builder from sub-GUIs.
-     */
-    private static void autoSaveStatic(Player player, Sigil sigil, String signalKey, FlowGraph graph, FlowConfig flowConfig) {
-        if (graph == null || sigil == null) return;
-
-        ArmorSetsPlugin plugin = ArmorSetsPlugin.getInstance();
-
-        // Only save if graph is valid
-        List<String> errors = graph.validate();
-        if (!errors.isEmpty()) {
-            if (player != null) {
-                player.sendMessage(net.kyori.adventure.text.Component.text(
-                    TextUtil.colorize("&eFlow has errors - not saved")));
-            }
-            return;
-        }
-
-        // Get or create FlowConfig
-        if (flowConfig == null) {
-            flowConfig = sigil.getFlowForTrigger(signalKey);
-            if (flowConfig == null) {
-                flowConfig = new FlowConfig();
-                // Create ABILITY flow for exclusive sigils, SIGNAL flow otherwise
-                if (sigil.isExclusive() && "ABILITY".equals(signalKey)) {
-                    flowConfig.setType(FlowType.ABILITY);
-                } else {
-                    flowConfig.setType(FlowType.SIGNAL);
-                    flowConfig.setTrigger(signalKey != null ? signalKey : "ATTACK");
-                }
-            }
-        }
-
-        flowConfig.setGraph(graph);
-
-        // Sync START node params to FlowConfig
-        FlowNode startNode = graph.getStartNode();
-        if (startNode != null) {
-            flowConfig.setCooldown(startNode.getDoubleParam("cooldown", flowConfig.getCooldown()));
-            flowConfig.setChance(startNode.getDoubleParam("chance", flowConfig.getChance()));
-            flowConfig.setPriority(startNode.getIntParam("priority", flowConfig.getPriority()));
-
-            String signalType = startNode.getStringParam("signal_type", null);
-            if (signalType != null && flowConfig.getType() == FlowType.SIGNAL) {
-                flowConfig.setTrigger(signalType);
-            }
-        }
-
-        // Save to sigil
-        sigil.removeFlowByTrigger(flowConfig.getTrigger());
-        sigil.addFlow(flowConfig);
-        plugin.getSigilManager().saveSigil(sigil);
     }
 
     private void handleTest(Player player, GUISession session, InventoryClickEvent event) {

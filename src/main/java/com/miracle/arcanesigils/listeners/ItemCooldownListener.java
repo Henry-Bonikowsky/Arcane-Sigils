@@ -8,7 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.event.entity.EntityResurrectEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -18,6 +20,7 @@ public class ItemCooldownListener implements Listener {
     // Cooldown keys
     private static final String GAPPLE_KEY = "item_golden_apple";
     private static final String TOTEM_KEY = "item_totem_of_undying";
+    private static final String PEARL_KEY = "item_ender_pearl";
 
     public ItemCooldownListener(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -102,5 +105,31 @@ public class ItemCooldownListener implements Listener {
         // Set cooldown
         double cooldown = plugin.getConfig().getDouble("item-cooldowns.totem-of-undying", 60.0);
         plugin.getCooldownManager().setCooldown(player, TOTEM_KEY, "Totem of Undying", cooldown);
+    }
+
+    /**
+     * Handle ender pearl throw.
+     */
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onEnderPearlThrow(ProjectileLaunchEvent event) {
+        if (!(event.getEntity() instanceof EnderPearl pearl)) return;
+        if (!(pearl.getShooter() instanceof Player player)) return;
+
+        if (!plugin.getConfig().getBoolean("item-cooldowns.enabled", true)) return;
+
+        double cdSeconds = plugin.getConfig().getDouble("item-cooldowns.ender-pearl", 0.0);
+        if (cdSeconds <= 0) return;
+
+        if (plugin.getCooldownManager().isOnCooldown(player, PEARL_KEY)) {
+            event.setCancelled(true);
+
+            double remaining = plugin.getCooldownManager().getRemainingCooldown(player, PEARL_KEY);
+            String message = String.format("&5&lEnder Pearl &7is on cooldown! &c%.1fs", remaining);
+            player.sendMessage(TextUtil.colorize(message));
+            player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
+            return;
+        }
+
+        plugin.getCooldownManager().setCooldown(player, PEARL_KEY, "Ender Pearl", cdSeconds);
     }
 }

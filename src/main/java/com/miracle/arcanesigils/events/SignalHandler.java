@@ -305,8 +305,10 @@ public class SignalHandler implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @SuppressWarnings("deprecation")
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDefend(EntityDamageEvent event) {
+        if (event.isCancelled()) return;
         if (!(event.getEntity() instanceof Player player)) return;
 
         // 1. Invulnerability check — exempt VOID, KILL, SUICIDE
@@ -337,27 +339,64 @@ public class SignalHandler implements Listener {
                 ? SignalType.FALL_DAMAGE
                 : SignalType.DEFENSE;
 
-        // 4. Apply plugin modifiers OVER vanilla damage
-        double vanillaDamage = event.getDamage();
-        LogHelper.info("[DMG-PIPELINE] === DEFEND EVENT: %s took %s, vanillaDmg=%.2f ===",
-                player.getName(), event.getCause(), vanillaDamage);
-        double modifiedDamage = plugin.getCombatUtil().applyPluginModifiers(player, vanillaDamage);
-        if (Math.abs(modifiedDamage - vanillaDamage) > 0.001) {
-            LogHelper.info("[DMG-PIPELINE] Modifiers changed damage: %.2f -> %.2f", vanillaDamage, modifiedDamage);
+        // 4. Read individual damage modifiers for proper pipeline
+        double baseDamage = event.getDamage(EntityDamageEvent.DamageModifier.BASE);
+        double armorReduction = event.isApplicable(EntityDamageEvent.DamageModifier.ARMOR)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.ARMOR) : 0;
+        double magicReduction = event.isApplicable(EntityDamageEvent.DamageModifier.MAGIC)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.MAGIC) : 0;
+        @SuppressWarnings("deprecation")
+        double resistanceReduction = event.isApplicable(EntityDamageEvent.DamageModifier.RESISTANCE)
+                ? event.getDamage(EntityDamageEvent.DamageModifier.RESISTANCE) : 0;
+        boolean isBlocking = event.isApplicable(EntityDamageEvent.DamageModifier.BLOCKING)
+                && event.getDamage(EntityDamageEvent.DamageModifier.BLOCKING) != 0;
+
+        // Post-armor damage (before blocking and absorption) — includes Resistance potion
+        double postArmorDamage = baseDamage + armorReduction + magicReduction + resistanceReduction;
+        LogHelper.debug("[DMG-PIPELINE] === DEFEND EVENT: %s took %s, base=%.2f, armor=%.2f, magic=%.2f, resist=%.2f, postArmor=%.2f, blocking=%s ===",
+                player.getName(), event.getCause(), baseDamage, armorReduction, magicReduction, resistanceReduction, postArmorDamage, isBlocking);
+
+        // 5. Apply configurable blocking damage reduction
+        if (isBlocking) {
+            double blockingDR = plugin.getCombatUtil().getBlockingDamageReduction();
+            postArmorDamage *= (1.0 - blockingDR);
+            LogHelper.debug("[DMG-PIPELINE] Blocking DR=%.0f%%, postBlocking=%.2f", blockingDR * 100, postArmorDamage);
         }
+
+        // 6. Apply plugin modifiers ON TOP of post-armor damage
+        double modifiedDamage = plugin.getCombatUtil().applyPluginModifiers(player, postArmorDamage);
+        if (Math.abs(modifiedDamage - postArmorDamage) > 0.001) {
+            LogHelper.debug("[DMG-PIPELINE] Modifiers changed damage: %.2f -> %.2f", postArmorDamage, modifiedDamage);
+        }
+
+        // 7. Set final damage, properly handling absorption
+        // Zero armor/magic/blocking (already calculated above), recalculate absorption
         event.setDamage(modifiedDamage);
-        LogHelper.info("[DMG-PIPELINE] event.setDamage(%.2f), getFinalDamage()=%.2f",
+        for (EntityDamageEvent.DamageModifier mod : EntityDamageEvent.DamageModifier.values()) {
+            if (mod == EntityDamageEvent.DamageModifier.BASE) continue;
+            if (!event.isApplicable(mod)) continue;
+
+            if (mod == EntityDamageEvent.DamageModifier.ABSORPTION) {
+                // Recalculate absorption based on our modified damage so vanilla consumes hearts correctly
+                double currentAbsorption = player.getAbsorptionAmount();
+                double absorbAmount = Math.min(currentAbsorption, modifiedDamage);
+                event.setDamage(mod, -absorbAmount);
+            } else {
+                event.setDamage(mod, 0);
+            }
+        }
+        LogHelper.debug("[DMG-PIPELINE] Set final damage=%.2f (getFinalDamage()=%.2f)",
                 modifiedDamage, event.getFinalDamage());
 
-        // 5. Resolve attacker for context
+        // 7. Resolve attacker for context
         LivingEntity attacker = resolveAttacker(event);
 
-        // 6. AuraManager notification
+        // 8. AuraManager notification
         if (plugin.getAuraManager() != null) {
             plugin.getAuraManager().onOwnerHit(player.getUniqueId());
         }
 
-        // 7. Build context and fire signals
+        // 9. Build context and fire signals
         EffectContext context = EffectContext.builder(player, signalType)
                 .event(event)
                 .attacker(attacker)
@@ -366,8 +405,8 @@ public class SignalHandler implements Listener {
 
         processArmorEffects(player, signalType, context);
 
-        // 8. Log final damage after all flows executed
-        LogHelper.info("[DMG-PIPELINE] After flows: event.getDamage()=%.2f, getFinalDamage()=%.2f",
+        // 10. Log final damage after all flows executed
+        LogHelper.debug("[DMG-PIPELINE] After flows: event.getDamage()=%.2f, getFinalDamage()=%.2f",
                 event.getDamage(), event.getFinalDamage());
     }
 

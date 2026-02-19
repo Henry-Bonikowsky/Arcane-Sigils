@@ -3,8 +3,6 @@ package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.utils.ScreenShakeUtil;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -103,25 +101,6 @@ public class GroundSlamEffect extends AbstractEffect {
                 hitCount++;
             }
         }
-
-        // Visual effects - ground crack pattern
-        for (int i = 0; i < 360; i += 15) {
-            double angle = Math.toRadians(i);
-            for (double r = 0.5; r <= radius; r += 0.5) {
-                double x = Math.cos(angle) * r;
-                double z = Math.sin(angle) * r;
-                player.getWorld().spawnParticle(Particle.BLOCK,
-                    player.getLocation().add(x, 0.1, z), 1,
-                    player.getLocation().getBlock().getRelative(0, -1, 0).getBlockData());
-            }
-        }
-
-        player.getWorld().spawnParticle(Particle.EXPLOSION,
-            player.getLocation(), 3, 0.5, 0.1, 0.5, 0);
-        player.getWorld().playSound(player.getLocation(),
-            Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.8f);
-        player.getWorld().playSound(player.getLocation(),
-            Sound.BLOCK_ANVIL_LAND, 0.8f, 0.5f);
 
         debug("Ground slam hit " + hitCount + " enemies for " + damage + " damage");
         return hitCount > 0;

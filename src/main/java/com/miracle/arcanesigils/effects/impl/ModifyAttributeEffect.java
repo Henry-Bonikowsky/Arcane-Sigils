@@ -3,10 +3,9 @@ package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
+import com.miracle.arcanesigils.utils.LogHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -239,6 +238,14 @@ public class ModifyAttributeEffect extends AbstractEffect {
         // Apply the modifier
         attrInstance.addModifier(modifier);
 
+        // Only log NEW applications, skip REFRESH spam (fires every second for persistent modifiers)
+        if (isFirstApplication) {
+            LogHelper.debug("[MODIFY_ATTR] Applied %s NEW=%.4f op=%s to %s (key=%s, persistent=%s, permanent=%s)",
+                    attribute.name(), value, operation.name(),
+                    target.getName(), key.getKey(),
+                    persistent, permanent);
+        }
+
         // If this is max health and we're adding, only fill new hearts if:
         // 1. This is the first application (not a refresh)
         // 2. Player was already at full health (prevents combat healing exploit)
@@ -289,17 +296,6 @@ public class ModifyAttributeEffect extends AbstractEffect {
         }
 
         // Removed verbose debug logging - these fire too frequently
-
-        // Visual feedback based on attribute type (skip for persistent/permanent to avoid spam)
-        if (!persistent && !permanent) {
-            spawnAttributeParticles(target, attribute, value > 0);
-
-            // Sound feedback
-            if (target instanceof Player player) {
-                Sound sound = value > 0 ? Sound.ENTITY_PLAYER_LEVELUP : Sound.ENTITY_PLAYER_HURT;
-                player.playSound(player.getLocation(), sound, 0.5f, value > 0 ? 1.5f : 0.5f);
-            }
-        }
 
         return true;
     }
@@ -353,35 +349,6 @@ public class ModifyAttributeEffect extends AbstractEffect {
             case "MULTIPLY", "MULTIPLY_SCALAR_1", "PERCENT", "FINAL_PERCENT" -> AttributeModifier.Operation.MULTIPLY_SCALAR_1;
             default -> AttributeModifier.Operation.MULTIPLY_SCALAR_1;
         };
-    }
-
-    /**
-     * Spawn particles based on attribute type and whether it's a buff or debuff.
-     */
-    private void spawnAttributeParticles(LivingEntity target, Attribute attribute, boolean isBuff) {
-        org.bukkit.Color color;
-
-        // Color based on attribute type
-        if (attribute.name().contains("HEALTH")) {
-            color = isBuff ? org.bukkit.Color.fromRGB(255, 100, 100) : org.bukkit.Color.fromRGB(100, 0, 0);
-        } else if (attribute.name().contains("MOVEMENT") || attribute.name().contains("SPEED")) {
-            color = isBuff ? org.bukkit.Color.fromRGB(100, 200, 255) : org.bukkit.Color.fromRGB(60, 60, 80);
-        } else if (attribute.name().contains("DAMAGE") || attribute.name().contains("ATTACK")) {
-            color = isBuff ? org.bukkit.Color.fromRGB(255, 50, 50) : org.bukkit.Color.fromRGB(150, 50, 50);
-        } else if (attribute.name().contains("ARMOR")) {
-            color = isBuff ? org.bukkit.Color.fromRGB(200, 200, 255) : org.bukkit.Color.fromRGB(100, 100, 150);
-        } else {
-            color = isBuff ? org.bukkit.Color.fromRGB(100, 255, 100) : org.bukkit.Color.fromRGB(150, 150, 150);
-        }
-
-        target.getWorld().spawnParticle(
-                Particle.DUST,
-                target.getLocation().add(0, 1, 0),
-                25,
-                0.4, 0.6, 0.4,
-                0.05,
-                new Particle.DustOptions(color, 1.0f)
-        );
     }
 
     /**

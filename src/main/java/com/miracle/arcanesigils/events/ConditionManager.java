@@ -171,13 +171,7 @@ public class ConditionManager {
                     int playerTier = setBonusManager.getSetBonusTier(context.getPlayer(), setName);
                     yield playerTier >= minTier;
                 }
-                case "IS_BLOCKING_SWORD" -> {
-                    Player p = context.getPlayer();
-                    if (p == null) yield false;
-                    var blocking = plugin.getLegacyCombatManager().getModule("sword-blocking");
-                    if (blocking == null) yield false;
-                    yield ((com.miracle.arcanesigils.combat.modules.SwordBlockingModule) blocking).isPlayerBlocking(p);
-                }
+                case "IS_BLOCKING_SWORD" -> false; // Legacy combat removed
 
                 // ===== ADDITIONAL COMBAT CONDITIONS =====
                 case "HAS_MARK" -> checkHasMark(context, parts);
@@ -200,7 +194,7 @@ public class ConditionManager {
 
                 // Default: unknown condition FAILS (safety)
                 default -> {
-                    com.miracle.arcanesigils.utils.LogHelper.warning("[Conditions] UNKNOWN CONDITION TYPE: %s - FAILING", type);
+                    com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] UNKNOWN CONDITION TYPE: %s - FAILING", type);
                     yield false;
                 }
             };
@@ -227,7 +221,7 @@ public class ConditionManager {
         String condition = parts[1];
         boolean result = evaluateComparison(percentHealth, condition);
 
-        com.miracle.arcanesigils.utils.LogHelper.info("[Conditions] HEALTH_PERCENT check: player=%s, current=%.1f, max=%.1f, percent=%.1f%%, condition=%s, result=%s",
+        com.miracle.arcanesigils.utils.LogHelper.debug("[Conditions] HEALTH_PERCENT check: player=%s, current=%.1f, max=%.1f, percent=%.1f%%, condition=%s, result=%s",
             player.getName(), currentHealth, maxHealth, percentHealth, condition, result);
 
         return result;
@@ -452,11 +446,11 @@ public class ConditionManager {
 
         String markName = parts[1].toUpperCase().trim();
 
-        com.miracle.arcanesigils.effects.MarkManager markManager =
-            com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getMarkManager();
+        com.miracle.arcanesigils.combat.ModifierRegistry registry =
+            com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getModifierRegistry();
 
-        if (markManager == null) {
-            com.miracle.arcanesigils.utils.LogHelper.warning("[HAS_MARK] MarkManager is null!");
+        if (registry == null) {
+            com.miracle.arcanesigils.utils.LogHelper.warning("[HAS_MARK] ModifierRegistry is null!");
             return false;
         }
 
@@ -496,7 +490,7 @@ public class ConditionManager {
             return false;
         }
 
-        boolean hasMark = markManager.hasMark(targetEntity, markName);
+        boolean hasMark = registry.hasMark(targetEntity, markName);
 
         com.miracle.arcanesigils.utils.LogHelper.debug(
             String.format("[HAS_MARK] Checking %s for mark '%s': %s",
@@ -870,7 +864,7 @@ public class ConditionManager {
         boolean isPotionDamage = cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.POISON ||
                                  cause == org.bukkit.event.entity.EntityDamageEvent.DamageCause.WITHER;
 
-        com.miracle.arcanesigils.utils.LogHelper.info(
+        com.miracle.arcanesigils.utils.LogHelper.debug(
             "[AncientCrown] IS_POTION_DAMAGE check: cause=%s, isPotionDamage=%s",
             cause, isPotionDamage);
 

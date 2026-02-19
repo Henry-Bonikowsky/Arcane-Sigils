@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -38,10 +36,6 @@ public class KnockbackEffect extends AbstractEffect {
         direction.multiply(force);
 
         target.setVelocity(direction);
-
-        // Effects
-        target.getWorld().spawnParticle(Particle.CLOUD, target.getLocation(), 10, 0.3, 0.1, 0.3, 0.05);
-        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1.0f, 1.0f);
 
         debug("Knocked back " + target.getName() + " with force " + force);
         return true;

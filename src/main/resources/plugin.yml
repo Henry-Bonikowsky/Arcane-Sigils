@@ -10,7 +10,8 @@ softdepend:
   - ItemsAdder
   - PlaceholderAPI
   - WorldGuard
-  - Factions
+  - VulcanLoader
+  - VulcanFactions
 
 commands:
   arcanesigils:
@@ -42,7 +43,7 @@ permissions:
       arcanesigils.reload: true
       arcanesigils.give: true
       arcanesigils.socket: true
-      arcanesigils.combat: true
+
   arcanesigils.reload:
     description: Permission to reload the plugin
     default: op
@@ -64,9 +65,7 @@ permissions:
   arcanesigils.activatebind:
     description: Permission to activate binds via command
     default: true
-  arcanesigils.combat:
-    description: Permission to access legacy combat settings
-    default: op
+
   arcanesigils.behaviors:
     description: Permission to access behaviors menu
     default: op

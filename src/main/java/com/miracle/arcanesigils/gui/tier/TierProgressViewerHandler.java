@@ -9,6 +9,7 @@ import com.miracle.arcanesigils.gui.GUIType;
 import com.miracle.arcanesigils.gui.common.AbstractHandler;
 import com.miracle.arcanesigils.gui.common.ItemBuilder;
 import com.miracle.arcanesigils.tier.TierProgressionManager;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -136,8 +137,8 @@ public class TierProgressViewerHandler extends AbstractHandler {
         Sigil sigil = entry.sigil;
         TierProgressionManager.XPProgressInfo progress = entry.progress;
 
-        String tierDisplay = toRomanNumeral(entry.currentTier);
-        String maxTierDisplay = toRomanNumeral(entry.maxTier);
+        String tierDisplay = RomanNumerals.toRoman(entry.currentTier);
+        String maxTierDisplay = RomanNumerals.toRoman(entry.maxTier);
         String name = "§e" + sigil.getName() + " §7[&f" + tierDisplay + "§7/&f" + maxTierDisplay + "§7]";
 
         List<String> lore = new ArrayList<>();
@@ -160,15 +161,6 @@ public class TierProgressViewerHandler extends AbstractHandler {
 
         Material material = sigil.getItemForm() != null ? sigil.getItemForm().getMaterial() : Material.NETHER_STAR;
         return ItemBuilder.createItem(material, name, lore.toArray(new String[0]));
-    }
-
-    private static String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
     }
 
     private static String formatArmorType(Material material) {

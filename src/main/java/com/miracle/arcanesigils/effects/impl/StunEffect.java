@@ -5,8 +5,6 @@ import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.effects.StunManager;
 import com.miracle.arcanesigils.utils.ScreenShakeUtil;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -111,30 +109,6 @@ public class StunEffect extends AbstractEffect {
 
         // Screen shake on stun impact
         ScreenShakeUtil.shake(targetPlayer, 0.4, 8);
-
-        // Visual effects - sand particles covering player
-        targetPlayer.getWorld().spawnParticle(
-            Particle.FALLING_DUST,
-            targetPlayer.getLocation().add(0, 1, 0),
-            50,
-            0.5, 1.0, 0.5,
-            0.1,
-            org.bukkit.Material.SAND.createBlockData()
-        );
-
-        // Golden dust particles
-        targetPlayer.getWorld().spawnParticle(
-            Particle.DUST,
-            targetPlayer.getLocation().add(0, 1, 0),
-            30,
-            0.5, 1.0, 0.5,
-            0.1,
-            new Particle.DustOptions(org.bukkit.Color.fromRGB(255, 215, 0), 1.5f)
-        );
-
-        // Sound effect
-        targetPlayer.playSound(targetPlayer.getLocation(), Sound.BLOCK_SAND_BREAK, 1.0f, 0.5f);
-        targetPlayer.playSound(targetPlayer.getLocation(), Sound.ENTITY_HUSK_AMBIENT, 0.8f, 0.8f);
 
         debug("Stunned " + targetPlayer.getName() + " for " + duration + " seconds");
         return true;

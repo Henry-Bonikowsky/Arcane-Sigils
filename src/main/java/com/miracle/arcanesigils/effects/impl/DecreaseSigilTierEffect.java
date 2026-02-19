@@ -5,8 +5,6 @@ import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.effects.EffectContext;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -109,10 +107,6 @@ public class DecreaseSigilTierEffect extends AbstractEffect {
         // Update lore
         plugin.getSocketManager().updateItemLorePublic(meta, sigilEntries, sourceItem.getType());
         sourceItem.setItemMeta(meta);
-
-        // Visual effects
-        player.getWorld().spawnParticle(Particle.SMOKE, player.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
-        player.getWorld().playSound(player.getLocation(), Sound.BLOCK_FIRE_EXTINGUISH, 0.8f, 1.2f);
 
         debug("Decreased sigil tier: " + sigilId + " (" + actionTaken + ")");
         return true;

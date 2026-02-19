@@ -38,12 +38,12 @@ public class PotionDamageReductionListener implements Listener {
         DamageCause cause = event.getCause();
 
         // Log ALL damage types for debugging
-        LogHelper.info(String.format("[PotionDamageListener] Player %s took %s damage: %.2f",
+        LogHelper.debug(String.format("[PotionDamageListener] Player %s took %s damage: %.2f",
             player.getName(), cause, event.getDamage()));
 
         // Only apply to Poison and Wither damage
         if (cause != DamageCause.POISON && cause != DamageCause.WITHER) {
-            LogHelper.info("[PotionDamageListener] Not poison/wither, skipping");
+            LogHelper.debug("[PotionDamageListener] Not poison/wither, skipping");
             return;
         }
 
@@ -67,7 +67,7 @@ public class PotionDamageReductionListener implements Listener {
         // Apply reduced damage
         event.setDamage(reducedDamage);
 
-        LogHelper.info(String.format("[AncientCrown] Reduced %s damage: %.2f → %.2f (-%.0f%%)",
+        LogHelper.debug(String.format("[AncientCrown] Reduced %s damage: %.2f → %.2f (-%.0f%%)",
             cause, originalDamage, reducedDamage, reductionPercent));
         LogHelper.debug(String.format("[PotionDamage] Reduced %s damage: %.2f → %.2f (-%.0f%%)",
             cause, originalDamage, reducedDamage, reductionPercent));

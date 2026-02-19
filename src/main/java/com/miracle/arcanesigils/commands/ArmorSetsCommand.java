@@ -1,8 +1,10 @@
 package com.miracle.arcanesigils.commands;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.combat.ModifierRegistry;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.tier.TierProgressionManager;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -63,7 +65,10 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
             case "progress", "xp" -> handleProgress(sender);
             case "behaviors", "behavior" -> handleBehaviors(sender);
             case "combat" -> handleCombat(sender);
+            case "modifiers" -> handleModifiers(sender, args);
+
             case "debug" -> handleDebug(sender, args);
+            case "notify", "notifications" -> handleNotify(sender);
             default -> sender.sendMessage(TextUtil.colorize("§cUnknown command. Use §e/as help"));
         }
         return true;
@@ -80,7 +85,9 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage(TextUtil.colorize("§a/as unsocket §8- §7Open unsocket GUI"));
         sender.sendMessage(TextUtil.colorize("§a/as progress §8- §7View sigil XP progress"));
         sender.sendMessage(TextUtil.colorize("§a/as behaviors §8- §7Open behaviors menu"));
-        sender.sendMessage(TextUtil.colorize("§a/as combat §8- §7Open legacy combat settings"));
+        sender.sendMessage(TextUtil.colorize("§a/as combat §8- §7Open combat config GUI"));
+        sender.sendMessage(TextUtil.colorize("§a/as modifiers [player] §8- §7View active modifiers"));
+
         sender.sendMessage(TextUtil.colorize("§8&m---------------------------------------"));
     }
 
@@ -388,19 +395,41 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         com.miracle.arcanesigils.gui.behavior.BehaviorBrowserHandler.openGUI(plugin.getGuiManager(), p);
     }
 
+
     private void handleCombat(CommandSender sender) {
+        if (!sender.hasPermission("arcanesigils.admin")) {
+            sender.sendMessage(TextUtil.colorize("§cNo permission!"));
+            return;
+        }
+        if (!(sender instanceof Player p)) {
+            sender.sendMessage(TextUtil.colorize("§cPlayer only!"));
+            return;
+        }
+        com.miracle.arcanesigils.gui.combat.CombatConfigHandler.openGUI(plugin.getGuiManager(), p);
+    }
+
+    private void handleModifiers(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("arcanesigils.admin")) {
+            sender.sendMessage(TextUtil.colorize("§cNo permission!"));
+            return;
+        }
         if (!(sender instanceof Player p)) {
             sender.sendMessage(TextUtil.colorize("§cPlayer only!"));
             return;
         }
 
-        if (!p.hasPermission("arcanesigils.combat")) {
-            sender.sendMessage(TextUtil.colorize("§cNo permission!"));
-            return;
+        Player target;
+        if (args.length >= 2) {
+            target = Bukkit.getPlayer(args[1]);
+            if (target == null) {
+                sender.sendMessage(TextUtil.colorize("§cPlayer not found: §f" + args[1]));
+                return;
+            }
+        } else {
+            target = p;
         }
 
-        // Open combat settings GUI
-        com.miracle.arcanesigils.combat.gui.CombatSettingsHandler.openGUI(plugin.getGuiManager(), p);
+        com.miracle.arcanesigils.gui.combat.ModifierViewerHandler.openGUI(plugin.getGuiManager(), p, target);
     }
 
     private void handleDebug(CommandSender sender, String[] args) {
@@ -456,11 +485,24 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void handleNotify(CommandSender sender) {
+        if (!(sender instanceof Player p)) {
+            sender.sendMessage("This command can only be used by players.");
+            return;
+        }
+        boolean nowOn = ModifierRegistry.toggleNotifications(p.getUniqueId());
+        if (nowOn) {
+            p.sendMessage(TextUtil.colorize("§eDamage notifications: §aON"));
+        } else {
+            p.sendMessage(TextUtil.colorize("§eDamage notifications: §cOFF"));
+        }
+    }
+
     private void displaySigilProgress(CommandSender sender, ItemStack item, Sigil sigil) {
         TierProgressionManager.XPProgressInfo info =
                 plugin.getTierProgressionManager().getProgressInfo(item, sigil.getId(), sigil.getTier());
 
-        String tierRoman = toRomanNumeral(sigil.getTier());
+        String tierRoman = RomanNumerals.toRoman(sigil.getTier());
         Sigil baseSigil = plugin.getSigilManager().getSigil(sigil.getId());
         int maxTier = baseSigil != null ? baseSigil.getMaxTier() : sigil.getMaxTier();
 
@@ -478,22 +520,13 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
-    }
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
             // /as <subcommand>
-            completions.addAll(Arrays.asList("help", "reload", "give", "list", "info", "socket", "unsocket", "progress", "behaviors", "combat", "debug"));
+            completions.addAll(Arrays.asList("help", "reload", "give", "list", "info", "socket", "unsocket", "progress", "behaviors", "combat", "modifiers", "debug", "notify"));
         } else if (args.length == 2) {
             switch (args[0].toLowerCase()) {
                 case "give" -> completions.add("sigil");
@@ -502,6 +535,7 @@ public class ArmorSetsCommand implements CommandExecutor, TabCompleter {
                     // Show all sigil IDs
                     plugin.getSigilManager().getAllSigils().forEach(s -> completions.add(s.getId()));
                 }
+                case "modifiers" -> Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
                 case "debug" -> completions.addAll(Arrays.asList("damage", "saturation", "list", "status"));
             }
         } else if (args.length == 3) {

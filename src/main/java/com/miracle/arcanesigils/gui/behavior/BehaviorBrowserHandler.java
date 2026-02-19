@@ -49,19 +49,12 @@ public class BehaviorBrowserHandler extends AbstractHandler {
 
                 if (event.isRightClick()) {
                     // Right-click: Delete behavior (with confirmation)
-                    String confirmKey = "deleteConfirm_" + behavior.getId();
-                    Boolean confirmed = session.get(confirmKey, Boolean.class);
-                    if (confirmed == null || !confirmed) {
-                        session.put(confirmKey, true);
-                        player.sendMessage(TextUtil.colorize("§eRight-click again to delete §f" + behavior.getName()));
-                        playSound(player, "error");
-                    } else {
-                        // Confirmed - delete
-                        plugin.getSigilManager().deleteBehavior(behavior.getId());
-                        player.sendMessage(TextUtil.colorize("§cDeleted behavior: §f" + behavior.getName()));
-                        playSound(player, "click");
-                        openGUI(guiManager, player, page);
-                    }
+                    if (!requireConfirmation(player, session, "deleteConfirm_" + behavior.getId(),
+                            "§eRight-click again to delete §f" + behavior.getName())) return;
+                    plugin.getSigilManager().deleteBehavior(behavior.getId());
+                    player.sendMessage(TextUtil.colorize("§cDeleted behavior: §f" + behavior.getName()));
+                    playSound(player, "click");
+                    openGUI(guiManager, player, page);
                 } else {
                     // Left-click: Open behavior editor
                     playSound(player, "click");

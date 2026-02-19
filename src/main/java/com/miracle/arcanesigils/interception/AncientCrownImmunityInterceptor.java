@@ -1,32 +1,31 @@
 package com.miracle.arcanesigils.interception;
 
 import com.miracle.arcanesigils.utils.LogHelper;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.Random;
-
 /**
- * Interceptor that blocks negative effects by chance based on Ancient Crown tier.
- * Provides passive immunity to debuffs for the wearer.
+ * Interceptor that reduces negative effects based on Ancient Crown tier.
+ * Provides passive percentage-based resistance to debuffs for the wearer.
  *
- * Chance-based blocking:
- * - Potion effects: Roll dice, either block completely or let through at full strength
- * - Attribute modifiers: Proportional reduction (not chance-based)
+ * Crown reduces POTENCY only (not duration):
+ * - Attribute modifiers: Value reduced (e.g., -0.25 speed at 60% immunity -> -0.10)
+ * - Potion effects: Amplifier reduced proportionally (duration unchanged)
+ * - At 100% immunity (T5): effects are blocked completely
  *
  * Tier scaling:
- * - T1: 20% chance to block
- * - T2: 40% chance to block
- * - T3: 60% chance to block
- * - T4: 80% chance to block
- * - T5: 100% chance to block (always blocks)
+ * - T1: 20% reduction
+ * - T2: 40% reduction
+ * - T3: 60% reduction
+ * - T4: 80% reduction
+ * - T5: 100% reduction (complete block)
  */
 public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
     private final Player wearer;
     private double immunityPercent; // 0.0 to 1.0 (mutable for tier updates)
     private boolean active;
-    private final Random random = new Random();
 
     public AncientCrownImmunityInterceptor(Player wearer, double immunityPercent) {
         this.wearer = wearer;
@@ -36,56 +35,93 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
     @Override
     public InterceptionResult intercept(InterceptionEvent event) {
-        // Only intercept effects on the wearer
         if (!event.getTarget().equals(wearer)) {
             return InterceptionResult.PASS;
         }
 
-        if (event.getType() == InterceptionEvent.Type.POTION_EFFECT) {
-            PotionEffectType type = event.getPotionType();
-
-            // Only affect negative potion effects
-            if (isNegativeEffect(type)) {
-                // Roll dice for chance-based blocking
-                double roll = random.nextDouble(); // 0.0 to 1.0
-
-                if (roll < immunityPercent) {
-                    // Block completely
-                    event.cancel();
-                    LogHelper.info("Ancient Crown blocked " + type.getKey().getKey() +
-                                   " (" + String.format("%.0f%%", immunityPercent * 100) + " chance) for " + wearer.getName());
-                    return new InterceptionResult(true);
-                } else {
-                    // Failed roll - let effect through at full strength
-                    LogHelper.info("Ancient Crown failed to block " + type.getKey().getKey() +
-                                   " (rolled " + String.format("%.1f%%", roll * 100) +
-                                   " vs " + String.format("%.0f%%", immunityPercent * 100) + ") for " + wearer.getName());
-                    return InterceptionResult.PASS;
-                }
-            }
-        } else if (event.getType() == InterceptionEvent.Type.ATTRIBUTE_MODIFIER) {
-            double value = event.getValue();
-
-            // Only affect negative modifiers
-            if (value < 0) {
-                // At 100% immunity, block completely
-                if (immunityPercent >= 1.0) {
-                    event.cancel();
-                    return new InterceptionResult(true);
-                }
-
-                // Reduce negative value by immunity percentage
-                event.modifyValue(1.0 - immunityPercent);
-                return new InterceptionResult(true); // Effect modified
-            }
+        if (event.getType() == InterceptionEvent.Type.ATTRIBUTE_MODIFIER) {
+            return interceptAttribute(event);
+        } else if (event.getType() == InterceptionEvent.Type.POTION_EFFECT) {
+            return interceptPotion(event);
         }
 
         return InterceptionResult.PASS;
     }
 
+    private InterceptionResult interceptAttribute(InterceptionEvent event) {
+        double value = event.getValue();
+        if (value >= 0) return InterceptionResult.PASS; // Only reduce negative modifiers
+
+        String attrName = formatAttributeName(event.getAttributeType());
+
+        if (immunityPercent >= 1.0) {
+            event.cancel();
+            notifyWearer("Negated " + attrName + " debuff!");
+            return new InterceptionResult(true);
+        }
+
+        double remaining = 1.0 - immunityPercent;
+        event.modifyValue(remaining);
+        notifyWearer(String.format("Reduced %s debuff by %.0f%%", attrName, immunityPercent * 100));
+        LogHelper.info(String.format("[AncientCrown] Reduced attribute modifier by %.0f%% for %s (%.3f -> %.3f)",
+                immunityPercent * 100, wearer.getName(), value, event.getValue()));
+        return new InterceptionResult(true);
+    }
+
+    private InterceptionResult interceptPotion(InterceptionEvent event) {
+        PotionEffectType type = event.getPotionType();
+        if (!isNegativeEffect(type)) return InterceptionResult.PASS;
+
+        String effectName = formatEffectName(type);
+
+        if (immunityPercent >= 1.0) {
+            event.cancel();
+            notifyWearer("Negated " + effectName + "!");
+            return new InterceptionResult(true);
+        }
+
+        double remaining = 1.0 - immunityPercent;
+
+        // Only reduce amplifier, NOT duration — crown reduces potency only
+        event.modifyAmplifier(remaining);
+
+        notifyWearer(String.format("Reduced %s by %.0f%%", effectName, immunityPercent * 100));
+        LogHelper.info(String.format("[AncientCrown] Reduced %s by %.0f%% for %s (amp: %d, dur: %d)",
+                type.getKey().getKey(), immunityPercent * 100, wearer.getName(),
+                event.getAmplifier(), event.getDuration()));
+        return new InterceptionResult(true);
+    }
+
+    private void notifyWearer(String message) {
+        wearer.sendMessage(MiniMessage.miniMessage().deserialize(
+                "<gradient:#FFD700:#CD853F><bold>Ancient Crown!</bold></gradient> <gray>" + message + "</gray>"));
+    }
+
+    private String formatEffectName(PotionEffectType type) {
+        String raw = type.getKey().getKey().replace("_", " ");
+        StringBuilder sb = new StringBuilder();
+        for (String word : raw.split(" ")) {
+            if (!word.isEmpty()) {
+                sb.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1)).append(" ");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    private String formatAttributeName(org.bukkit.attribute.Attribute attribute) {
+        if (attribute == null) return "Unknown";
+        String name = attribute.name();
+        if (name.contains("MOVEMENT_SPEED")) return "Movement Speed";
+        if (name.contains("MAX_HEALTH")) return "Max Health";
+        if (name.contains("ATTACK_DAMAGE")) return "Attack Damage";
+        if (name.contains("ATTACK_SPEED")) return "Attack Speed";
+        if (name.contains("ARMOR_TOUGHNESS")) return "Armor Toughness";
+        if (name.contains("ARMOR")) return "Armor";
+        if (name.contains("KNOCKBACK")) return "Knockback Resistance";
+        return name.replace("_", " ").toLowerCase();
+    }
 
     private boolean isNegativeEffect(PotionEffectType type) {
-        // List of negative potion effects
         return type == PotionEffectType.SLOWNESS ||
                type == PotionEffectType.MINING_FATIGUE ||
                type == PotionEffectType.INSTANT_DAMAGE ||
@@ -102,7 +138,7 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
 
     @Override
     public int getPriority() {
-        return 1; // Standard priority
+        return 1;
     }
 
     @Override
@@ -118,17 +154,10 @@ public class AncientCrownImmunityInterceptor implements EffectInterceptor {
         return wearer;
     }
 
-    /**
-     * Get the current immunity percentage (0.0 to 1.0).
-     */
     public double getImmunityPercent() {
         return immunityPercent;
     }
 
-    /**
-     * Update the immunity percentage (for tier changes).
-     * @param newPercent The new percentage (0-100, will be converted to 0.0-1.0)
-     */
     public void setImmunityPercent(double newPercent) {
         this.immunityPercent = Math.max(0.0, Math.min(1.0, newPercent / 100.0));
         LogHelper.info("[AncientCrown] Updated immunity for " + wearer.getName() + " to " + (immunityPercent * 100) + "%");

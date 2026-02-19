@@ -26,8 +26,8 @@ public class RemoveRandomEnchantEffect extends AbstractEffect {
     public boolean execute(EffectContext context) {
         int count = (int) (context.getParams() != null ? context.getParams().getValue() : 1);
 
-        // Get the broken item from metadata
-        ItemStack item = context.getMetadata("brokenItem", null);
+        // Get the breaking item from metadata (set by SignalHandler.onItemDamage)
+        ItemStack item = context.getMetadata("breakingItem", null);
         if (item == null) {
             debug("REMOVE_RANDOM_ENCHANT failed - no broken item in context");
             return false;

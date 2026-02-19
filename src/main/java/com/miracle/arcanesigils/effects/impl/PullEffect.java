@@ -1,8 +1,6 @@
 package com.miracle.arcanesigils.effects.impl;
 
 import com.miracle.arcanesigils.effects.EffectContext;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -58,10 +56,6 @@ public class PullEffect extends AbstractEffect {
                 }
             }
         }
-
-        // Effects
-        target.getWorld().spawnParticle(Particle.WITCH, target.getLocation(), 15, 0.3, 0.5, 0.3, 0.05);
-        target.getWorld().playSound(target.getLocation(), Sound.ENTITY_FISHING_BOBBER_RETRIEVE, 1.0f, 0.8f);
 
         debug("Pulled " + target.getName() + " with force " + force);
         return true;

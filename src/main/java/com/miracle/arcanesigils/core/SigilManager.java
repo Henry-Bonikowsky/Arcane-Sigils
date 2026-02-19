@@ -15,6 +15,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 import com.miracle.arcanesigils.utils.LogHelper;
+import com.miracle.arcanesigils.core.RarityUtil;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 
 import java.io.File;
 import java.io.IOException;
@@ -242,9 +244,9 @@ public class SigilManager {
 
         // Set display name: <sigil-name> <roman numeral>
         String baseName = sigil.getName().replaceAll("\\s*&8\\[T\\d+\\]", "").trim();
-        String romanNumeral = toRomanNumeral(sigil.getTier());
+        String romanNumeral = RomanNumerals.toRoman(sigil.getTier());
         String rarity = sigil.getRarity();
-        String rarityColor = getRarityColor(rarity);
+        String rarityColor = RarityUtil.getColor(rarity);
         // Only prepend rarity color if name doesn't already have formatting (gradient or color code)
         boolean hasFormatting = baseName.startsWith("<") || baseName.startsWith("&") || baseName.startsWith("§");
         String displayName = hasFormatting ? baseName + " " + romanNumeral : rarityColor + baseName + " " + romanNumeral;
@@ -376,17 +378,6 @@ public class SigilManager {
     }
 
     /**
-     * Convert tier number to roman numeral.
-     */
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"};
-        if (tier >= 1 && tier <= 10) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
-    }
-
-    /**
      * Format socketable items set into a display string.
      * Groups armor types together and handles special cases.
      */
@@ -432,21 +423,6 @@ public class SigilManager {
         }
 
         return String.join(", ", displayParts);
-    }
-
-    /**
-     * Get rarity color code based on rarity name.
-     */
-    private String getRarityColor(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "§7";      // Gray
-            case "UNCOMMON" -> "§a";    // Green
-            case "RARE" -> "§9";        // Blue
-            case "EPIC" -> "§5";        // Purple
-            case "LEGENDARY" -> "§6";   // Gold
-            case "MYTHIC" -> "§d";      // Pink
-            default -> "§7";
-        };
     }
 
     /**

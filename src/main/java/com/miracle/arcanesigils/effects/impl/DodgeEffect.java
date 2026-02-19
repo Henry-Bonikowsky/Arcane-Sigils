@@ -3,8 +3,6 @@ package com.miracle.arcanesigils.effects.impl;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.events.SignalType;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -96,10 +94,6 @@ public class DodgeEffect extends AbstractEffect {
 
         player.setVelocity(sideways.multiply(0.5).add(new Vector(0, 0.2, 0)));
 
-        // Visual/audio effects
-        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 10, 0.3, 0.1, 0.3, 0.05);
-        player.playSound(player.getLocation(), Sound.ENTITY_BREEZE_WIND_BURST, 0.5f, 1.5f);
-
         debug("Dodge succeeded: " + player.getName() + " evaded damage");
         return true;
     }
@@ -112,10 +106,6 @@ public class DodgeEffect extends AbstractEffect {
         Vector direction = player.getLocation().getDirection().multiply(-0.7);
         direction.setY(0.3);
         player.setVelocity(direction);
-
-        // Visual/audio effects
-        player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation(), 8, 0.2, 0.1, 0.2, 0.03);
-        player.playSound(player.getLocation(), Sound.ENTITY_BREEZE_WIND_BURST, 0.4f, 1.3f);
 
         debug("Dodge dash: " + player.getName() + " repositioned");
         return true;

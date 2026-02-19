@@ -11,6 +11,7 @@ import com.miracle.arcanesigils.gui.GUIManager;
 import com.miracle.arcanesigils.gui.GUISession;
 import com.miracle.arcanesigils.gui.common.AbstractHandler;
 import com.miracle.arcanesigils.gui.common.ItemBuilder;
+import com.miracle.arcanesigils.utils.RomanNumerals;
 import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -162,7 +163,7 @@ public class UpgradeScreenHandler extends AbstractHandler {
         tieredSigil.setTier(tier);
 
         List<String> lore = new ArrayList<>();
-        lore.add("§7Tier: §e" + toRomanNumeral(tier));
+        lore.add("§7Tier: §e" + RomanNumerals.toRoman(tier));
         lore.add("");
 
         // Add parameter values for this tier
@@ -208,7 +209,7 @@ public class UpgradeScreenHandler extends AbstractHandler {
         UpgradeCost cost = costConfig.getCostForTier(targetTier);
 
         List<String> lore = new ArrayList<>();
-        lore.add("§7" + sigil.getName() + " §e" + toRomanNumeral(currentTier) + " §7→ §e" + toRomanNumeral(targetTier));
+        lore.add("§7" + sigil.getName() + " §e" + RomanNumerals.toRoman(currentTier) + " §7→ §e" + RomanNumerals.toRoman(targetTier));
         lore.add("");
 
         // XP cost
@@ -330,15 +331,4 @@ public class UpgradeScreenHandler extends AbstractHandler {
         return result.toString().trim();
     }
 
-    /**
-     * Convert tier number to roman numeral.
-     */
-    private String toRomanNumeral(int tier) {
-        String[] numerals = {"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X",
-                "XI", "XII", "XIII", "XIV", "XV", "XVI", "XVII", "XVIII", "XIX", "XX"};
-        if (tier >= 1 && tier <= 20) {
-            return numerals[tier - 1];
-        }
-        return String.valueOf(tier);
-    }
 }

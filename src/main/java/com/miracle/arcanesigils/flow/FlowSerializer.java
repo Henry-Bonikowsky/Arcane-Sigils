@@ -150,10 +150,10 @@ public class FlowSerializer {
         if (map.containsKey("next")) {
             String nextId = (String) map.get("next");
             node.setConnection("next", nextId);
-            LogHelper.info("[FlowSerializer] Set 'next' connection for node %s -> %s",
+            LogHelper.debug("[FlowSerializer] Set 'next' connection for node %s -> %s",
                 node.getId(), nextId);
         } else {
-            LogHelper.warning("[FlowSerializer] Node %s has no 'next' field in YAML",
+            LogHelper.debug("[FlowSerializer] Node %s has no 'next' field in YAML",
                 node.getId());
         }
         Object connObj = map.get("connections");

@@ -7,8 +7,6 @@ import com.miracle.arcanesigils.effects.StunManager;
 import com.miracle.arcanesigils.utils.TextUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Entity;
@@ -204,15 +202,6 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
             });
 
             activeMummies.add(mummy.getUniqueId());
-
-            // Spawn particles
-            mummy.getWorld().spawnParticle(
-                Particle.SOUL,
-                mummy.getLocation().add(0, 1, 0),
-                20,
-                0.3, 0.5, 0.3,
-                0.05
-            );
         }
 
         // Start a repeating task to force mummies to target the specified entity
@@ -243,43 +232,11 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
             }, 5L, 10L); // Start after 5 ticks, repeat every 10 ticks (0.5 sec)
         }
 
-        // Sound effects
-        owner.getWorld().playSound(owner.getLocation(), Sound.ENTITY_HUSK_AMBIENT, 1.0f, 0.8f);
-        owner.getWorld().playSound(owner.getLocation(), Sound.ENTITY_ZOMBIE_VILLAGER_CONVERTED, 0.8f, 0.5f);
-        owner.getWorld().playSound(owner.getLocation(), Sound.BLOCK_SAND_BREAK, 1.0f, 0.6f);
-
-        // Sand particles
-        owner.getWorld().spawnParticle(
-            Particle.FALLING_DUST,
-            owner.getLocation().add(0, 1, 0),
-            60,
-            1.5, 1.0, 1.5,
-            0.1,
-            org.bukkit.Material.SAND.createBlockData()
-        );
-
         // Schedule removal after duration
         BukkitTask removeTask = Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
             for (UUID mummyId : new HashSet<>(activeMummies)) {
                 Entity entity = Bukkit.getEntity(mummyId);
                 if (entity != null && entity.isValid()) {
-                    // Death particles
-                    entity.getWorld().spawnParticle(
-                        Particle.SOUL,
-                        entity.getLocation().add(0, 1, 0),
-                        30,
-                        0.5, 0.5, 0.5,
-                        0.1
-                    );
-                    entity.getWorld().spawnParticle(
-                        Particle.FALLING_DUST,
-                        entity.getLocation().add(0, 1, 0),
-                        40,
-                        0.5, 1.0, 0.5,
-                        0.1,
-                        org.bukkit.Material.SAND.createBlockData()
-                    );
-                    entity.getWorld().playSound(entity.getLocation(), Sound.ENTITY_HUSK_DEATH, 0.8f, 0.8f);
                     entity.remove();
                 }
                 activeMummies.remove(mummyId);
@@ -334,15 +291,6 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
         victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 1, false, true)); // 5 sec
         victim.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 100, 0, false, true));
 
-        victim.getWorld().spawnParticle(
-            Particle.DUST,
-            victim.getLocation().add(0, 1, 0),
-            20,
-            0.5, 0.5, 0.5,
-            0.1,
-            new Particle.DustOptions(org.bukkit.Color.fromRGB(255, 215, 0), 1.0f)
-        );
-
         victim.sendMessage(TextUtil.colorize("§6&lPharaoh's Mark! §7You have been marked!"));
     }
 
@@ -363,16 +311,6 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
             victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, ticks, 0, false, true));
         }
 
-        victim.getWorld().spawnParticle(
-            Particle.FALLING_DUST,
-            victim.getLocation().add(0, 1, 0),
-            40,
-            0.5, 1.0, 0.5,
-            0.1,
-            org.bukkit.Material.SAND.createBlockData()
-        );
-
-        victim.getWorld().playSound(victim.getLocation(), Sound.BLOCK_SAND_BREAK, 1.0f, 0.5f);
         victim.sendMessage(TextUtil.colorize("§6&lPharaoh's Curse! §7You have been stunned!"));
     }
 
@@ -389,14 +327,5 @@ public class SummonMummyEffect extends AbstractEffect implements Listener {
         // Clear drops (mummies don't drop loot)
         event.getDrops().clear();
         event.setDroppedExp(0);
-
-        // Death particles
-        husk.getWorld().spawnParticle(
-            Particle.SOUL,
-            husk.getLocation().add(0, 1, 0),
-            15,
-            0.3, 0.5, 0.3,
-            0.05
-        );
     }
 }

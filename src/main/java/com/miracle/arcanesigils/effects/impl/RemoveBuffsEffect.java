@@ -4,8 +4,6 @@ import com.miracle.arcanesigils.ArmorSetsPlugin;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
 import com.miracle.arcanesigils.effects.PotionEffectTracker;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.attribute.AttributeModifier;
@@ -137,35 +135,7 @@ public class RemoveBuffsEffect extends AbstractEffect {
             }
         }
 
-        // Visual and audio feedback
         if (removedCount > 0) {
-            // Dark purple particles - debuff visual
-            target.getWorld().spawnParticle(
-                Particle.DUST,
-                target.getLocation().add(0, 1, 0),
-                30,
-                0.5, 0.8, 0.5,
-                0.1,
-                new Particle.DustOptions(org.bukkit.Color.fromRGB(75, 0, 130), 1.2f)
-            );
-
-            // Smoke particles rising up
-            target.getWorld().spawnParticle(
-                Particle.SMOKE,
-                target.getLocation().add(0, 0.5, 0),
-                15,
-                0.3, 0.5, 0.3,
-                0.05
-            );
-
-            // Sound effect - breaking/shattering
-            target.getWorld().playSound(
-                target.getLocation(),
-                Sound.BLOCK_GLASS_BREAK,
-                0.8f,
-                0.8f
-            );
-
             debug("Removed " + removedCount + " buffs from " + target.getName());
             return true;
         }

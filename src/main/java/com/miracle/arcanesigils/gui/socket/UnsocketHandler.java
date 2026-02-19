@@ -1,6 +1,7 @@
 package com.miracle.arcanesigils.gui.socket;
 
 import com.miracle.arcanesigils.ArmorSetsPlugin;
+import com.miracle.arcanesigils.core.RarityUtil;
 import com.miracle.arcanesigils.core.Sigil;
 import com.miracle.arcanesigils.core.SocketManager;
 import com.miracle.arcanesigils.gui.GUIManager;
@@ -284,7 +285,7 @@ public class UnsocketHandler extends AbstractHandler {
                 material = sigil.getItemForm().getMaterial();
             }
 
-            String rarityColor = getRarityColor(sigil.getRarity());
+            String rarityColor = RarityUtil.getColor(sigil.getRarity());
             List<String> lore = new ArrayList<>();
 
             lore.add("§7Tier: §f" + sigil.getTier());
@@ -349,18 +350,4 @@ public class UnsocketHandler extends AbstractHandler {
         return -1;
     }
 
-    /**
-     * Get rarity color for display.
-     */
-    private String getRarityColor(String rarity) {
-        return switch (rarity.toUpperCase()) {
-            case "COMMON" -> "§7";
-            case "UNCOMMON" -> "§a";
-            case "RARE" -> "§9";
-            case "EPIC" -> "§5";
-            case "LEGENDARY" -> "§6";
-            case "MYTHIC" -> "§d";
-            default -> "§7";
-        };
-    }
 }

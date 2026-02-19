@@ -86,18 +86,12 @@ public class FlowListHandler extends AbstractHandler {
                     }
                 } else if (event.isRightClick()) {
                     // Delete flow (with confirmation)
-                    Boolean confirmed = session.get("deleteConfirm_" + index, Boolean.class);
-                    if (confirmed == null || !confirmed) {
-                        session.put("deleteConfirm_" + index, true);
-                        player.sendMessage(TextUtil.colorize("&eRight-click again to delete this flow"));
-                        playSound(player, "error");
-                    } else {
-                        // Confirmed - delete the flow
-                        flows.remove(index);
-                        player.sendMessage(TextUtil.colorize("&cFlow deleted"));
-                        playSound(player, "click");
-                        openGUI(guiManager, player, sigil, page);
-                    }
+                    if (!requireConfirmation(player, session, "deleteConfirm_" + index,
+                            "&eRight-click again to delete this flow")) return;
+                    flows.remove(index);
+                    player.sendMessage(TextUtil.colorize("&cFlow deleted"));
+                    playSound(player, "click");
+                    openGUI(guiManager, player, sigil, page);
                 }
             }
             return;

@@ -38,6 +38,7 @@ public class GUIManager implements Listener {
         this.handlers = new HashMap<>();
 
         // Register sigil handlers
+        registerHandler(GUIType.SIGIL_FOLDER_BROWSER, new com.miracle.arcanesigils.gui.sigil.SigilFolderBrowserHandler(plugin, this));
         registerHandler(GUIType.SIGILS_MENU, new com.miracle.arcanesigils.gui.sigil.SigilsMenuHandler(plugin, this));
         registerHandler(GUIType.SIGIL_EDITOR, new com.miracle.arcanesigils.gui.sigil.SigilEditorHandler(plugin, this));
         registerHandler(GUIType.SIGIL_CONFIG, new com.miracle.arcanesigils.gui.sigil.SigilConfigHandler(plugin, this));
@@ -99,9 +100,12 @@ public class GUIManager implements Listener {
         registerHandler(GUIType.EXPRESSION_VALUE_SELECTOR, new com.miracle.arcanesigils.gui.flow.ExpressionValueSelectorHandler(plugin, this));
         registerHandler(GUIType.EXPRESSION_OPERATOR_SELECTOR, new com.miracle.arcanesigils.gui.flow.ExpressionOperatorSelectorHandler(plugin, this));
 
-        // Register combat settings handlers
-        registerHandler(GUIType.COMBAT_SETTINGS, new com.miracle.arcanesigils.combat.gui.CombatSettingsHandler(plugin, this));
-        registerHandler(GUIType.COMBAT_MODULE_CONFIG, new com.miracle.arcanesigils.combat.gui.ModuleConfigHandler(plugin, this));
+
+        // Register combat handlers
+        registerHandler(GUIType.COMBAT_CONFIG, new com.miracle.arcanesigils.gui.combat.CombatConfigHandler(plugin, this));
+        registerHandler(GUIType.ENCHANT_SCALING, new com.miracle.arcanesigils.gui.combat.EnchantScalingHandler(plugin, this));
+        registerHandler(GUIType.DURABILITY_CONFIG, new com.miracle.arcanesigils.gui.combat.DurabilityConfigHandler(plugin, this));
+        registerHandler(GUIType.MODIFIER_VIEWER, new com.miracle.arcanesigils.gui.combat.ModifierViewerHandler(plugin, this));
 
         // Register enchanter handlers
         registerHandler(GUIType.ENCHANTER_MAIN, new com.miracle.arcanesigils.enchanter.gui.EnchanterMainHandler(plugin, this));
@@ -304,17 +308,17 @@ public class GUIManager implements Listener {
     // These will be implemented as handlers are created
 
     /**
-     * Open the main Sigils menu (browser).
+     * Open the main Sigils menu (folder browser).
      */
     public void openSigilsMenu(Player player) {
-        openSigilsMenu(player, 1);
+        com.miracle.arcanesigils.gui.sigil.SigilFolderBrowserHandler.openGUI(this, player);
     }
 
     /**
      * Open the main Sigils menu at a specific page.
      */
     public void openSigilsMenu(Player player, int page) {
-        com.miracle.arcanesigils.gui.sigil.SigilsMenuHandler.openGUI(this, player, page, "NONE");
+        com.miracle.arcanesigils.gui.sigil.SigilFolderBrowserHandler.openGUI(this, player, page);
     }
 
     /**

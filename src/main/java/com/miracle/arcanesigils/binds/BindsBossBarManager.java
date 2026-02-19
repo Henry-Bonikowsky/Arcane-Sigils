@@ -23,8 +23,8 @@ public class BindsBossBarManager {
     // Track boss bars per player (list of bars, one per ability row)
     private final Map<UUID, List<BossBar>> playerBars = new HashMap<>();
 
-    // Minecraft limits visible boss bars
-    private static final int MAX_BOSS_BARS = 5;
+    // Max boss bars shown (one per hotbar bind slot)
+    private static final int MAX_BOSS_BARS = 9;
 
     public BindsBossBarManager(ArmorSetsPlugin plugin) {
         this.plugin = plugin;
@@ -66,13 +66,8 @@ public class BindsBossBarManager {
             entries.add(new BindEntry(slot, sigilIds, equippedCount));
         }
 
-        // Sort: binds with equipped sigils first, then by slot number
-        entries.sort((a, b) -> {
-            if (a.equippedCount != b.equippedCount) {
-                return Integer.compare(b.equippedCount, a.equippedCount);
-            }
-            return Integer.compare(a.slot, b.slot);
-        });
+        // Sort by slot number ascending (1-9)
+        entries.sort((a, b) -> Integer.compare(a.slot, b.slot));
 
         // Create boss bars for top entries
         List<BossBar> bars = new ArrayList<>();

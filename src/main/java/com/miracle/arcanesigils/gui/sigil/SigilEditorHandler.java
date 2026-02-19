@@ -76,7 +76,8 @@ public class SigilEditorHandler extends AbstractHandler {
         }
         int parentPage = session.getInt("parentPage", 1);
         String parentFilter = session.get("parentFilter", String.class);
-        openGUI(guiManager, player, sigil, parentPage, parentFilter != null ? parentFilter : "NONE");
+        if (parentFilter == null) parentFilter = sigil.getSourceFile() != null ? sigil.getSourceFile() : "sigils.yml";
+        openGUI(guiManager, player, sigil, parentPage, parentFilter);
     }
 
     @Override
@@ -126,9 +127,13 @@ public class SigilEditorHandler extends AbstractHandler {
         // Confirmed or no changes - go back
         playSound(player, "click");
         int page = session.getInt("parentPage", 1);
-        String filter = session.get("parentFilter", String.class);
-        if (filter == null) filter = "NONE";
-        SigilsMenuHandler.openGUI(guiManager, player, page, filter);
+        String sourceFile = session.get("parentFilter", String.class);
+        if (sourceFile == null || sourceFile.equals("NONE") || sourceFile.equals("BEHAVIOR")) {
+            // No source file context - go to folder browser
+            SigilFolderBrowserHandler.openGUI(guiManager, player);
+        } else {
+            SigilsMenuHandler.openGUI(guiManager, player, page, sourceFile);
+        }
     }
 
     /**

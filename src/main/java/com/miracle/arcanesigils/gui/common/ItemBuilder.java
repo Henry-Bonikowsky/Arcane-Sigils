@@ -234,4 +234,56 @@ public final class ItemBuilder {
             "§7Try clearing or adjusting filters"
         );
     }
+
+    // ============ Config GUI Factories ============
+
+    /**
+     * Create a toggle item (lime dye = enabled, red dye = disabled).
+     * Standard for boolean config settings in admin GUIs.
+     */
+    public static ItemStack createToggle(boolean enabled, String name, String... desc) {
+        Material mat = enabled ? Material.LIME_DYE : Material.RED_DYE;
+        List<String> lore = new ArrayList<>();
+        for (String line : desc) lore.add(line);
+        lore.add("");
+        lore.add(enabled ? "§aEnabled" : "§cDisabled");
+        lore.add("");
+        lore.add("§eClick to toggle");
+        return createItem(mat, name, lore);
+    }
+
+    /**
+     * Create a config value item showing current value with edit prompt.
+     * Standard for numeric config settings in admin GUIs.
+     */
+    public static ItemStack createConfigValue(Material mat, String name, double value, String... desc) {
+        List<String> lore = new ArrayList<>();
+        for (String line : desc) lore.add(line);
+        lore.add("");
+        lore.add("§fCurrent: §e" + formatConfigVal(value));
+        lore.add("");
+        lore.add("§aClick to edit");
+        return createItem(mat, name, lore);
+    }
+
+    /**
+     * Create a section header item (non-interactive label).
+     */
+    public static ItemStack createSection(Material mat, String name) {
+        return createItem(mat, name);
+    }
+
+    /**
+     * Create a close button (barrier).
+     */
+    public static ItemStack createCloseButton() {
+        return createItem(Material.BARRIER, "§c§lClose");
+    }
+
+    private static String formatConfigVal(double v) {
+        if (v == (long) v) return String.valueOf((long) v);
+        // Use minimal decimal places
+        String formatted = String.format("%.4f", v).replaceAll("0+$", "").replaceAll("\\.$", "");
+        return formatted;
+    }
 }

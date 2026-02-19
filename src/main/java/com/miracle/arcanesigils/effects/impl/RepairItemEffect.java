@@ -43,7 +43,9 @@ public class RepairItemEffect extends AbstractEffect {
 
         // Restore durability
         if (percent > 0 && item.getItemMeta() instanceof Damageable damageable) {
-            int maxDurability = item.getType().getMaxDurability();
+            int maxDurability = damageable.hasMaxDamage()
+                ? damageable.getMaxDamage()
+                : item.getType().getMaxDurability();
             int currentDamage = damageable.getDamage();
 
             // Calculate repair amount (percent of max durability)

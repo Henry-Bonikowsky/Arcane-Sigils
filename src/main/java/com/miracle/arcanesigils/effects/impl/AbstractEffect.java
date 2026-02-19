@@ -6,6 +6,7 @@ import com.miracle.arcanesigils.binds.LastVictimManager;
 import com.miracle.arcanesigils.effects.Effect;
 import com.miracle.arcanesigils.effects.EffectContext;
 import com.miracle.arcanesigils.effects.EffectParams;
+import com.miracle.arcanesigils.effects.ParamDefinition;
 import com.miracle.arcanesigils.flow.FlowContext;
 import com.miracle.arcanesigils.utils.TargetFinder;
 import com.miracle.arcanesigils.utils.TextUtil;
@@ -39,6 +40,18 @@ public abstract class AbstractEffect implements Effect {
     @Override
     public String getDescription() {
         return description;
+    }
+
+    /**
+     * Declare this effect's configurable parameters.
+     * Override in subclasses to make effects self-describing for the GUI.
+     * When all effects override this, EffectParamHandler.getParamConfig() can be replaced
+     * with a generic renderer that reads these definitions.
+     *
+     * @return list of param definitions (empty by default for backward compatibility)
+     */
+    public List<ParamDefinition> getParamDefinitions() {
+        return List.of();
     }
 
     /**
@@ -285,18 +298,22 @@ public abstract class AbstractEffect implements Effect {
      */
     protected List<LivingEntity> getNearbyAllies(EffectContext context, double radius) {
         List<LivingEntity> nearby = getNearbyEntities(context, radius);
-        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+        try {
+            if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+                return nearby;
+            }
+            Player player = context.getPlayer();
+            return nearby.stream()
+                .filter(entity -> {
+                    if (entity instanceof Player target) {
+                        return com.miracle.arcanesigils.hooks.FactionsHook.isAlly(player, target);
+                    }
+                    return false;
+                })
+                .collect(java.util.stream.Collectors.toList());
+        } catch (Exception | NoClassDefFoundError e) {
             return nearby;
         }
-        Player player = context.getPlayer();
-        return nearby.stream()
-            .filter(entity -> {
-                if (entity instanceof Player target) {
-                    return com.miracle.arcanesigils.hooks.FactionsHook.isAlly(player, target);
-                }
-                return false;
-            })
-            .collect(java.util.stream.Collectors.toList());
     }
 
     /**
@@ -305,18 +322,22 @@ public abstract class AbstractEffect implements Effect {
      */
     protected List<LivingEntity> getNearbyEnemies(EffectContext context, double radius) {
         List<LivingEntity> nearby = getNearbyEntities(context, radius);
-        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+        try {
+            if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+                return nearby;
+            }
+            Player player = context.getPlayer();
+            return nearby.stream()
+                .filter(entity -> {
+                    if (entity instanceof Player target) {
+                        return com.miracle.arcanesigils.hooks.FactionsHook.isEnemy(player, target);
+                    }
+                    return true; // Non-players (mobs) count as enemies
+                })
+                .collect(java.util.stream.Collectors.toList());
+        } catch (Exception | NoClassDefFoundError e) {
             return nearby;
         }
-        Player player = context.getPlayer();
-        return nearby.stream()
-            .filter(entity -> {
-                if (entity instanceof Player target) {
-                    return com.miracle.arcanesigils.hooks.FactionsHook.isEnemy(player, target);
-                }
-                return true; // Non-players (mobs) count as enemies
-            })
-            .collect(java.util.stream.Collectors.toList());
     }
 
     /**

@@ -134,10 +134,8 @@ public class ConfigManager {
 
     private void saveDefaultSigils() {
         saveResource("sigils/default-sigils.yml");
+        saveResource("sigils/anubis-set.yml");
         saveResource("sigils/pharaoh-set.yml");
-        saveResource("sigils/seasonal-pass.yml");
-        saveResource("sigils/mummy-kit.yml");
-        saveResource("sigils/test-dummy.yml");
     }
 
     private void saveDefaultBehaviors() {

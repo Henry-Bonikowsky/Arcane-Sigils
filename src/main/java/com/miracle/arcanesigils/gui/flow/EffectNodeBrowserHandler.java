@@ -173,17 +173,8 @@ public class EffectNodeBrowserHandler extends AbstractHandler {
             }
         }
 
-        // Create session preserving flow data
-        GUISession session = new GUISession(GUIType.EFFECT_NODE_BROWSER);
-        session.put("sigil", flowSession.get("sigil"));
-        session.put("signalKey", flowSession.get("signalKey"));
-        session.put("flow", flowSession.get("flow"));
-        session.put("originalFlow", flowSession.get("originalFlow"));
-        session.put("selectedNode", flowSession.get("selectedNode"));
-        session.put("viewX", flowSession.get("viewX"));
-        session.put("viewY", flowSession.get("viewY"));
-        session.put("addNodeX", flowSession.get("addNodeX"));
-        session.put("addNodeY", flowSession.get("addNodeY"));
+        // Create session inheriting flow context
+        GUISession session = flowSession.deriveChild(GUIType.EFFECT_NODE_BROWSER);
         session.put("page", page);
 
         guiManager.openGUI(player, inv, session);
