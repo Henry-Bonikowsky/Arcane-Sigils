@@ -242,6 +242,21 @@ public abstract class AbstractEffect implements Effect {
         } else if (target.equalsIgnoreCase("@LookTarget") || target.equalsIgnoreCase("@Look")) {
             // Explicitly target what player is looking at
             return TargetFinder.findLookTarget(context.getPlayer(), range);
+        } else if (target.startsWith("@NearbyAllies:")) {
+            double r = parseNearbyRadius(target, range);
+            List<Player> allies = com.miracle.arcanesigils.hooks.FactionsHook.getNearbyAllyPlayers(
+                context.getPlayer(), r);
+            return allies.isEmpty() ? null : allies.get(0);
+        } else if (target.startsWith("@NearbyEnemies:")) {
+            double r = parseNearbyRadius(target, range);
+            List<Player> enemies = com.miracle.arcanesigils.hooks.FactionsHook.getNearbyEnemyPlayers(
+                context.getPlayer(), r);
+            return enemies.isEmpty() ? null : enemies.get(0);
+        } else if (target.startsWith("@FactionMembers:")) {
+            double r = parseNearbyRadius(target, range);
+            List<Player> members = com.miracle.arcanesigils.hooks.FactionsHook.getNearbyFactionMembers(
+                context.getPlayer(), r);
+            return members.isEmpty() ? null : members.get(0);
         }
 
         return context.getPlayer();
@@ -297,23 +312,21 @@ public abstract class AbstractEffect implements Effect {
      * Falls back to all nearby entities if Factions is not available.
      */
     protected List<LivingEntity> getNearbyAllies(EffectContext context, double radius) {
-        List<LivingEntity> nearby = getNearbyEntities(context, radius);
-        try {
-            if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
-                return nearby;
-            }
-            Player player = context.getPlayer();
-            return nearby.stream()
-                .filter(entity -> {
-                    if (entity instanceof Player target) {
-                        return com.miracle.arcanesigils.hooks.FactionsHook.isAlly(player, target);
-                    }
-                    return false;
-                })
-                .collect(java.util.stream.Collectors.toList());
-        } catch (Exception | NoClassDefFoundError e) {
-            return nearby;
+        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+            return getNearbyEntities(context, radius);
         }
+        List<Player> allies = com.miracle.arcanesigils.hooks.FactionsHook.getNearbyAllyPlayers(
+            context.getPlayer(), radius);
+        return new ArrayList<>(allies);
+    }
+
+    /**
+     * Get nearby ally players (faction members/allies) within a radius.
+     * Returns ONLY players. Returns empty list if Factions unavailable.
+     */
+    protected List<Player> getNearbyAllyPlayers(EffectContext context, double radius) {
+        return com.miracle.arcanesigils.hooks.FactionsHook.getNearbyAllyPlayers(
+            context.getPlayer(), radius);
     }
 
     /**
@@ -322,22 +335,27 @@ public abstract class AbstractEffect implements Effect {
      */
     protected List<LivingEntity> getNearbyEnemies(EffectContext context, double radius) {
         List<LivingEntity> nearby = getNearbyEntities(context, radius);
-        try {
-            if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
-                return nearby;
-            }
-            Player player = context.getPlayer();
-            return nearby.stream()
-                .filter(entity -> {
-                    if (entity instanceof Player target) {
-                        return com.miracle.arcanesigils.hooks.FactionsHook.isEnemy(player, target);
-                    }
-                    return true; // Non-players (mobs) count as enemies
-                })
-                .collect(java.util.stream.Collectors.toList());
-        } catch (Exception | NoClassDefFoundError e) {
+        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
             return nearby;
         }
+        Player player = context.getPlayer();
+        return nearby.stream()
+            .filter(entity -> {
+                if (entity instanceof Player target) {
+                    return com.miracle.arcanesigils.hooks.FactionsHook.isEnemy(player, target);
+                }
+                return true; // Non-players (mobs) count as enemies
+            })
+            .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * Get nearby enemy players within a radius.
+     * Returns ONLY players. Returns empty list if Factions unavailable.
+     */
+    protected List<Player> getNearbyEnemyPlayers(EffectContext context, double radius) {
+        return com.miracle.arcanesigils.hooks.FactionsHook.getNearbyEnemyPlayers(
+            context.getPlayer(), radius);
     }
 
     /**
@@ -377,6 +395,15 @@ public abstract class AbstractEffect implements Effect {
         if (target.startsWith("@NearbyEnemies:")) {
             try {
                 return Double.parseDouble(target.substring(15));
+            } catch (NumberFormatException e) {
+                return defaultRadius;
+            }
+        }
+
+        // Handle @FactionMembers:X format
+        if (target.startsWith("@FactionMembers:")) {
+            try {
+                return Double.parseDouble(target.substring(16));
             } catch (NumberFormatException e) {
                 return defaultRadius;
             }
