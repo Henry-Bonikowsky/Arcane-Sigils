@@ -389,6 +389,89 @@ public enum ConditionType {
         "Modifier reduces a stat (negative speed, damage, etc.)",
         false
     ),
+    // ===== FACTION CONDITIONS =====
+    IS_ALLY(
+        ConditionCategory.FACTION,
+        Material.LIME_BANNER,
+        "Is Ally",
+        "Check if target is a faction ally or member",
+        "IS_ALLY",
+        "Target is in your faction or allied",
+        false
+    ),
+    IS_ENEMY(
+        ConditionCategory.FACTION,
+        Material.RED_BANNER,
+        "Is Enemy",
+        "Check if target is a faction enemy",
+        "IS_ENEMY",
+        "Target is an enemy faction member",
+        false
+    ),
+    IS_TRUCE(
+        ConditionCategory.FACTION,
+        Material.YELLOW_BANNER,
+        "Is Truce",
+        "Check if target is in a truce faction",
+        "IS_TRUCE",
+        "Target is in a truce faction",
+        false
+    ),
+    IS_NEUTRAL(
+        ConditionCategory.FACTION,
+        Material.WHITE_BANNER,
+        "Is Neutral",
+        "Check if target is faction-neutral",
+        "IS_NEUTRAL",
+        "Target is faction-neutral",
+        false
+    ),
+    IN_OWN_TERRITORY(
+        ConditionCategory.FACTION,
+        Material.GREEN_BANNER,
+        "In Own Territory",
+        "Check if player is in their faction's claimed land",
+        "IN_OWN_TERRITORY",
+        "Player is on home turf",
+        false
+    ),
+    IN_ENEMY_TERRITORY(
+        ConditionCategory.FACTION,
+        Material.RED_WOOL,
+        "In Enemy Territory",
+        "Check if player is in enemy faction's claimed land",
+        "IN_ENEMY_TERRITORY",
+        "Player is raiding enemy land",
+        false
+    ),
+    IN_WARZONE(
+        ConditionCategory.FACTION,
+        Material.TNT,
+        "In Warzone",
+        "Check if player is in a warzone chunk",
+        "IN_WARZONE",
+        "Player is in warzone",
+        false
+    ),
+    IN_SAFEZONE(
+        ConditionCategory.FACTION,
+        Material.GOLDEN_APPLE,
+        "In Safezone",
+        "Check if player is in a safezone chunk",
+        "IN_SAFEZONE",
+        "Player is in safezone",
+        false
+    ),
+    HAS_FACTION(
+        ConditionCategory.FACTION,
+        Material.IRON_SWORD,
+        "Has Faction",
+        "Check if player belongs to any faction",
+        "HAS_FACTION",
+        "Player is in a faction",
+        false
+    ),
+
     IS_POTION_DAMAGE(
         ConditionCategory.SIGNAL_SPECIFIC,
         Material.WITHER_ROSE,
@@ -534,6 +617,15 @@ public enum ConditionType {
             case IS_POTION_DAMAGE -> "Checks if damage is from poison or wither damage-over-time effect. Only works in DEFENSE signal flows. Returns true for POISON and WITHER damage causes. Used by Ancient Crown to reduce DOT damage.";
             case HAS_SET_BONUS -> "Checks if player has an active set bonus at minimum tier. Useful for abilities that synergize with set bonuses.";
             case IS_BLOCKING_SWORD -> "Checks if player is blocking with a sword (1.8 style combat). Perfect for defensive sword abilities.";
+            case IS_ALLY -> "Checks if the target player is in the same faction or an allied faction. Requires Factions plugin. Always false if target isn't a player or Factions not loaded.";
+            case IS_ENEMY -> "Checks if the target player is in an enemy faction. Requires Factions plugin. Always false if target isn't a player or Factions not loaded.";
+            case IS_TRUCE -> "Checks if the target player is in a truce faction. Requires Factions plugin.";
+            case IS_NEUTRAL -> "Checks if the target player is faction-neutral (no relation set). Requires Factions plugin.";
+            case IN_OWN_TERRITORY -> "Checks if the player is standing in their own faction's claimed land. Perfect for homeland defense sigils.";
+            case IN_ENEMY_TERRITORY -> "Checks if the player is in an enemy faction's claimed land. Ideal for raiding sigils.";
+            case IN_WARZONE -> "Checks if the player is in a designated warzone chunk.";
+            case IN_SAFEZONE -> "Checks if the player is in a safezone chunk.";
+            case HAS_FACTION -> "Checks if the player belongs to any faction. Useful for gating faction-only abilities.";
         };
     }
 
@@ -580,6 +672,15 @@ public enum ConditionType {
             case IS_POTION_DAMAGE -> "Ancient Crown immunity: Reduce poison/wither damage by X%";
             case HAS_SET_BONUS -> "Set synergy: Extra effect when wearing 2+ Ancient set pieces at tier 3+";
             case IS_BLOCKING_SWORD -> "Divine shield: While blocking with sword, chance to grant invulnerability";
+            case IS_ALLY -> "Healer build: Healing sigil only targets allies";
+            case IS_ENEMY -> "Assassin: Extra damage only against enemies";
+            case IS_TRUCE -> "Diplomat: Special interaction with truce factions";
+            case IS_NEUTRAL -> "Mercenary: Effects that work on unaligned players";
+            case IN_OWN_TERRITORY -> "Homeland Defender: Bonus damage on home claims";
+            case IN_ENEMY_TERRITORY -> "Raider's Edge: Bonus effects when invading enemy land";
+            case IN_WARZONE -> "Warzone Fighter: Combat buffs in warzone areas";
+            case IN_SAFEZONE -> "Safe Haven: Passive regen while in safezone";
+            case HAS_FACTION -> "Faction Warrior: Abilities only work if you're in a faction";
         };
     }
 
@@ -626,6 +727,15 @@ public enum ConditionType {
             case IS_POTION_DAMAGE -> new String[]{"SIGNAL"};
             case HAS_SET_BONUS -> new String[]{"HEALTH_PERCENT", "HAS_POTION"};
             case IS_BLOCKING_SWORD -> new String[]{"MAIN_HAND", "SIGNAL"};
+            case IS_ALLY -> new String[]{"IS_ENEMY", "HAS_FACTION"};
+            case IS_ENEMY -> new String[]{"IS_ALLY", "HAS_FACTION"};
+            case IS_TRUCE -> new String[]{"IS_NEUTRAL", "HAS_FACTION"};
+            case IS_NEUTRAL -> new String[]{"IS_TRUCE", "IS_ENEMY"};
+            case IN_OWN_TERRITORY -> new String[]{"IN_ENEMY_TERRITORY", "HAS_FACTION"};
+            case IN_ENEMY_TERRITORY -> new String[]{"IN_OWN_TERRITORY", "HAS_FACTION"};
+            case IN_WARZONE -> new String[]{"IN_SAFEZONE", "IN_ENEMY_TERRITORY"};
+            case IN_SAFEZONE -> new String[]{"IN_WARZONE", "IN_OWN_TERRITORY"};
+            case HAS_FACTION -> new String[]{"IS_ALLY", "IS_ENEMY"};
         };
     }
 
@@ -672,6 +782,15 @@ public enum ConditionType {
             case IS_POTION_DAMAGE -> "Only usable in DEFENSE signal flows. Checks if damage cause is POISON or WITHER.";
             case HAS_SET_BONUS -> "Format: HAS_SET_BONUS:ancient_set:2 - Requires Ancient set at tier 2 or higher";
             case IS_BLOCKING_SWORD -> "Requires 1.8 combat module enabled. Only works when blocking with a sword item.";
+            case IS_ALLY -> "Requires Factions plugin. Checks MEMBER and ALLY relations. Returns false for non-players.";
+            case IS_ENEMY -> "Requires Factions plugin. Only true for ENEMY relation. TRUCE and NEUTRAL are NOT enemies.";
+            case IS_TRUCE -> "Requires Factions plugin. TRUCE is a specific relation - not the same as neutral.";
+            case IS_NEUTRAL -> "Requires Factions plugin. NEUTRAL = no relation set between factions.";
+            case IN_OWN_TERRITORY -> "Requires Factions plugin. Only true in your faction's claimed chunks.";
+            case IN_ENEMY_TERRITORY -> "Requires Factions plugin. True in any enemy faction's claims.";
+            case IN_WARZONE -> "Requires Factions plugin. Warzone is set by server admins.";
+            case IN_SAFEZONE -> "Requires Factions plugin. Safezone is set by server admins.";
+            case HAS_FACTION -> "Requires Factions plugin. False for factionless players.";
         };
     }
 

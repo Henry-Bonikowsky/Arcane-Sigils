@@ -143,6 +143,22 @@ public class AuraManager {
             case MOBS_ONLY -> !isPlayer;
         };
 
+        // Faction-aware filtering: skip allies for enemy-targeting auras
+        if (result && isPlayer && !isOwner) {
+            Player owner = plugin.getServer().getPlayer(aura.ownerId);
+            Player target = (Player) entity;
+            if (owner != null && com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) {
+                boolean isAlly = com.miracle.arcanesigils.hooks.FactionsHook.isAlly(owner, target);
+                if (isAlly && (aura.affects == AffectsType.ENEMIES
+                            || aura.affects == AffectsType.ENEMIES_PLAYERS_ONLY)) {
+                    com.miracle.arcanesigils.utils.LogHelper.debug(
+                        "[AuraManager] Skipping ally %s for enemy aura (faction protection)",
+                        target.getName());
+                    return false;
+                }
+            }
+        }
+
         // Debug when entities are filtered (only log when NOT affected to reduce spam)
         if (!result && isPlayer) {
             com.miracle.arcanesigils.utils.LogHelper.debug(

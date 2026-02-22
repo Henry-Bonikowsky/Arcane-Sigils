@@ -171,7 +171,8 @@ public class ConditionManager {
                     int playerTier = setBonusManager.getSetBonusTier(context.getPlayer(), setName);
                     yield playerTier >= minTier;
                 }
-                case "IS_BLOCKING_SWORD" -> false; // Legacy combat removed
+                case "IS_BLOCKING_SWORD" -> context.getPlayer() != null
+                        && com.miracle.arcanesigils.listeners.SwordBlockListener.isBlocking(context.getPlayer());
 
                 // ===== ADDITIONAL COMBAT CONDITIONS =====
                 case "HAS_MARK" -> checkHasMark(context, parts);
@@ -191,6 +192,17 @@ public class ConditionManager {
                 case "IS_NEGATIVE_EFFECT" -> checkIsNegativeEffect(context);
                 case "IS_NEGATIVE_MODIFIER" -> checkIsNegativeModifier(context);
                 case "IS_POTION_DAMAGE" -> checkIsPotionDamage(context);
+
+                // ===== FACTION CONDITIONS =====
+                case "IS_ALLY" -> checkFactionRelation(context, "ALLY");
+                case "IS_ENEMY" -> checkFactionRelation(context, "ENEMY");
+                case "IS_TRUCE" -> checkFactionRelation(context, "TRUCE");
+                case "IS_NEUTRAL" -> checkFactionRelation(context, "NEUTRAL");
+                case "IN_OWN_TERRITORY" -> com.miracle.arcanesigils.hooks.FactionsHook.isInOwnTerritory(context.getPlayer());
+                case "IN_ENEMY_TERRITORY" -> com.miracle.arcanesigils.hooks.FactionsHook.isInEnemyTerritory(context.getPlayer());
+                case "IN_WARZONE" -> com.miracle.arcanesigils.hooks.FactionsHook.isInWarzone(context.getPlayer());
+                case "IN_SAFEZONE" -> com.miracle.arcanesigils.hooks.FactionsHook.isInSafezone(context.getPlayer());
+                case "HAS_FACTION" -> com.miracle.arcanesigils.hooks.FactionsHook.hasFaction(context.getPlayer());
 
                 // Default: unknown condition FAILS (safety)
                 default -> {
@@ -873,6 +885,39 @@ public class ConditionManager {
             cause, isPotionDamage);
 
         return isPotionDamage;
+    }
+
+    // ===== FACTION CONDITION IMPLEMENTATIONS =====
+
+    /**
+     * Check faction relation between player and victim/target.
+     * Returns false if no target, target isn't a player, or Factions unavailable.
+     */
+    private boolean checkFactionRelation(EffectContext context, String expectedRelation) {
+        if (!com.miracle.arcanesigils.hooks.FactionsHook.isAvailable()) return false;
+
+        // Get target: victim first, then ability UI target
+        org.bukkit.entity.LivingEntity targetEntity = context.getVictim();
+        if (targetEntity == null) {
+            com.miracle.arcanesigils.binds.TargetGlowManager glowManager =
+                com.miracle.arcanesigils.ArmorSetsPlugin.getInstance().getTargetGlowManager();
+            if (glowManager != null) {
+                targetEntity = glowManager.getTarget(context.getPlayer());
+            }
+        }
+
+        if (!(targetEntity instanceof Player target)) return false;
+
+        String relation = com.miracle.arcanesigils.hooks.FactionsHook.getRelation(context.getPlayer(), target);
+        if (relation == null) return false;
+
+        return switch (expectedRelation) {
+            case "ALLY" -> "MEMBER".equals(relation) || "ALLY".equals(relation);
+            case "ENEMY" -> "ENEMY".equals(relation);
+            case "TRUCE" -> "TRUCE".equals(relation);
+            case "NEUTRAL" -> "NEUTRAL".equals(relation);
+            default -> false;
+        };
     }
 
 }

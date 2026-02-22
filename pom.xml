@@ -6,7 +6,7 @@
 
     <groupId>com.miracle</groupId>
     <artifactId>ArcaneSigils</artifactId>
-    <version>1.2.26</version>
+    <version>1.2.31</version>
     <packaging>jar</packaging>
 
     <name>ArcaneSigils</name>
@@ -92,12 +92,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- FactionsUUID - Optional soft dependency for faction-based targeting -->
+        <!-- Vulcan Factions - Compile-time API for faction integration -->
         <dependency>
-            <groupId>com.github.drtshock</groupId>
+            <groupId>com.massivecraft</groupId>
             <artifactId>Factions</artifactId>
-            <version>0.6.35</version>
+            <version>1.0</version>
             <scope>provided</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Test Dependencies -->
